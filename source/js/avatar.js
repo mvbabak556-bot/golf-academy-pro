@@ -375,12 +375,45 @@
 
   /* ═════════ ۵) سکه: کیف پول ═════════ */
   const COIN_KEY = 'ga_coins';
-  function coinData(){ return LSget(COIN_KEY, {}); }
+  /* سکه‌های «خودکار» (قهرمانی‌ها) ذخیره نمی‌شوند؛ هر بار از روی نتایج فعلی محاسبه می‌شوند.
+     پس اگر مسابقه/قهرمان حذف یا عوض شود، موجودی سکه هم بلافاصله کم/زیاد می‌شود. */
+  let AUTO_FN = null;
+  function setAutoProvider(fn){ AUTO_FN = (typeof fn === 'function') ? fn : null; }
+  function autoOf(user){
+    if (!AUTO_FN) return { total: 0, items: [] };
+    try {
+      const r = AUTO_FN(user) || {};
+      return { total: +r.total || 0, items: Array.isArray(r.items) ? r.items : [] };
+    } catch(e){ return { total: 0, items: [] }; }
+  }
+  function coinData(){
+    const d = LSget(COIN_KEY, {});
+    /* مهاجرت v7: سکه‌های خودکارِ قدیمی که یک‌بار ثبت شده بودند از موجودی ثابت پاک می‌شوند */
+    let dirty = false;
+    Object.keys(d).forEach(u => {
+      const c = d[u];
+      if (!c || c.v7auto) return;
+      let delta = 0;
+      const keep = [];
+      (c.log || []).forEach(l => {
+        if (String(l.source || '').indexOf('auto:') === 0) delta += (+l.amount || 0);
+        else keep.push(l);
+      });
+      if (delta) c.total = (+c.total || 0) - delta;
+      c.log = keep; c.v7auto = 1; dirty = true;
+    });
+    if (dirty) LSset(COIN_KEY, d);
+    return d;
+  }
   function saveCoins(d){ LSset(COIN_KEY, d); }
+  /* coinOf → { total (نهایی), base (ثابت), auto (قهرمانی‌ها), autoItems, log } */
   function coinOf(user){
     const d = coinData();
     if (!d[user]) d[user] = { total:0, log:[] };
-    return d[user];
+    const c = d[user];
+    const a = autoOf(user);
+    const base = +c.total || 0;
+    return { total: base + a.total, base, auto: a.total, autoItems: a.items, log: c.log || [] };
   }
   function addCoins(user, amount, source, note){
     amount = +amount || 0;
@@ -389,17 +422,18 @@
     const c = d[user] || (d[user] = { total:0, log:[] });
     c.total += amount;
     c.log.push({ amount, source, note, date: new Date().toISOString().slice(0,10), ts: Date.now() });
-    saveCoins(d); return c.total;
+    saveCoins(d); return c.total + autoOf(user).total;
   }
   function spendCoins(user, amount, source, note){
     amount = +amount || 0;
     if (amount <= 0) return null;
     const d = coinData();
     const c = d[user] || (d[user] = { total:0, log:[] });
-    if (c.total < amount) return null;
+    const auto = autoOf(user).total;
+    if ((+c.total || 0) + auto < amount) return null;
     c.total -= amount;
     c.log.push({ amount: -amount, source, note, date: new Date().toISOString().slice(0,10), ts: Date.now() });
-    saveCoins(d); return c.total;
+    saveCoins(d); return c.total + auto;
   }
 
   /* ═════════ ۶) درخواست سکه (عضو → تأیید مدیر) ═════════ */
@@ -750,7 +784,7 @@
     badgeSVG, renderAvatarSVG, itemPreviewSVG, rankCard, playRankUp, checkRankUp, particlesHTML, shade,
     BRANDS, CATS, shop, shopAll, shopItem, setShopItem, addShopItem, removeShopItem, resetShop, shopStore,
     avatarData, avatarOf, saveAvatars, setAvatar, selectItem, buyItem, DEFAULT_SEL, FREE_IDS,
-    coinData, coinOf, addCoins, spendCoins,
+    coinData, coinOf, addCoins, spendCoins, setAutoProvider, autoOf,
     reqs, reqsOf, pendingReqs, addReq, decideReq, deleteReq, clearDecided,
   };
 })();

@@ -21,9 +21,23 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   ok(noTag, 'متن اضافهٔ ورودی («همین حالا وارد شو…») از صفحهٔ اول حذف شده است');
   await page.waitForFunction(() => window.__L3D && window.__L3D.state().introDone, null, { timeout: 22000 });
   await page.waitForFunction(() => document.getElementById('l3d-intro').classList.contains('l3d-hide'), null, { timeout: 5000 });
-  const st = await css('#l3d-enter');
-  const bottomAnchor = parseFloat(st.bottom) < 120 && parseFloat(st.top) > page.viewportSize().height * 0.55;
-  ok(bottomAnchor, 'دکمهٔ ورود در موبایل به پایین منتقل شد (hero CTA, bottom=' + st.bottom + ', top=' + st.top + ')');
+  const box = await page.evaluate(() => {
+    const el = document.querySelector('#l3d-enter'); const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    return { top: r.top, h: r.height, w: r.width, bottom: r.bottom, cx: r.left + r.width/2, fs: parseFloat(cs.fontSize) };
+  });
+  const vw = page.viewportSize().width, vh = page.viewportSize().height;
+  ok(box.top < 60 && box.bottom < vh * 0.25, 'v7: دکمهٔ «ورود اعضا» در موبایل بالای صفحه است (top=' + Math.round(box.top) + 'px)');
+  ok(box.w < vw * 0.8 && box.h < 46 && box.fs <= 13, 'v7: دکمهٔ ورود کوچک شد (w=' + Math.round(box.w) + ' h=' + Math.round(box.h) + ' font=' + box.fs + ')');
+  ok(Math.abs(box.cx - vw/2) < 24, 'v7: دکمهٔ ورود در وسط افقی صفحه است');
+  ok(box.bottom < vh - 60, 'v7: دکمهٔ ورود دیگر پایین صفحه بریده نمی‌شود');
+  const bgPos = await page.evaluate(() => getComputedStyle(document.querySelector('#l3d-bg')).backgroundPosition);
+  ok(/^(1|2)[0-9](\.\d+)?%/.test(bgPos.trim()), 'v7: پس‌زمینهٔ لابی در موبایل به سمت چپ تصویر جابه‌جا شد (' + bgPos + ')');
+  const rc = await page.evaluate(() => {
+    const r = document.querySelector('#l3d-reception').getBoundingClientRect();
+    return r.left + r.width/2;
+  });
+  ok(Math.abs(rc - vw/2) < 30, 'v7: هات‌اسپات خانم رسپشن وسط قاب موبایل است (cx=' + Math.round(rc) + ')');
   // 2) ورود عضو p1
   await page.click('#l3d-enter', { force: true });
   await page.waitForTimeout(1000);

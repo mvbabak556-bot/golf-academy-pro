@@ -48,6 +48,63 @@
   function playerUsers(){ return D ? D.loadPlayerUsers() : {}; }
   function savePlayerUsers(u){ try { localStorage.setItem('ga_player_users', JSON.stringify(u)); } catch(e){} }
 
+  /* ══ همگام‌سازی دوطرفهٔ یوزر/رمز: «بازیکنان» ⇄ «یوزرها» ══
+     هر تغییری در فرم بازیکن به لیست یوزرها می‌رود و هر تغییری در لیست یوزرها
+     به مشخصات همان بازیکن برمی‌گردد (یوزر، رمز، نام، فعال/غیرفعال). */
+  function usersAPI(){ return (window.APP && window.APP.users) ? window.APP.users : null; }
+  function syncPlayerToUser(pid, o){
+    const U = usersAPI(); if (!U || !pid) return null;
+    o = o || {};
+    const a = U.list();
+    let rec = a.find(x => +x.pid === +pid);
+    if (!rec && o.user) rec = a.find(x => String(x.user||'').toLowerCase() === String(o.user).toLowerCase() && !x.main);
+    if (!rec){
+      if (!o.user) return null;
+      const id = Math.max(0, ...a.map(x => +x.id || 0)) + 1;
+      rec = { id, user: o.user, pass: o.pass || 'golf1405', name: o.name || ('بازیکن ' + pid),
+              role: 'member', active: o.active !== false, pid: +pid };
+      a.push(rec);
+    } else {
+      if (rec.main) return rec;                       // مدیر اصلی دست‌نخورده می‌ماند
+      if (o.user) rec.user = o.user;
+      if (o.pass) rec.pass = o.pass;
+      if (o.name) rec.name = o.name;
+      if (o.active !== undefined) rec.active = o.active !== false;
+      rec.pid = +pid;
+    }
+    U.save(a);
+    return rec;
+  }
+  function syncUserToPlayer(u){
+    if (!u || !u.pid) return;
+    const pu = playerUsers();
+    const prev = pu[u.pid] || {};
+    pu[u.pid] = Object.assign({}, prev, {
+      user: u.user || prev.user,
+      pass: u.pass || prev.pass,
+      name: u.name || prev.name,
+      active: u.active !== false
+    });
+    savePlayerUsers(pu);
+  }
+  function removeUserOfPlayer(pid){
+    const U = usersAPI(); if (!U || !pid) return;
+    const a = U.list();
+    const keep = a.filter(x => !(+x.pid === +pid && !x.main));
+    if (keep.length !== a.length) U.save(keep);
+  }
+  /* اعتبارِ ورود بازیکن: اول ga_player_users، اگر نبود از لیست یوزرها خوانده می‌شود */
+  function credsOf(pid){
+    const u = playerUsers()[pid];
+    if (u && (u.user || u.pass)) return u;
+    const U = usersAPI();
+    if (U){
+      const rec = U.list().find(x => +x.pid === +pid);
+      if (rec) return { user: rec.user, pass: rec.pass, name: rec.name, active: rec.active !== false };
+    }
+    return {};
+  }
+
   /* ── اطلاعات سایت (تماس با ما + معرفی آکادمی) — قابل ویرایش از مدیریت، خوانده‌شده در صفحهٔ اصلی ── */
   const SITE_DEFAULTS = {
     contact: {
@@ -87,7 +144,7 @@
     const isCustom = pid >= 9000;
     const cu = isCustom ? customPlayers().find(c => c.id === pid - 9000) : null;
     const ed = !isCustom ? playerEdits()[pid] : null;
-    const u = playerUsers()[pid] || {};
+    const u = credsOf(pid) || {};
     return {
       pid, isCustom,
       name: isCustom ? (cu ? cu.name : p[1]) : (ed && ed.name ? ed.name : p[1]),
@@ -422,6 +479,7 @@
       const pu = playerUsers();
       pu[pid] = { user, pass, name: d.name, family: d.family, active: true };
       savePlayerUsers(pu);
+      syncPlayerToUser(pid, { user, pass, name: fullName, active: true });
       APP.reloadData(); APP.go('mgmt');
       APP.toast('بازیکن «' + fullName + '» ثبت شد — یوزر: ' + user + ' / رمز: ' + pass, 'green');
     });
@@ -445,6 +503,7 @@
         }
         const pu = playerUsers();
         if (pu[pid]){ pu[pid].active = activeNow; savePlayerUsers(pu); }
+        syncPlayerToUser(pid, { active: activeNow });
         APP.reloadData(); APP.go('mgmt');
         APP.toast(activeNow ? 'بازیکن فعال شد ✓ — همهٔ امتیازها برگشت' : 'بازیکن غیرفعال شد ⛔ — امتیازها و کارت‌ها حذف شدند', activeNow ? 'green' : 'orange');
       }
@@ -453,6 +512,7 @@
           const lst = customPlayers().filter(x => x.id !== pid - 9000);
           saveCustomPlayers(lst);
           const pu = playerUsers(); delete pu[pid]; savePlayerUsers(pu);
+          removeUserOfPlayer(pid);
           APP.reloadData(); APP.go('mgmt');
           APP.toast('بازیکن حذف شد 🗑', 'orange');
         } else {
@@ -510,11 +570,18 @@
       }
       // یوزر/پسورد
       const pu = playerUsers();
-      const prev = pu[pid] || { active: true };
+      const prev = credsOf(pid) || { active: true };
       if (d.user || d.pass){
         pu[pid] = { user: d.user || prev.user || 'player' + pid, pass: d.pass || prev.pass, name: d.name, family: d.family, active: prev.active !== false };
         savePlayerUsers(pu);
       }
+      // ⇄ همگام‌سازی با لیست یوزرها (یوزر/رمز/نام)
+      syncPlayerToUser(pid, {
+        user: d.user || prev.user || '',
+        pass: d.pass || prev.pass || '',
+        name: fullName,
+        active: prev.active !== false
+      });
       APP.reloadData(); APP.go('mgmt');
       m.style.display = 'none';
       APP.toast('مشخصات «' + fullName + '» ذخیره شد ✓', 'green');
@@ -1644,7 +1711,7 @@
           <td>${u.main ? '<span class="chip green">فعال</span>' : `
             <label class="switch"><input type="checkbox" class="us-act" data-id="${u.id}" ${u.active?'checked':''}><span class="trk"></span></label>`}</td>
           <td><div class="row-actions">
-            <button class="btn sm ghost" data-pw="${u.id}" ${u.main?'disabled':''}>🔑 رمز</button>
+            <button class="btn sm ghost" data-pw="${u.id}" ${u.main?'disabled':''}>🔑 یوزر و رمز</button>
             ${u.main ? '' : `<button class="btn sm danger" data-del="${u.id}">🗑</button>`}
           </div></td>
         </tr>`).join('');
@@ -1665,6 +1732,7 @@
         if (u.user === window.APP.currentUser()){ APP.toast('نمی‌توانید یوزر واردشده را غیرفعال کنید', 'red'); ch.checked = true; return; }
         u.active = ch.checked;
         U.save(a);
+        syncUserToPlayer(u);
         APP.toast((u.active ? 'یوزر «' + u.name + '» فعال شد ✓' : 'یوزر «' + u.name + '» غیرفعال شد ⛔ — دیگر نمی‌تواند وارد شود'), u.active ? 'green' : 'orange');
       }));
       $$('#us-rows [data-pw]').forEach(b => b.addEventListener('click', () => pwModal(+b.dataset.pw)));
@@ -1674,6 +1742,7 @@
         if (!u || u.main) return;
         if (!confirm('یوزر «' + u.name + '» حذف شود؟')) return;
         U.save(a.filter(x => x.id !== id));
+        if (u.pid){ const pu = playerUsers(); delete pu[u.pid]; savePlayerUsers(pu); }
         render();
         APP.toast('یوزر «' + u.name + '» حذف شد 🗑', 'orange');
       }));
@@ -1689,19 +1758,24 @@
         document.body.appendChild(m);
       }
       m.innerHTML = `
-      <div class="glass gold-border" style="width:min(420px,94vw);padding:22px">
-        <div class="card-head"><span class="ic">🔑</span><h3>تغییر رمز — ${esc(u.name)}</h3><span class="tag">${esc(u.user)}</span></div>
-        <div style="margin-top:14px">
-          <label>رمز جدید</label>
-          <div style="display:flex;gap:8px;margin-top:6px">
-            <input class="input" id="pw-val" value="${esc(u.pass)}" style="flex:1;direction:ltr">
-            <button class="btn sm ghost" id="pw-gen">⚡</button>
+      <div class="glass gold-border" style="width:min(440px,94vw);padding:22px">
+        <div class="card-head"><span class="ic">🔑</span><h3>یوزر و رمز — ${esc(u.name)}</h3><span class="tag">${u.pid ? 'عضو بازیکن' : 'یوزر'}</span></div>
+        <div class="field-grid" style="margin-top:12px">
+          <div class="span2"><label>نام نمایشی</label><input class="input" id="pw-name" value="${esc(u.name || '')}" style="width:100%"></div>
+          <div><label>نام کاربری (login)</label><input class="input" id="pw-user" value="${esc(u.user)}" style="width:100%;direction:ltr"></div>
+          <div><label>رمز عبور</label>
+            <div style="display:flex;gap:8px;margin-top:5px">
+              <input class="input" id="pw-val" value="${esc(u.pass)}" style="flex:1;direction:ltr">
+              <button class="btn sm ghost" id="pw-gen">⚡</button>
+            </div>
           </div>
-          <div style="font-size:10.5px;color:var(--muted);margin-top:6px">این رمز همان رمز ورود این یوزر خواهد بود.</div>
+        </div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:8px">
+          ${u.pid ? '🔁 این یوزر به بازیکن شمارهٔ ' + D.fa(u.pid) + ' وصل است — تغییر یوزر/رمز همین‌جا، در فرم «بازیکنان» هم اعمال می‌شود و برعکس.' : 'این یوزر به بازیکنی وصل نیست.'}
         </div>
         <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end">
           <button class="btn sm ghost" id="pw-cancel">بستن</button>
-          <button class="btn sm" id="pw-save">💾 ذخیرهٔ رمز</button>
+          <button class="btn sm" id="pw-save">💾 ذخیره</button>
         </div>
       </div>`;
       m.style.display = 'flex';
@@ -1714,12 +1788,20 @@
       });
       $('#pw-save').addEventListener('click', () => {
         const pw = $('#pw-val').value.trim();
-        if (!pw){ APP.toast('رمز نمی‌تواند خالی باشد', 'red'); return; }
-        const a = U.list(); const t = a.find(x => x.id === id);
-        if (t){ t.pass = pw; U.save(a); }
+        const un = $('#pw-user').value.trim().toLowerCase();
+        const nm = $('#pw-name').value.trim();
+        if (!pw || !un){ APP.toast('یوزر و رمز نمی‌تواند خالی باشد', 'red'); return; }
+        const a2 = U.list();
+        if (a2.some(x => x.id !== id && String(x.user).toLowerCase() === un)){ APP.toast('این نام کاربری قبلاً ثبت شده است', 'red'); return; }
+        const t = a2.find(x => x.id === id);
+        if (t){
+          t.pass = pw; t.user = un; if (nm) t.name = nm;
+          U.save(a2);
+          syncUserToPlayer(t);              // ⇄ برگشت به فرم بازیکن
+        }
         m.style.display = 'none';
         render();
-        APP.toast('رمز «' + t.name + '» تغییر کرد ✓', 'green');
+        APP.toast('یوزر و رمز «' + (t ? t.name : '') + '» ذخیره شد ✓ — در بخش بازیکنان هم به‌روز شد', 'green');
       });
       m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
     }
@@ -1781,11 +1863,14 @@
       let added = 0;
       try {
         const S = gstate().S;
+        const pu = playerUsers();
         S.players.forEach(p => {
-          const exists = a.some(x => x.pid === p[0]);
+          const exists = a.some(x => +x.pid === +p[0]);
           if (!exists){
             const id = Math.max(0, ...a.map(x => x.id)) + 1;
-            a.push({ id, user: 'p' + p[0], pass: 'golf1405', name: p[1], role: 'member', active: true, pid: p[0] });
+            const cr = pu[p[0]] || {};
+            a.push({ id, user: cr.user || ('p' + p[0]), pass: cr.pass || 'golf1405', name: p[1],
+                     role: 'member', active: cr.active !== false, pid: p[0] });
             added++;
           }
         });
@@ -1848,15 +1933,22 @@
     <div class="glass" style="margin-bottom:16px">
       <div class="card-head"><span class="ic">👛</span><h3>کیف‌پول اعضا</h3><span class="tag">${D.fa(wallets.length)} عضو</span></div>
       <div style="overflow-x:auto"><table class="tbl"><thead><tr>
-        <th>عضو</th><th>یوزر</th><th>موجودی</th><th>تراکنش‌ها</th><th>عملیات</th>
+        <th>عضو</th><th>یوزر</th><th>موجودی کل</th><th>🏆 قهرمانی (خودکار)</th><th>ثبت‌شده</th><th>تراکنش‌ها</th><th>عملیات</th>
       </tr></thead><tbody>
-        ${wallets.map(w => `<tr>
+        ${wallets.map(w => `<tr data-wu="${esc(w.u.user)}">
           <td>${esc(w.u.name || w.u.user)}</td><td style="direction:ltr">${esc(w.u.user)}</td>
           <td><b class="gold-text">${D.fa(w.c.total)} 🪙</b></td>
+          <td class="w-auto">${w.c.auto ? '<span class="chip green">+' + D.fa(w.c.auto) + ' 🪙</span>' : '<span style="color:var(--muted)">—</span>'}</td>
+          <td>${D.fa(w.c.base || 0)}</td>
           <td>${D.fa((w.c.log || []).length)}</td>
           <td><button class="btn sm ghost" data-zero="${esc(w.u.user)}" style="font-size:11px">صفر کردن</button></td>
         </tr>`).join('')}
       </tbody></table></div>
+      <div class="golfrule" style="margin-top:10px;line-height:2;font-size:11.5px">
+        🏆 ستون «قهرمانی (خودکار)» از روی <b>نتایج فعلی مسابقات</b> محاسبه می‌شود و ذخیره نمی‌شود؛
+        اگر مسابقه‌ای حذف شود یا قهرمانش عوض شود، همین‌جا و در کیف‌پول عضو هم <b>کم/زیاد</b> می‌شود.
+        (قهرمان سطح ۱ = ۲۰ سکه • سطح ۲ = ۱۵ • سطح ۳ = ۱۰) — دکمهٔ «صفر کردن» فقط سکه‌های ثبت‌شده را صفر می‌کند.
+      </div>
     </div>
 
     <div class="glass">

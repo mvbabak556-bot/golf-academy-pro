@@ -141,8 +141,13 @@ var CSS = `
 @keyframes l3dfade{to{opacity:0}}
 /* ═══ ریسپانسیو (موبایل مود) ═══ */
 @media (max-width:820px){
-  #l3d-enter{top:auto;bottom:80px;right:50%;transform:translateX(50%);width:min(76vw,340px);text-align:center;padding:13px 22px;font-size:13.5px;animation:l3dfbt 3s ease-in-out infinite}
-  #l3d-enter:hover{transform:translateX(50%) translateY(-3px) scale(1.03)}
+  /* دکمهٔ ورود اعضا: کوچک و بالای صفحه (موبایل) */
+  #l3d-enter{top:10px;bottom:auto;left:50%;right:auto;transform:translateX(-50%);width:auto;max-width:72vw;white-space:nowrap;
+    text-align:center;padding:8px 16px;font-size:12px;border-radius:30px;animation:none}
+  #l3d-enter:hover{transform:translateX(-50%) translateY(-2px) scale(1.03)}
+  /* لابی: نمایش سمت چپ تصویر تا خانم رسپشن وسط قاب بیفتد */
+  #l3d-bg{background-position:22% center;width:124%;height:124%}
+  #l3d-reception{left:50%;width:56%;height:44%;top:53%}
   #l3d-dock{bottom:10px;gap:7px;padding:10px 12px;border-radius:18px}
   #l3d-dock .di{min-width:60px;padding:7px 10px;gap:3px}
   #l3d-dock .di .ic{font-size:18px}
@@ -161,7 +166,8 @@ var CSS = `
   #l3d-dock .di{min-width:0;flex:1;padding:7px 3px}
   #l3d-dock .di .ic{font-size:17px}
   #l3d-dock .di .tx{font-size:9px}
-  #l3d-enter{bottom:76px;width:84vw;padding:12px 16px;font-size:12.5px}
+  #l3d-enter{top:8px;bottom:auto;width:auto;max-width:74vw;padding:7px 14px;font-size:11.5px}
+  #l3d-bg{background-position:19% center}
   #l3d-reception .ring{width:62px;height:62px}
   #l3d-reception .lb{top:calc(50% + 52px);font-size:9px;padding:3px 9px}
   #l3d-logo .lg-ch{font-size:26px;letter-spacing:1px}
@@ -218,94 +224,117 @@ var dock = $('#l3d-dock'), dust = $('#l3d-dust');
 var frames = intro.querySelectorAll('.fr');
 var STATE = { mode: 'lobby', panel: null, introDone: false };
 
-/* ─────────── صدا (WebAudio) ─────────── */
+/* ─────────── صدا: فقط اینتروی ابتدای ورود (پنل کاملاً بی‌صداست) ─────────── */
 var AC = null, muted = false;
 function initAudio(){
-  if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
-  try {
-    AC = new (window.AudioContext || window.webkitAudioContext)();
-    var g = AC.createGain(); g.gain.value = .15; g.connect(AC.destination);
-    var len = AC.sampleRate * 3, buf = AC.createBuffer(1, len, AC.sampleRate), d = buf.getChannelData(0);
-    for (var i=0;i<len;i++) d[i] = Math.random()*2-1;
-    var noise = AC.createBufferSource(); noise.buffer = buf; noise.loop = true;
-    var lp = AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 420;
-    var wg = AC.createGain(); wg.gain.value = .2;
-    noise.connect(lp); lp.connect(wg); wg.connect(g); noise.start();
-    var fg = AC.createGain(); fg.gain.value = .05;
-    var bp = AC.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value = 900; bp.Q.value = 1.4;
-    var src2 = AC.createBufferSource(); src2.buffer = buf; src2.loop = true;
-    var lfo = AC.createOscillator(); lfo.frequency.value = .13;
-    var lfoG = AC.createGain(); lfoG.gain.value = .035;
-    lfo.connect(lfoG); lfoG.connect(fg.gain); src2.connect(bp); bp.connect(fg); fg.connect(g); src2.start(); lfo.start();
-    setInterval(function(){
-      if (!AC || AC.state !== 'running' || muted) return;
-      if (Math.random() < .5){
-        var o = AC.createOscillator(), og = AC.createGain();
-        var f = 2400 + Math.random()*1800, t0 = AC.currentTime;
-        o.type = 'sine'; o.frequency.setValueAtTime(f, t0);
-        o.frequency.exponentialRampToValueAtTime(f*1.35, t0 + .09);
-        og.gain.setValueAtTime(0, t0); og.gain.linearRampToValueAtTime(.045, t0 + .02);
-        og.gain.exponentialRampToValueAtTime(.0001, t0 + .2);
-        o.connect(og); og.connect(g); o.start(t0); o.stop(t0 + .25);
-      }
-    }, 2600);
-  } catch(e){ AC = null; }
+  if (AC){ if (AC.state === 'suspended'){ try { AC.resume(); } catch(e){} } return AC; }
+  try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ AC = null; }
+  return AC;
 }
+function audioOn(){ return !!(AC && AC.state === 'running' && !muted); }
 function noiseBuf(){
   if (!AC) return null;
-  if (!noiseBuf._b){
-    var len = AC.sampleRate, b = AC.createBuffer(1, len, AC.sampleRate), d = b.getChannelData(0);
+  if (!noiseBuf._b || noiseBuf._sr !== AC.sampleRate){
+    var len = Math.floor(AC.sampleRate * 2), b = AC.createBuffer(1, len, AC.sampleRate), d = b.getChannelData(0);
     for (var i=0;i<len;i++) d[i] = Math.random()*2-1;
-    noiseBuf._b = b;
+    noiseBuf._b = b; noiseBuf._sr = AC.sampleRate;
   }
   return noiseBuf._b;
 }
+/* صدای اینترو — همه به‌صورت محاسباتی (بدون فایل صوتی، کاملاً آفلاین) */
 function sfx(type){
-  if (!AC || AC.state !== 'running' || muted) return;
+  if (!audioOn()) return;
   var t0 = AC.currentTime;
   try {
-    if (type === 'hover'){
-      var o = AC.createOscillator(), og = AC.createGain();
-      o.type='sine'; o.frequency.value = 900; og.gain.setValueAtTime(.03,t0);
-      og.gain.exponentialRampToValueAtTime(.0001, t0 + .07); o.connect(og); og.connect(AC.destination);
-      o.start(t0); o.stop(t0 + .08);
-    } else if (type === 'boom'){
+    if (type === 'boom'){
       var b = AC.createOscillator(), bg = AC.createGain();
       b.type = 'sine'; b.frequency.setValueAtTime(110, t0);
       b.frequency.exponentialRampToValueAtTime(38, t0 + .9);
       bg.gain.setValueAtTime(.5, t0); bg.gain.exponentialRampToValueAtTime(.001, t0 + 1.1);
       b.connect(bg); bg.connect(AC.destination); b.start(t0); b.stop(t0 + 1.15);
-      var n = AC.createBufferSource(); n.buffer = noiseBuf(); n.loop = false;
+      var n = AC.createBufferSource(); n.buffer = noiseBuf();
       var nf = AC.createBiquadFilter(); nf.type='lowpass'; nf.frequency.setValueAtTime(900, t0); nf.frequency.exponentialRampToValueAtTime(120, t0 + .8);
       var ng = AC.createGain(); ng.gain.setValueAtTime(.34, t0); ng.gain.exponentialRampToValueAtTime(.001, t0 + .9);
       n.connect(nf); nf.connect(ng); ng.connect(AC.destination); n.start(t0); n.stop(t0 + .95);
-    } else if (type === 'open'){
-      var s = AC.createBufferSource(); s.buffer = noiseBuf(); s.loop = false;
-      var bp2 = AC.createBiquadFilter(); bp2.type='bandpass';
-      bp2.frequency.setValueAtTime(300, t0); bp2.frequency.exponentialRampToValueAtTime(1600, t0 + .3); bp2.Q.value = 2.2;
-      var gg = AC.createGain(); gg.gain.setValueAtTime(.11, t0); gg.gain.exponentialRampToValueAtTime(.001, t0 + .34);
-      s.connect(bp2); bp2.connect(gg); gg.connect(AC.destination); s.start(t0); s.stop(t0 + .36);
-    } else if (type === 'close'){
-      var s2 = AC.createBufferSource(); s2.buffer = noiseBuf(); s2.loop = false;
-      var bp3 = AC.createBiquadFilter(); bp3.type='bandpass';
-      bp3.frequency.setValueAtTime(1500, t0); bp3.frequency.exponentialRampToValueAtTime(250, t0 + .3); bp3.Q.value = 2;
-      var g3 = AC.createGain(); g3.gain.setValueAtTime(.1, t0); g3.gain.exponentialRampToValueAtTime(.001, t0 + .32);
-      s2.connect(bp3); bp3.connect(g3); g3.connect(AC.destination); s2.start(t0); s2.stop(t0 + .34);
-    } else if (type === 'hit'){
-      var h = AC.createOscillator(), hg = AC.createGain();
-      h.type='triangle'; h.frequency.setValueAtTime(190, t0); h.frequency.exponentialRampToValueAtTime(55, t0 + .22);
-      hg.gain.setValueAtTime(.26, t0); hg.gain.exponentialRampToValueAtTime(.001, t0 + .3);
-      h.connect(hg); hg.connect(AC.destination); h.start(t0); h.stop(t0 + .32);
     } else if (type === 'whoosh'){
-      var w = AC.createBufferSource(); w.buffer = noiseBuf(); w.loop = false;
+      var w = AC.createBufferSource(); w.buffer = noiseBuf();
       var wf = AC.createBiquadFilter(); wf.type='bandpass';
       wf.frequency.setValueAtTime(220, t0); wf.frequency.exponentialRampToValueAtTime(2400, t0 + .5); wf.Q.value = 1.1;
       var wg2 = AC.createGain(); wg2.gain.setValueAtTime(.0001, t0); wg2.gain.exponentialRampToValueAtTime(.18, t0 + .16);
       wg2.gain.exponentialRampToValueAtTime(.001, t0 + .55);
       w.connect(wf); wf.connect(wg2); wg2.connect(AC.destination); w.start(t0); w.stop(t0 + .6);
+    } else if (type === 'sweet'){
+      /* ★ ضربهٔ «سوئیت‌اسپات» — دقیقاً روی فریم ضربه زدن به توپ */
+      var sw = AC.createBufferSource(); sw.buffer = noiseBuf();       // سوت چوب گلف قبل از برخورد
+      var swf = AC.createBiquadFilter(); swf.type='bandpass'; swf.Q.value = 1.6;
+      swf.frequency.setValueAtTime(900, t0); swf.frequency.exponentialRampToValueAtTime(3200, t0 + .12);
+      var swg = AC.createGain(); swg.gain.setValueAtTime(.0001, t0); swg.gain.exponentialRampToValueAtTime(.14, t0 + .07);
+      swg.gain.exponentialRampToValueAtTime(.0008, t0 + .16);
+      sw.connect(swf); swf.connect(swg); swg.connect(AC.destination); sw.start(t0); sw.stop(t0 + .18);
+      var ti = t0 + .06;                                              // خودِ برخورد: کلیکِ فلزی کوتاه
+      var ck = AC.createBufferSource(); ck.buffer = noiseBuf();
+      var cf = AC.createBiquadFilter(); cf.type='highpass'; cf.frequency.value = 2600;
+      var cg = AC.createGain(); cg.gain.setValueAtTime(.55, ti); cg.gain.exponentialRampToValueAtTime(.0008, ti + .055);
+      ck.connect(cf); cf.connect(cg); cg.connect(AC.destination); ck.start(ti); ck.stop(ti + .07);
+      var tn = AC.createOscillator(), tg = AC.createGain();           // رزونانس سرِ چوب
+      tn.type = 'triangle'; tn.frequency.setValueAtTime(1750, ti); tn.frequency.exponentialRampToValueAtTime(760, ti + .1);
+      tg.gain.setValueAtTime(.34, ti); tg.gain.exponentialRampToValueAtTime(.0008, ti + .16);
+      tn.connect(tg); tg.connect(AC.destination); tn.start(ti); tn.stop(ti + .18);
+      var th = AC.createOscillator(), thg = AC.createGain();          // تهِ ضربه (بم)
+      th.type = 'sine'; th.frequency.setValueAtTime(210, ti); th.frequency.exponentialRampToValueAtTime(70, ti + .18);
+      thg.gain.setValueAtTime(.3, ti); thg.gain.exponentialRampToValueAtTime(.0008, ti + .24);
+      th.connect(thg); thg.connect(AC.destination); th.start(ti); th.stop(ti + .26);
+    } else if (type === 'drop'){
+      /* افتادن توپ داخل هول: برخورد به فنجان + غلت */
+      for (var k=0;k<3;k++){
+        var tk = t0 + k*.075;
+        var o = AC.createOscillator(), og = AC.createGain();
+        o.type = 'sine'; o.frequency.setValueAtTime(520 - k*90, tk); o.frequency.exponentialRampToValueAtTime(180, tk + .09);
+        og.gain.setValueAtTime(.24 - k*.05, tk); og.gain.exponentialRampToValueAtTime(.0008, tk + .12);
+        o.connect(og); og.connect(AC.destination); o.start(tk); o.stop(tk + .14);
+      }
+      var r = AC.createBufferSource(); r.buffer = noiseBuf();
+      var rf = AC.createBiquadFilter(); rf.type='bandpass'; rf.frequency.value = 380; rf.Q.value = 2.4;
+      var rg = AC.createGain(); rg.gain.setValueAtTime(.16, t0); rg.gain.exponentialRampToValueAtTime(.0008, t0 + .4);
+      r.connect(rf); rf.connect(rg); rg.connect(AC.destination); r.start(t0); r.stop(t0 + .45);
+    } else if (type === 'applause'){
+      /* 👏 تشویق جمعیت — موج نویز + کف‌زدن‌های تصادفی + هلهله */
+      var dur = 3.4, st = t0 + .12;
+      var bed = AC.createBufferSource(); bed.buffer = noiseBuf(); bed.loop = true;
+      var bf = AC.createBiquadFilter(); bf.type='bandpass'; bf.frequency.value = 1500; bf.Q.value = .7;
+      var bg2 = AC.createGain();
+      bg2.gain.setValueAtTime(.0001, st);
+      bg2.gain.linearRampToValueAtTime(.30, st + .45);
+      bg2.gain.linearRampToValueAtTime(.24, st + 1.7);
+      bg2.gain.exponentialRampToValueAtTime(.0008, st + dur);
+      bed.connect(bf); bf.connect(bg2); bg2.connect(AC.destination); bed.start(st); bed.stop(st + dur + .1);
+      var claps = 54;
+      for (var c=0;c<claps;c++){
+        var ct = st + Math.random()*Math.random()*dur*.92 + .02;
+        var cs = AC.createBufferSource(); cs.buffer = noiseBuf();
+        var cfl = AC.createBiquadFilter(); cfl.type='bandpass';
+        cfl.frequency.value = 1100 + Math.random()*2600; cfl.Q.value = 1.1 + Math.random();
+        var cgn = AC.createGain();
+        var amp = .10 + Math.random()*.16;
+        cgn.gain.setValueAtTime(amp, ct); cgn.gain.exponentialRampToValueAtTime(.0006, ct + .045 + Math.random()*.05);
+        cs.connect(cfl); cfl.connect(cgn); cgn.connect(AC.destination); cs.start(ct); cs.stop(ct + .12);
+      }
+      var ch = AC.createBufferSource(); ch.buffer = noiseBuf(); ch.loop = true;   // هلهلهٔ جمعیت
+      var chf = AC.createBiquadFilter(); chf.type='bandpass'; chf.Q.value = 1.6;
+      chf.frequency.setValueAtTime(520, st); chf.frequency.linearRampToValueAtTime(760, st + .8);
+      chf.frequency.linearRampToValueAtTime(430, st + dur);
+      var chg = AC.createGain();
+      chg.gain.setValueAtTime(.0001, st); chg.gain.linearRampToValueAtTime(.13, st + .6);
+      chg.gain.exponentialRampToValueAtTime(.0008, st + dur);
+      ch.connect(chf); chf.connect(chg); chg.connect(AC.destination); ch.start(st); ch.stop(st + dur + .1);
     }
   } catch(e){}
 }
+
+/* باز کردن قفل صدا با اولین تماس کاربر (سیاست autoplay مرورگرها) — بدون هیچ صدای پنل */
+['pointerdown','touchstart','keydown'].forEach(function(ev){
+  document.addEventListener(ev, function(){ initAudio(); }, { passive: true });
+});
 
 /* ─────────── اطلاعات سایت (قابل ویرایش از پلن مدیریت) ─────────── */
 function siteInfo(){
@@ -357,9 +386,9 @@ function playIntro(){
     { t: 1800, fn: function(){ $('#l3d-lgsub').classList.add('on'); $('#l3d-lgline').classList.add('on'); } },                    // زیرنویس
     { t: 3000, fn: function(){ lg.style.opacity = 0; sfx('whoosh'); } },                                                          // محو لوگو
     { t: 3400, fn: function(){ frames[0].classList.add('on','kz'); sfx('whoosh'); } },                                            // توپ روی Tee
-    { t: 4900, fn: function(){ frames[0].classList.remove('on'); frames[1].classList.add('on','kz2'); sfx('whoosh'); } },         // ضربهٔ Swing
-    { t: 6200, fn: function(){ frames[1].classList.remove('on'); frames[2].classList.add('on','kz'); sfx('hit'); $('#l3d-flash').classList.add('on'); } },  // تعقیب توپ در آسمان
-    { t: 7700, fn: function(){ frames[2].classList.remove('on'); frames[3].classList.add('on','kz2'); sfx('whoosh'); } },         // ورود به حفره
+    { t: 4900, fn: function(){ frames[0].classList.remove('on'); frames[1].classList.add('on','kz2'); sfx('sweet'); } },           // ضربهٔ Swing + صدای سوئیت‌اسپات
+    { t: 6200, fn: function(){ frames[1].classList.remove('on'); frames[2].classList.add('on','kz'); sfx('whoosh'); $('#l3d-flash').classList.add('on'); } },  // تعقیب توپ در آسمان
+    { t: 7700, fn: function(){ frames[2].classList.remove('on'); frames[3].classList.add('on','kz2'); sfx('drop'); sfx('applause'); } },  // ورود توپ به حفره + تشویق جمعیت
     { t: 8900, fn: function(){ frames[3].classList.add('kz'); $('#l3d-wave').classList.add('on'); sfx('boom'); } },               // موج قهرمانی
     { t: 10000, fn: function(){ finishIntro(); } }                                                                                 // لابی ظاهر می‌شود
   ];
@@ -447,7 +476,6 @@ function renderDock(){
 var panelNav = null, monthSel = 0, trophySel = 0;
 function openPanel(sec){
   STATE.panel = sec;
-  sfx('open');
   var html = '';
   if (sec === 'reception') html = panelReception();
   else if (sec === 'info') html = panelInfo();
@@ -461,7 +489,6 @@ function openPanel(sec){
 }
 function closePanel(){
   if (!panel.classList.contains('on')) return;
-  sfx('close');
   panel.classList.remove('on');
   resetParallax();
   STATE.mode = 'lobby';
@@ -665,7 +692,6 @@ root.addEventListener('click', function(e){
 });
 $('#l3d-reception').addEventListener('click', function(ev){ ev.stopPropagation(); openPanel('reception'); });
 $('#l3d-enter').addEventListener('click', function(){
-  sfx('open');
   root.classList.add('fadeout');
   setTimeout(function(){
     root.style.display = 'none';
@@ -685,7 +711,6 @@ try {
 /* ─────────── شروع ─────────── */
 renderDock();
 playIntro();
-document.addEventListener('pointerdown', function(){ initAudio(); sfx('hover'); }, { once: true });
 
 /* ─────────── API تست ─────────── */
 window.__L3D = {

@@ -1245,32 +1245,34 @@
     { lvl:2, rank:1, amount:15, label:'قهرمان مسابقهٔ سطح ۲' },
     { lvl:3, rank:1, amount:10, label:'قهرمان مسابقهٔ سطح ۳' },
   ];
-  /* سکه‌های خودکار مسابقات — یک‌بار برای هر رتبه از هر مسابقه */
-  function autoAwardCoins(user){
-    let gained = 0;
+  /* ══ سکه‌های خودکار مسابقات (v7) ══
+     ذخیره نمی‌شوند؛ همیشه از روی «نتایج فعلی» محاسبه می‌شوند.
+     → حذف مسابقه یا تغییر قهرمان = کم/زیاد شدن فوری موجودی سکهٔ همان عضو. */
+  function autoCoinsOf(user){
+    const out = { total: 0, items: [] };
     try {
-      const results = D.loadResults ? D.loadResults() : {};
-      const c = coinOf(user);
-      const keys = new Set(c.log.map(l => l.source));
-      Object.keys(results).forEach(tid => {
-        const t = S.tournaments.find(x => x[0] === +tid);
+      const pid = (userRec(user) || {}).pid;
+      if (!pid) return out;
+      const results = (D && D.loadResults) ? D.loadResults() : {};
+      Object.keys(results || {}).forEach(tid => {
+        const t = (S.tournaments || []).find(x => +x[0] === +tid);
         if (!t) return;
-        const top = results[tid].top || {};
-        const pid = (userRec(user) || {}).pid;
-        if (!pid) return;
+        const r = results[tid] || {};
+        if (r.active === false) return;
+        const top = r.top || {};
         COIN_AUTO.forEach(rule => {
           if (+t[2] !== rule.lvl) return;
-          if (+top[rule.rank] !== pid) return;
-          const key = 'auto:' + tid + ':' + rule.rank;
-          if (keys.has(key)) return;
-          addCoins(user, rule.amount, key, rule.label);
-          keys.add(key);
-          gained += rule.amount;
+          if (+top[rule.rank] !== +pid) return;
+          out.total += rule.amount;
+          out.items.push({ tid: +tid, title: t[1], lvl: +t[2], amount: rule.amount, label: rule.label });
         });
       });
     } catch(e){}
-    return gained;
+    return out;
   }
+  AV.setAutoProvider(autoCoinsOf);
+  /* سکه‌های خودکارِ هر بازیکن (برای پنل مدیریت) */
+  window.APP_AUTOCOINS = autoCoinsOf;
   /* وضعیت هر فعالیت برای کاربر: can | pending | done | done-today */
   function ruleState(user, ruleId){
     const rule = COIN_RULES.find(r => r.id === ruleId);
@@ -1417,9 +1419,8 @@
 
   /* ── تب دریافت سکه: ارسال درخواست به مدیریت ── */
   function memEarn(body, o){
-    const gained = autoAwardCoins(currentUser);
-    if (gained) updateCoinBadge();
     const c = coinOf(currentUser);
+    const auto = c.autoItems || [];
     let rows = '';
     COIN_RULES.forEach(r => {
       const st = ruleState(currentUser, r.id);
@@ -1443,7 +1444,7 @@
     });
     const mine = AV.reqsOf(currentUser).slice(0, 12);
     body.innerHTML = `
-    ${gained ? `<div class="glass" style="margin-bottom:14px;padding:13px 16px;background:linear-gradient(135deg,rgba(30,187,138,.14),rgba(30,187,138,.04));border:1px solid rgba(30,187,138,.4);font-size:13px">✅ سکه‌های مسابقات شما ثبت شد: <b>+${D.fa(gained)} 🪙</b></div>` : ''}
+    ${c.auto ? `<div class="glass" style="margin-bottom:14px;padding:13px 16px;background:linear-gradient(135deg,rgba(30,187,138,.14),rgba(30,187,138,.04));border:1px solid rgba(30,187,138,.4);font-size:13px">🏆 سکه‌های قهرمانی شما (خودکار): <b>+${D.fa(c.auto)} 🪙</b> از ${D.fa(auto.length)} قهرمانی — با تغییر نتایج مسابقات، این عدد هم به‌روز می‌شود.</div>` : ''}
     <div class="glass" style="margin-bottom:16px">
       <div class="card-head"><span class="ic">🪙</span><h3>دریافت سکه — ارسال درخواست به مدیریت</h3><span class="tag">سکهٔ من: ${D.fa(c.total)}</span></div>
       <div class="golfrule" style="margin:8px 0 12px;line-height:2">📝 با زدن «ارسال درخواست»، درخواست شما به <b>پنل مدیریت</b> می‌رود. سکه فقط پس از <b>تأیید مدیر</b> به کیف‌پول شما اضافه می‌شود.</div>
@@ -1461,10 +1462,17 @@
         </div>`).join('') : `<div style="color:var(--muted);font-size:12.5px;padding:8px">هنوز درخواستی نداده‌اید.</div>`}
     </div>
     <div class="glass">
-      <div class="card-head"><span class="ic">🏆</span><h3>سکه‌های خودکار مسابقات</h3><span class="tag">از نتایج فصل</span></div>
+      <div class="card-head"><span class="ic">🏆</span><h3>سکه‌های خودکار مسابقات</h3><span class="tag" id="mz-auto-tag">${D.fa(c.auto || 0)} 🪙 از ${D.fa(auto.length)} قهرمانی</span></div>
       <div style="font-size:12px;color:var(--muted);margin-top:8px;line-height:2">
         قهرمانی در مسابقات به‌صورت خودکار و بدون نیاز به تأیید، برای شما سکه می‌سازد:<br>
         🥇 قهرمان مسابقهٔ سطح ۱ = <b class="gold-text">۲۰ سکه</b> &nbsp;•&nbsp; سطح ۲ = <b class="gold-text">۱۵ سکه</b> &nbsp;•&nbsp; سطح ۳ = <b class="gold-text">۱۰ سکه</b>
+      </div>
+      <div id="mz-autolist" style="margin-top:10px">
+        ${auto.length ? auto.map(a => `
+          <div class="req-row" data-autotid="${a.tid}">
+            <span style="flex:1;min-width:170px;font-size:12.5px">🥇 ${esc(a.title)}<div style="font-size:10.5px;color:var(--muted);margin-top:3px">${esc(a.label)}</div></span>
+            <span class="chip gold">+${D.fa(a.amount)} 🪙</span>
+          </div>`).join('') : `<div style="color:var(--muted);font-size:12.5px;padding:8px">هنوز قهرمانی ثبت‌شده‌ای ندارید.</div>`}
       </div>
     </div>`;
     body.querySelectorAll('[data-req]').forEach(b => b.addEventListener('click', () => {

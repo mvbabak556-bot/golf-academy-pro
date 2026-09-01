@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>آکادمی گلف ۱۴۰۵ — داشبورد PRO</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23f6e27a' stroke='%23b58c1c' stroke-width='3'/%3E%3Cg fill='%23c9a227'%3E%3Ccircle cx='24' cy='24' r='3'/%3E%3Ccircle cx='40' cy='24' r='3'/%3E%3Ccircle cx='32' cy='34' r='3'/%3E%3Ccircle cx='22' cy='42' r='3'/%3E%3Ccircle cx='42' cy='42' r='3'/%3E%3C/g%3E%3C/svg%3E">
 
     <style>/* ═══════════════════════════════ GolfAcademy PRO — Style ═══════════════════════════════ */
 :root{
@@ -2169,8 +2170,13 @@ var CSS = `
 @keyframes l3dfade{to{opacity:0}}
 /* ═══ ریسپانسیو (موبایل مود) ═══ */
 @media (max-width:820px){
-  #l3d-enter{top:auto;bottom:80px;right:50%;transform:translateX(50%);width:min(76vw,340px);text-align:center;padding:13px 22px;font-size:13.5px;animation:l3dfbt 3s ease-in-out infinite}
-  #l3d-enter:hover{transform:translateX(50%) translateY(-3px) scale(1.03)}
+  /* دکمهٔ ورود اعضا: کوچک و بالای صفحه (موبایل) */
+  #l3d-enter{top:10px;bottom:auto;left:50%;right:auto;transform:translateX(-50%);width:auto;max-width:72vw;white-space:nowrap;
+    text-align:center;padding:8px 16px;font-size:12px;border-radius:30px;animation:none}
+  #l3d-enter:hover{transform:translateX(-50%) translateY(-2px) scale(1.03)}
+  /* لابی: نمایش سمت چپ تصویر تا خانم رسپشن وسط قاب بیفتد */
+  #l3d-bg{background-position:22% center;width:124%;height:124%}
+  #l3d-reception{left:50%;width:56%;height:44%;top:53%}
   #l3d-dock{bottom:10px;gap:7px;padding:10px 12px;border-radius:18px}
   #l3d-dock .di{min-width:60px;padding:7px 10px;gap:3px}
   #l3d-dock .di .ic{font-size:18px}
@@ -2189,7 +2195,8 @@ var CSS = `
   #l3d-dock .di{min-width:0;flex:1;padding:7px 3px}
   #l3d-dock .di .ic{font-size:17px}
   #l3d-dock .di .tx{font-size:9px}
-  #l3d-enter{bottom:76px;width:84vw;padding:12px 16px;font-size:12.5px}
+  #l3d-enter{top:8px;bottom:auto;width:auto;max-width:74vw;padding:7px 14px;font-size:11.5px}
+  #l3d-bg{background-position:19% center}
   #l3d-reception .ring{width:62px;height:62px}
   #l3d-reception .lb{top:calc(50% + 52px);font-size:9px;padding:3px 9px}
   #l3d-logo .lg-ch{font-size:26px;letter-spacing:1px}
@@ -2246,94 +2253,117 @@ var dock = $('#l3d-dock'), dust = $('#l3d-dust');
 var frames = intro.querySelectorAll('.fr');
 var STATE = { mode: 'lobby', panel: null, introDone: false };
 
-/* ─────────── صدا (WebAudio) ─────────── */
+/* ─────────── صدا: فقط اینتروی ابتدای ورود (پنل کاملاً بی‌صداست) ─────────── */
 var AC = null, muted = false;
 function initAudio(){
-  if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
-  try {
-    AC = new (window.AudioContext || window.webkitAudioContext)();
-    var g = AC.createGain(); g.gain.value = .15; g.connect(AC.destination);
-    var len = AC.sampleRate * 3, buf = AC.createBuffer(1, len, AC.sampleRate), d = buf.getChannelData(0);
-    for (var i=0;i<len;i++) d[i] = Math.random()*2-1;
-    var noise = AC.createBufferSource(); noise.buffer = buf; noise.loop = true;
-    var lp = AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 420;
-    var wg = AC.createGain(); wg.gain.value = .2;
-    noise.connect(lp); lp.connect(wg); wg.connect(g); noise.start();
-    var fg = AC.createGain(); fg.gain.value = .05;
-    var bp = AC.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value = 900; bp.Q.value = 1.4;
-    var src2 = AC.createBufferSource(); src2.buffer = buf; src2.loop = true;
-    var lfo = AC.createOscillator(); lfo.frequency.value = .13;
-    var lfoG = AC.createGain(); lfoG.gain.value = .035;
-    lfo.connect(lfoG); lfoG.connect(fg.gain); src2.connect(bp); bp.connect(fg); fg.connect(g); src2.start(); lfo.start();
-    setInterval(function(){
-      if (!AC || AC.state !== 'running' || muted) return;
-      if (Math.random() < .5){
-        var o = AC.createOscillator(), og = AC.createGain();
-        var f = 2400 + Math.random()*1800, t0 = AC.currentTime;
-        o.type = 'sine'; o.frequency.setValueAtTime(f, t0);
-        o.frequency.exponentialRampToValueAtTime(f*1.35, t0 + .09);
-        og.gain.setValueAtTime(0, t0); og.gain.linearRampToValueAtTime(.045, t0 + .02);
-        og.gain.exponentialRampToValueAtTime(.0001, t0 + .2);
-        o.connect(og); og.connect(g); o.start(t0); o.stop(t0 + .25);
-      }
-    }, 2600);
-  } catch(e){ AC = null; }
+  if (AC){ if (AC.state === 'suspended'){ try { AC.resume(); } catch(e){} } return AC; }
+  try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ AC = null; }
+  return AC;
 }
+function audioOn(){ return !!(AC && AC.state === 'running' && !muted); }
 function noiseBuf(){
   if (!AC) return null;
-  if (!noiseBuf._b){
-    var len = AC.sampleRate, b = AC.createBuffer(1, len, AC.sampleRate), d = b.getChannelData(0);
+  if (!noiseBuf._b || noiseBuf._sr !== AC.sampleRate){
+    var len = Math.floor(AC.sampleRate * 2), b = AC.createBuffer(1, len, AC.sampleRate), d = b.getChannelData(0);
     for (var i=0;i<len;i++) d[i] = Math.random()*2-1;
-    noiseBuf._b = b;
+    noiseBuf._b = b; noiseBuf._sr = AC.sampleRate;
   }
   return noiseBuf._b;
 }
+/* صدای اینترو — همه به‌صورت محاسباتی (بدون فایل صوتی، کاملاً آفلاین) */
 function sfx(type){
-  if (!AC || AC.state !== 'running' || muted) return;
+  if (!audioOn()) return;
   var t0 = AC.currentTime;
   try {
-    if (type === 'hover'){
-      var o = AC.createOscillator(), og = AC.createGain();
-      o.type='sine'; o.frequency.value = 900; og.gain.setValueAtTime(.03,t0);
-      og.gain.exponentialRampToValueAtTime(.0001, t0 + .07); o.connect(og); og.connect(AC.destination);
-      o.start(t0); o.stop(t0 + .08);
-    } else if (type === 'boom'){
+    if (type === 'boom'){
       var b = AC.createOscillator(), bg = AC.createGain();
       b.type = 'sine'; b.frequency.setValueAtTime(110, t0);
       b.frequency.exponentialRampToValueAtTime(38, t0 + .9);
       bg.gain.setValueAtTime(.5, t0); bg.gain.exponentialRampToValueAtTime(.001, t0 + 1.1);
       b.connect(bg); bg.connect(AC.destination); b.start(t0); b.stop(t0 + 1.15);
-      var n = AC.createBufferSource(); n.buffer = noiseBuf(); n.loop = false;
+      var n = AC.createBufferSource(); n.buffer = noiseBuf();
       var nf = AC.createBiquadFilter(); nf.type='lowpass'; nf.frequency.setValueAtTime(900, t0); nf.frequency.exponentialRampToValueAtTime(120, t0 + .8);
       var ng = AC.createGain(); ng.gain.setValueAtTime(.34, t0); ng.gain.exponentialRampToValueAtTime(.001, t0 + .9);
       n.connect(nf); nf.connect(ng); ng.connect(AC.destination); n.start(t0); n.stop(t0 + .95);
-    } else if (type === 'open'){
-      var s = AC.createBufferSource(); s.buffer = noiseBuf(); s.loop = false;
-      var bp2 = AC.createBiquadFilter(); bp2.type='bandpass';
-      bp2.frequency.setValueAtTime(300, t0); bp2.frequency.exponentialRampToValueAtTime(1600, t0 + .3); bp2.Q.value = 2.2;
-      var gg = AC.createGain(); gg.gain.setValueAtTime(.11, t0); gg.gain.exponentialRampToValueAtTime(.001, t0 + .34);
-      s.connect(bp2); bp2.connect(gg); gg.connect(AC.destination); s.start(t0); s.stop(t0 + .36);
-    } else if (type === 'close'){
-      var s2 = AC.createBufferSource(); s2.buffer = noiseBuf(); s2.loop = false;
-      var bp3 = AC.createBiquadFilter(); bp3.type='bandpass';
-      bp3.frequency.setValueAtTime(1500, t0); bp3.frequency.exponentialRampToValueAtTime(250, t0 + .3); bp3.Q.value = 2;
-      var g3 = AC.createGain(); g3.gain.setValueAtTime(.1, t0); g3.gain.exponentialRampToValueAtTime(.001, t0 + .32);
-      s2.connect(bp3); bp3.connect(g3); g3.connect(AC.destination); s2.start(t0); s2.stop(t0 + .34);
-    } else if (type === 'hit'){
-      var h = AC.createOscillator(), hg = AC.createGain();
-      h.type='triangle'; h.frequency.setValueAtTime(190, t0); h.frequency.exponentialRampToValueAtTime(55, t0 + .22);
-      hg.gain.setValueAtTime(.26, t0); hg.gain.exponentialRampToValueAtTime(.001, t0 + .3);
-      h.connect(hg); hg.connect(AC.destination); h.start(t0); h.stop(t0 + .32);
     } else if (type === 'whoosh'){
-      var w = AC.createBufferSource(); w.buffer = noiseBuf(); w.loop = false;
+      var w = AC.createBufferSource(); w.buffer = noiseBuf();
       var wf = AC.createBiquadFilter(); wf.type='bandpass';
       wf.frequency.setValueAtTime(220, t0); wf.frequency.exponentialRampToValueAtTime(2400, t0 + .5); wf.Q.value = 1.1;
       var wg2 = AC.createGain(); wg2.gain.setValueAtTime(.0001, t0); wg2.gain.exponentialRampToValueAtTime(.18, t0 + .16);
       wg2.gain.exponentialRampToValueAtTime(.001, t0 + .55);
       w.connect(wf); wf.connect(wg2); wg2.connect(AC.destination); w.start(t0); w.stop(t0 + .6);
+    } else if (type === 'sweet'){
+      /* ★ ضربهٔ «سوئیت‌اسپات» — دقیقاً روی فریم ضربه زدن به توپ */
+      var sw = AC.createBufferSource(); sw.buffer = noiseBuf();       // سوت چوب گلف قبل از برخورد
+      var swf = AC.createBiquadFilter(); swf.type='bandpass'; swf.Q.value = 1.6;
+      swf.frequency.setValueAtTime(900, t0); swf.frequency.exponentialRampToValueAtTime(3200, t0 + .12);
+      var swg = AC.createGain(); swg.gain.setValueAtTime(.0001, t0); swg.gain.exponentialRampToValueAtTime(.14, t0 + .07);
+      swg.gain.exponentialRampToValueAtTime(.0008, t0 + .16);
+      sw.connect(swf); swf.connect(swg); swg.connect(AC.destination); sw.start(t0); sw.stop(t0 + .18);
+      var ti = t0 + .06;                                              // خودِ برخورد: کلیکِ فلزی کوتاه
+      var ck = AC.createBufferSource(); ck.buffer = noiseBuf();
+      var cf = AC.createBiquadFilter(); cf.type='highpass'; cf.frequency.value = 2600;
+      var cg = AC.createGain(); cg.gain.setValueAtTime(.55, ti); cg.gain.exponentialRampToValueAtTime(.0008, ti + .055);
+      ck.connect(cf); cf.connect(cg); cg.connect(AC.destination); ck.start(ti); ck.stop(ti + .07);
+      var tn = AC.createOscillator(), tg = AC.createGain();           // رزونانس سرِ چوب
+      tn.type = 'triangle'; tn.frequency.setValueAtTime(1750, ti); tn.frequency.exponentialRampToValueAtTime(760, ti + .1);
+      tg.gain.setValueAtTime(.34, ti); tg.gain.exponentialRampToValueAtTime(.0008, ti + .16);
+      tn.connect(tg); tg.connect(AC.destination); tn.start(ti); tn.stop(ti + .18);
+      var th = AC.createOscillator(), thg = AC.createGain();          // تهِ ضربه (بم)
+      th.type = 'sine'; th.frequency.setValueAtTime(210, ti); th.frequency.exponentialRampToValueAtTime(70, ti + .18);
+      thg.gain.setValueAtTime(.3, ti); thg.gain.exponentialRampToValueAtTime(.0008, ti + .24);
+      th.connect(thg); thg.connect(AC.destination); th.start(ti); th.stop(ti + .26);
+    } else if (type === 'drop'){
+      /* افتادن توپ داخل هول: برخورد به فنجان + غلت */
+      for (var k=0;k<3;k++){
+        var tk = t0 + k*.075;
+        var o = AC.createOscillator(), og = AC.createGain();
+        o.type = 'sine'; o.frequency.setValueAtTime(520 - k*90, tk); o.frequency.exponentialRampToValueAtTime(180, tk + .09);
+        og.gain.setValueAtTime(.24 - k*.05, tk); og.gain.exponentialRampToValueAtTime(.0008, tk + .12);
+        o.connect(og); og.connect(AC.destination); o.start(tk); o.stop(tk + .14);
+      }
+      var r = AC.createBufferSource(); r.buffer = noiseBuf();
+      var rf = AC.createBiquadFilter(); rf.type='bandpass'; rf.frequency.value = 380; rf.Q.value = 2.4;
+      var rg = AC.createGain(); rg.gain.setValueAtTime(.16, t0); rg.gain.exponentialRampToValueAtTime(.0008, t0 + .4);
+      r.connect(rf); rf.connect(rg); rg.connect(AC.destination); r.start(t0); r.stop(t0 + .45);
+    } else if (type === 'applause'){
+      /* 👏 تشویق جمعیت — موج نویز + کف‌زدن‌های تصادفی + هلهله */
+      var dur = 3.4, st = t0 + .12;
+      var bed = AC.createBufferSource(); bed.buffer = noiseBuf(); bed.loop = true;
+      var bf = AC.createBiquadFilter(); bf.type='bandpass'; bf.frequency.value = 1500; bf.Q.value = .7;
+      var bg2 = AC.createGain();
+      bg2.gain.setValueAtTime(.0001, st);
+      bg2.gain.linearRampToValueAtTime(.30, st + .45);
+      bg2.gain.linearRampToValueAtTime(.24, st + 1.7);
+      bg2.gain.exponentialRampToValueAtTime(.0008, st + dur);
+      bed.connect(bf); bf.connect(bg2); bg2.connect(AC.destination); bed.start(st); bed.stop(st + dur + .1);
+      var claps = 54;
+      for (var c=0;c<claps;c++){
+        var ct = st + Math.random()*Math.random()*dur*.92 + .02;
+        var cs = AC.createBufferSource(); cs.buffer = noiseBuf();
+        var cfl = AC.createBiquadFilter(); cfl.type='bandpass';
+        cfl.frequency.value = 1100 + Math.random()*2600; cfl.Q.value = 1.1 + Math.random();
+        var cgn = AC.createGain();
+        var amp = .10 + Math.random()*.16;
+        cgn.gain.setValueAtTime(amp, ct); cgn.gain.exponentialRampToValueAtTime(.0006, ct + .045 + Math.random()*.05);
+        cs.connect(cfl); cfl.connect(cgn); cgn.connect(AC.destination); cs.start(ct); cs.stop(ct + .12);
+      }
+      var ch = AC.createBufferSource(); ch.buffer = noiseBuf(); ch.loop = true;   // هلهلهٔ جمعیت
+      var chf = AC.createBiquadFilter(); chf.type='bandpass'; chf.Q.value = 1.6;
+      chf.frequency.setValueAtTime(520, st); chf.frequency.linearRampToValueAtTime(760, st + .8);
+      chf.frequency.linearRampToValueAtTime(430, st + dur);
+      var chg = AC.createGain();
+      chg.gain.setValueAtTime(.0001, st); chg.gain.linearRampToValueAtTime(.13, st + .6);
+      chg.gain.exponentialRampToValueAtTime(.0008, st + dur);
+      ch.connect(chf); chf.connect(chg); chg.connect(AC.destination); ch.start(st); ch.stop(st + dur + .1);
     }
   } catch(e){}
 }
+
+/* باز کردن قفل صدا با اولین تماس کاربر (سیاست autoplay مرورگرها) — بدون هیچ صدای پنل */
+['pointerdown','touchstart','keydown'].forEach(function(ev){
+  document.addEventListener(ev, function(){ initAudio(); }, { passive: true });
+});
 
 /* ─────────── اطلاعات سایت (قابل ویرایش از پلن مدیریت) ─────────── */
 function siteInfo(){
@@ -2385,9 +2415,9 @@ function playIntro(){
     { t: 1800, fn: function(){ $('#l3d-lgsub').classList.add('on'); $('#l3d-lgline').classList.add('on'); } },                    // زیرنویس
     { t: 3000, fn: function(){ lg.style.opacity = 0; sfx('whoosh'); } },                                                          // محو لوگو
     { t: 3400, fn: function(){ frames[0].classList.add('on','kz'); sfx('whoosh'); } },                                            // توپ روی Tee
-    { t: 4900, fn: function(){ frames[0].classList.remove('on'); frames[1].classList.add('on','kz2'); sfx('whoosh'); } },         // ضربهٔ Swing
-    { t: 6200, fn: function(){ frames[1].classList.remove('on'); frames[2].classList.add('on','kz'); sfx('hit'); $('#l3d-flash').classList.add('on'); } },  // تعقیب توپ در آسمان
-    { t: 7700, fn: function(){ frames[2].classList.remove('on'); frames[3].classList.add('on','kz2'); sfx('whoosh'); } },         // ورود به حفره
+    { t: 4900, fn: function(){ frames[0].classList.remove('on'); frames[1].classList.add('on','kz2'); sfx('sweet'); } },           // ضربهٔ Swing + صدای سوئیت‌اسپات
+    { t: 6200, fn: function(){ frames[1].classList.remove('on'); frames[2].classList.add('on','kz'); sfx('whoosh'); $('#l3d-flash').classList.add('on'); } },  // تعقیب توپ در آسمان
+    { t: 7700, fn: function(){ frames[2].classList.remove('on'); frames[3].classList.add('on','kz2'); sfx('drop'); sfx('applause'); } },  // ورود توپ به حفره + تشویق جمعیت
     { t: 8900, fn: function(){ frames[3].classList.add('kz'); $('#l3d-wave').classList.add('on'); sfx('boom'); } },               // موج قهرمانی
     { t: 10000, fn: function(){ finishIntro(); } }                                                                                 // لابی ظاهر می‌شود
   ];
@@ -2475,7 +2505,6 @@ function renderDock(){
 var panelNav = null, monthSel = 0, trophySel = 0;
 function openPanel(sec){
   STATE.panel = sec;
-  sfx('open');
   var html = '';
   if (sec === 'reception') html = panelReception();
   else if (sec === 'info') html = panelInfo();
@@ -2489,7 +2518,6 @@ function openPanel(sec){
 }
 function closePanel(){
   if (!panel.classList.contains('on')) return;
-  sfx('close');
   panel.classList.remove('on');
   resetParallax();
   STATE.mode = 'lobby';
@@ -2693,7 +2721,6 @@ root.addEventListener('click', function(e){
 });
 $('#l3d-reception').addEventListener('click', function(ev){ ev.stopPropagation(); openPanel('reception'); });
 $('#l3d-enter').addEventListener('click', function(){
-  sfx('open');
   root.classList.add('fadeout');
   setTimeout(function(){
     root.style.display = 'none';
@@ -2713,7 +2740,6 @@ try {
 /* ─────────── شروع ─────────── */
 renderDock();
 playIntro();
-document.addEventListener('pointerdown', function(){ initAudio(); sfx('hover'); }, { once: true });
 
 /* ─────────── API تست ─────────── */
 window.__L3D = {
@@ -3267,12 +3293,45 @@ window.__L3D = {
 
   /* ═════════ ۵) سکه: کیف پول ═════════ */
   const COIN_KEY = 'ga_coins';
-  function coinData(){ return LSget(COIN_KEY, {}); }
+  /* سکه‌های «خودکار» (قهرمانی‌ها) ذخیره نمی‌شوند؛ هر بار از روی نتایج فعلی محاسبه می‌شوند.
+     پس اگر مسابقه/قهرمان حذف یا عوض شود، موجودی سکه هم بلافاصله کم/زیاد می‌شود. */
+  let AUTO_FN = null;
+  function setAutoProvider(fn){ AUTO_FN = (typeof fn === 'function') ? fn : null; }
+  function autoOf(user){
+    if (!AUTO_FN) return { total: 0, items: [] };
+    try {
+      const r = AUTO_FN(user) || {};
+      return { total: +r.total || 0, items: Array.isArray(r.items) ? r.items : [] };
+    } catch(e){ return { total: 0, items: [] }; }
+  }
+  function coinData(){
+    const d = LSget(COIN_KEY, {});
+    /* مهاجرت v7: سکه‌های خودکارِ قدیمی که یک‌بار ثبت شده بودند از موجودی ثابت پاک می‌شوند */
+    let dirty = false;
+    Object.keys(d).forEach(u => {
+      const c = d[u];
+      if (!c || c.v7auto) return;
+      let delta = 0;
+      const keep = [];
+      (c.log || []).forEach(l => {
+        if (String(l.source || '').indexOf('auto:') === 0) delta += (+l.amount || 0);
+        else keep.push(l);
+      });
+      if (delta) c.total = (+c.total || 0) - delta;
+      c.log = keep; c.v7auto = 1; dirty = true;
+    });
+    if (dirty) LSset(COIN_KEY, d);
+    return d;
+  }
   function saveCoins(d){ LSset(COIN_KEY, d); }
+  /* coinOf → { total (نهایی), base (ثابت), auto (قهرمانی‌ها), autoItems, log } */
   function coinOf(user){
     const d = coinData();
     if (!d[user]) d[user] = { total:0, log:[] };
-    return d[user];
+    const c = d[user];
+    const a = autoOf(user);
+    const base = +c.total || 0;
+    return { total: base + a.total, base, auto: a.total, autoItems: a.items, log: c.log || [] };
   }
   function addCoins(user, amount, source, note){
     amount = +amount || 0;
@@ -3281,17 +3340,18 @@ window.__L3D = {
     const c = d[user] || (d[user] = { total:0, log:[] });
     c.total += amount;
     c.log.push({ amount, source, note, date: new Date().toISOString().slice(0,10), ts: Date.now() });
-    saveCoins(d); return c.total;
+    saveCoins(d); return c.total + autoOf(user).total;
   }
   function spendCoins(user, amount, source, note){
     amount = +amount || 0;
     if (amount <= 0) return null;
     const d = coinData();
     const c = d[user] || (d[user] = { total:0, log:[] });
-    if (c.total < amount) return null;
+    const auto = autoOf(user).total;
+    if ((+c.total || 0) + auto < amount) return null;
     c.total -= amount;
     c.log.push({ amount: -amount, source, note, date: new Date().toISOString().slice(0,10), ts: Date.now() });
-    saveCoins(d); return c.total;
+    saveCoins(d); return c.total + auto;
   }
 
   /* ═════════ ۶) درخواست سکه (عضو → تأیید مدیر) ═════════ */
@@ -3642,7 +3702,7 @@ window.__L3D = {
     badgeSVG, renderAvatarSVG, itemPreviewSVG, rankCard, playRankUp, checkRankUp, particlesHTML, shade,
     BRANDS, CATS, shop, shopAll, shopItem, setShopItem, addShopItem, removeShopItem, resetShop, shopStore,
     avatarData, avatarOf, saveAvatars, setAvatar, selectItem, buyItem, DEFAULT_SEL, FREE_IDS,
-    coinData, coinOf, addCoins, spendCoins,
+    coinData, coinOf, addCoins, spendCoins, setAutoProvider, autoOf,
     reqs, reqsOf, pendingReqs, addReq, decideReq, deleteReq, clearDecided,
   };
 })();
@@ -3697,6 +3757,63 @@ window.__L3D = {
   function playerUsers(){ return D ? D.loadPlayerUsers() : {}; }
   function savePlayerUsers(u){ try { localStorage.setItem('ga_player_users', JSON.stringify(u)); } catch(e){} }
 
+  /* ══ همگام‌سازی دوطرفهٔ یوزر/رمز: «بازیکنان» ⇄ «یوزرها» ══
+     هر تغییری در فرم بازیکن به لیست یوزرها می‌رود و هر تغییری در لیست یوزرها
+     به مشخصات همان بازیکن برمی‌گردد (یوزر، رمز، نام، فعال/غیرفعال). */
+  function usersAPI(){ return (window.APP && window.APP.users) ? window.APP.users : null; }
+  function syncPlayerToUser(pid, o){
+    const U = usersAPI(); if (!U || !pid) return null;
+    o = o || {};
+    const a = U.list();
+    let rec = a.find(x => +x.pid === +pid);
+    if (!rec && o.user) rec = a.find(x => String(x.user||'').toLowerCase() === String(o.user).toLowerCase() && !x.main);
+    if (!rec){
+      if (!o.user) return null;
+      const id = Math.max(0, ...a.map(x => +x.id || 0)) + 1;
+      rec = { id, user: o.user, pass: o.pass || 'golf1405', name: o.name || ('بازیکن ' + pid),
+              role: 'member', active: o.active !== false, pid: +pid };
+      a.push(rec);
+    } else {
+      if (rec.main) return rec;                       // مدیر اصلی دست‌نخورده می‌ماند
+      if (o.user) rec.user = o.user;
+      if (o.pass) rec.pass = o.pass;
+      if (o.name) rec.name = o.name;
+      if (o.active !== undefined) rec.active = o.active !== false;
+      rec.pid = +pid;
+    }
+    U.save(a);
+    return rec;
+  }
+  function syncUserToPlayer(u){
+    if (!u || !u.pid) return;
+    const pu = playerUsers();
+    const prev = pu[u.pid] || {};
+    pu[u.pid] = Object.assign({}, prev, {
+      user: u.user || prev.user,
+      pass: u.pass || prev.pass,
+      name: u.name || prev.name,
+      active: u.active !== false
+    });
+    savePlayerUsers(pu);
+  }
+  function removeUserOfPlayer(pid){
+    const U = usersAPI(); if (!U || !pid) return;
+    const a = U.list();
+    const keep = a.filter(x => !(+x.pid === +pid && !x.main));
+    if (keep.length !== a.length) U.save(keep);
+  }
+  /* اعتبارِ ورود بازیکن: اول ga_player_users، اگر نبود از لیست یوزرها خوانده می‌شود */
+  function credsOf(pid){
+    const u = playerUsers()[pid];
+    if (u && (u.user || u.pass)) return u;
+    const U = usersAPI();
+    if (U){
+      const rec = U.list().find(x => +x.pid === +pid);
+      if (rec) return { user: rec.user, pass: rec.pass, name: rec.name, active: rec.active !== false };
+    }
+    return {};
+  }
+
   /* ── اطلاعات سایت (تماس با ما + معرفی آکادمی) — قابل ویرایش از مدیریت، خوانده‌شده در صفحهٔ اصلی ── */
   const SITE_DEFAULTS = {
     contact: {
@@ -3736,7 +3853,7 @@ window.__L3D = {
     const isCustom = pid >= 9000;
     const cu = isCustom ? customPlayers().find(c => c.id === pid - 9000) : null;
     const ed = !isCustom ? playerEdits()[pid] : null;
-    const u = playerUsers()[pid] || {};
+    const u = credsOf(pid) || {};
     return {
       pid, isCustom,
       name: isCustom ? (cu ? cu.name : p[1]) : (ed && ed.name ? ed.name : p[1]),
@@ -4071,6 +4188,7 @@ window.__L3D = {
       const pu = playerUsers();
       pu[pid] = { user, pass, name: d.name, family: d.family, active: true };
       savePlayerUsers(pu);
+      syncPlayerToUser(pid, { user, pass, name: fullName, active: true });
       APP.reloadData(); APP.go('mgmt');
       APP.toast('بازیکن «' + fullName + '» ثبت شد — یوزر: ' + user + ' / رمز: ' + pass, 'green');
     });
@@ -4094,6 +4212,7 @@ window.__L3D = {
         }
         const pu = playerUsers();
         if (pu[pid]){ pu[pid].active = activeNow; savePlayerUsers(pu); }
+        syncPlayerToUser(pid, { active: activeNow });
         APP.reloadData(); APP.go('mgmt');
         APP.toast(activeNow ? 'بازیکن فعال شد ✓ — همهٔ امتیازها برگشت' : 'بازیکن غیرفعال شد ⛔ — امتیازها و کارت‌ها حذف شدند', activeNow ? 'green' : 'orange');
       }
@@ -4102,6 +4221,7 @@ window.__L3D = {
           const lst = customPlayers().filter(x => x.id !== pid - 9000);
           saveCustomPlayers(lst);
           const pu = playerUsers(); delete pu[pid]; savePlayerUsers(pu);
+          removeUserOfPlayer(pid);
           APP.reloadData(); APP.go('mgmt');
           APP.toast('بازیکن حذف شد 🗑', 'orange');
         } else {
@@ -4159,11 +4279,18 @@ window.__L3D = {
       }
       // یوزر/پسورد
       const pu = playerUsers();
-      const prev = pu[pid] || { active: true };
+      const prev = credsOf(pid) || { active: true };
       if (d.user || d.pass){
         pu[pid] = { user: d.user || prev.user || 'player' + pid, pass: d.pass || prev.pass, name: d.name, family: d.family, active: prev.active !== false };
         savePlayerUsers(pu);
       }
+      // ⇄ همگام‌سازی با لیست یوزرها (یوزر/رمز/نام)
+      syncPlayerToUser(pid, {
+        user: d.user || prev.user || '',
+        pass: d.pass || prev.pass || '',
+        name: fullName,
+        active: prev.active !== false
+      });
       APP.reloadData(); APP.go('mgmt');
       m.style.display = 'none';
       APP.toast('مشخصات «' + fullName + '» ذخیره شد ✓', 'green');
@@ -5293,7 +5420,7 @@ window.__L3D = {
           <td>${u.main ? '<span class="chip green">فعال</span>' : `
             <label class="switch"><input type="checkbox" class="us-act" data-id="${u.id}" ${u.active?'checked':''}><span class="trk"></span></label>`}</td>
           <td><div class="row-actions">
-            <button class="btn sm ghost" data-pw="${u.id}" ${u.main?'disabled':''}>🔑 رمز</button>
+            <button class="btn sm ghost" data-pw="${u.id}" ${u.main?'disabled':''}>🔑 یوزر و رمز</button>
             ${u.main ? '' : `<button class="btn sm danger" data-del="${u.id}">🗑</button>`}
           </div></td>
         </tr>`).join('');
@@ -5314,6 +5441,7 @@ window.__L3D = {
         if (u.user === window.APP.currentUser()){ APP.toast('نمی‌توانید یوزر واردشده را غیرفعال کنید', 'red'); ch.checked = true; return; }
         u.active = ch.checked;
         U.save(a);
+        syncUserToPlayer(u);
         APP.toast((u.active ? 'یوزر «' + u.name + '» فعال شد ✓' : 'یوزر «' + u.name + '» غیرفعال شد ⛔ — دیگر نمی‌تواند وارد شود'), u.active ? 'green' : 'orange');
       }));
       $$('#us-rows [data-pw]').forEach(b => b.addEventListener('click', () => pwModal(+b.dataset.pw)));
@@ -5323,6 +5451,7 @@ window.__L3D = {
         if (!u || u.main) return;
         if (!confirm('یوزر «' + u.name + '» حذف شود؟')) return;
         U.save(a.filter(x => x.id !== id));
+        if (u.pid){ const pu = playerUsers(); delete pu[u.pid]; savePlayerUsers(pu); }
         render();
         APP.toast('یوزر «' + u.name + '» حذف شد 🗑', 'orange');
       }));
@@ -5338,19 +5467,24 @@ window.__L3D = {
         document.body.appendChild(m);
       }
       m.innerHTML = `
-      <div class="glass gold-border" style="width:min(420px,94vw);padding:22px">
-        <div class="card-head"><span class="ic">🔑</span><h3>تغییر رمز — ${esc(u.name)}</h3><span class="tag">${esc(u.user)}</span></div>
-        <div style="margin-top:14px">
-          <label>رمز جدید</label>
-          <div style="display:flex;gap:8px;margin-top:6px">
-            <input class="input" id="pw-val" value="${esc(u.pass)}" style="flex:1;direction:ltr">
-            <button class="btn sm ghost" id="pw-gen">⚡</button>
+      <div class="glass gold-border" style="width:min(440px,94vw);padding:22px">
+        <div class="card-head"><span class="ic">🔑</span><h3>یوزر و رمز — ${esc(u.name)}</h3><span class="tag">${u.pid ? 'عضو بازیکن' : 'یوزر'}</span></div>
+        <div class="field-grid" style="margin-top:12px">
+          <div class="span2"><label>نام نمایشی</label><input class="input" id="pw-name" value="${esc(u.name || '')}" style="width:100%"></div>
+          <div><label>نام کاربری (login)</label><input class="input" id="pw-user" value="${esc(u.user)}" style="width:100%;direction:ltr"></div>
+          <div><label>رمز عبور</label>
+            <div style="display:flex;gap:8px;margin-top:5px">
+              <input class="input" id="pw-val" value="${esc(u.pass)}" style="flex:1;direction:ltr">
+              <button class="btn sm ghost" id="pw-gen">⚡</button>
+            </div>
           </div>
-          <div style="font-size:10.5px;color:var(--muted);margin-top:6px">این رمز همان رمز ورود این یوزر خواهد بود.</div>
+        </div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:8px">
+          ${u.pid ? '🔁 این یوزر به بازیکن شمارهٔ ' + D.fa(u.pid) + ' وصل است — تغییر یوزر/رمز همین‌جا، در فرم «بازیکنان» هم اعمال می‌شود و برعکس.' : 'این یوزر به بازیکنی وصل نیست.'}
         </div>
         <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end">
           <button class="btn sm ghost" id="pw-cancel">بستن</button>
-          <button class="btn sm" id="pw-save">💾 ذخیرهٔ رمز</button>
+          <button class="btn sm" id="pw-save">💾 ذخیره</button>
         </div>
       </div>`;
       m.style.display = 'flex';
@@ -5363,12 +5497,20 @@ window.__L3D = {
       });
       $('#pw-save').addEventListener('click', () => {
         const pw = $('#pw-val').value.trim();
-        if (!pw){ APP.toast('رمز نمی‌تواند خالی باشد', 'red'); return; }
-        const a = U.list(); const t = a.find(x => x.id === id);
-        if (t){ t.pass = pw; U.save(a); }
+        const un = $('#pw-user').value.trim().toLowerCase();
+        const nm = $('#pw-name').value.trim();
+        if (!pw || !un){ APP.toast('یوزر و رمز نمی‌تواند خالی باشد', 'red'); return; }
+        const a2 = U.list();
+        if (a2.some(x => x.id !== id && String(x.user).toLowerCase() === un)){ APP.toast('این نام کاربری قبلاً ثبت شده است', 'red'); return; }
+        const t = a2.find(x => x.id === id);
+        if (t){
+          t.pass = pw; t.user = un; if (nm) t.name = nm;
+          U.save(a2);
+          syncUserToPlayer(t);              // ⇄ برگشت به فرم بازیکن
+        }
         m.style.display = 'none';
         render();
-        APP.toast('رمز «' + t.name + '» تغییر کرد ✓', 'green');
+        APP.toast('یوزر و رمز «' + (t ? t.name : '') + '» ذخیره شد ✓ — در بخش بازیکنان هم به‌روز شد', 'green');
       });
       m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
     }
@@ -5430,11 +5572,14 @@ window.__L3D = {
       let added = 0;
       try {
         const S = gstate().S;
+        const pu = playerUsers();
         S.players.forEach(p => {
-          const exists = a.some(x => x.pid === p[0]);
+          const exists = a.some(x => +x.pid === +p[0]);
           if (!exists){
             const id = Math.max(0, ...a.map(x => x.id)) + 1;
-            a.push({ id, user: 'p' + p[0], pass: 'golf1405', name: p[1], role: 'member', active: true, pid: p[0] });
+            const cr = pu[p[0]] || {};
+            a.push({ id, user: cr.user || ('p' + p[0]), pass: cr.pass || 'golf1405', name: p[1],
+                     role: 'member', active: cr.active !== false, pid: p[0] });
             added++;
           }
         });
@@ -5497,15 +5642,22 @@ window.__L3D = {
     <div class="glass" style="margin-bottom:16px">
       <div class="card-head"><span class="ic">👛</span><h3>کیف‌پول اعضا</h3><span class="tag">${D.fa(wallets.length)} عضو</span></div>
       <div style="overflow-x:auto"><table class="tbl"><thead><tr>
-        <th>عضو</th><th>یوزر</th><th>موجودی</th><th>تراکنش‌ها</th><th>عملیات</th>
+        <th>عضو</th><th>یوزر</th><th>موجودی کل</th><th>🏆 قهرمانی (خودکار)</th><th>ثبت‌شده</th><th>تراکنش‌ها</th><th>عملیات</th>
       </tr></thead><tbody>
-        ${wallets.map(w => `<tr>
+        ${wallets.map(w => `<tr data-wu="${esc(w.u.user)}">
           <td>${esc(w.u.name || w.u.user)}</td><td style="direction:ltr">${esc(w.u.user)}</td>
           <td><b class="gold-text">${D.fa(w.c.total)} 🪙</b></td>
+          <td class="w-auto">${w.c.auto ? '<span class="chip green">+' + D.fa(w.c.auto) + ' 🪙</span>' : '<span style="color:var(--muted)">—</span>'}</td>
+          <td>${D.fa(w.c.base || 0)}</td>
           <td>${D.fa((w.c.log || []).length)}</td>
           <td><button class="btn sm ghost" data-zero="${esc(w.u.user)}" style="font-size:11px">صفر کردن</button></td>
         </tr>`).join('')}
       </tbody></table></div>
+      <div class="golfrule" style="margin-top:10px;line-height:2;font-size:11.5px">
+        🏆 ستون «قهرمانی (خودکار)» از روی <b>نتایج فعلی مسابقات</b> محاسبه می‌شود و ذخیره نمی‌شود؛
+        اگر مسابقه‌ای حذف شود یا قهرمانش عوض شود، همین‌جا و در کیف‌پول عضو هم <b>کم/زیاد</b> می‌شود.
+        (قهرمان سطح ۱ = ۲۰ سکه • سطح ۲ = ۱۵ • سطح ۳ = ۱۰) — دکمهٔ «صفر کردن» فقط سکه‌های ثبت‌شده را صفر می‌کند.
+      </div>
     </div>
 
     <div class="glass">
@@ -7100,32 +7252,34 @@ window.__L3D = {
     { lvl:2, rank:1, amount:15, label:'قهرمان مسابقهٔ سطح ۲' },
     { lvl:3, rank:1, amount:10, label:'قهرمان مسابقهٔ سطح ۳' },
   ];
-  /* سکه‌های خودکار مسابقات — یک‌بار برای هر رتبه از هر مسابقه */
-  function autoAwardCoins(user){
-    let gained = 0;
+  /* ══ سکه‌های خودکار مسابقات (v7) ══
+     ذخیره نمی‌شوند؛ همیشه از روی «نتایج فعلی» محاسبه می‌شوند.
+     → حذف مسابقه یا تغییر قهرمان = کم/زیاد شدن فوری موجودی سکهٔ همان عضو. */
+  function autoCoinsOf(user){
+    const out = { total: 0, items: [] };
     try {
-      const results = D.loadResults ? D.loadResults() : {};
-      const c = coinOf(user);
-      const keys = new Set(c.log.map(l => l.source));
-      Object.keys(results).forEach(tid => {
-        const t = S.tournaments.find(x => x[0] === +tid);
+      const pid = (userRec(user) || {}).pid;
+      if (!pid) return out;
+      const results = (D && D.loadResults) ? D.loadResults() : {};
+      Object.keys(results || {}).forEach(tid => {
+        const t = (S.tournaments || []).find(x => +x[0] === +tid);
         if (!t) return;
-        const top = results[tid].top || {};
-        const pid = (userRec(user) || {}).pid;
-        if (!pid) return;
+        const r = results[tid] || {};
+        if (r.active === false) return;
+        const top = r.top || {};
         COIN_AUTO.forEach(rule => {
           if (+t[2] !== rule.lvl) return;
-          if (+top[rule.rank] !== pid) return;
-          const key = 'auto:' + tid + ':' + rule.rank;
-          if (keys.has(key)) return;
-          addCoins(user, rule.amount, key, rule.label);
-          keys.add(key);
-          gained += rule.amount;
+          if (+top[rule.rank] !== +pid) return;
+          out.total += rule.amount;
+          out.items.push({ tid: +tid, title: t[1], lvl: +t[2], amount: rule.amount, label: rule.label });
         });
       });
     } catch(e){}
-    return gained;
+    return out;
   }
+  AV.setAutoProvider(autoCoinsOf);
+  /* سکه‌های خودکارِ هر بازیکن (برای پنل مدیریت) */
+  window.APP_AUTOCOINS = autoCoinsOf;
   /* وضعیت هر فعالیت برای کاربر: can | pending | done | done-today */
   function ruleState(user, ruleId){
     const rule = COIN_RULES.find(r => r.id === ruleId);
@@ -7272,9 +7426,8 @@ window.__L3D = {
 
   /* ── تب دریافت سکه: ارسال درخواست به مدیریت ── */
   function memEarn(body, o){
-    const gained = autoAwardCoins(currentUser);
-    if (gained) updateCoinBadge();
     const c = coinOf(currentUser);
+    const auto = c.autoItems || [];
     let rows = '';
     COIN_RULES.forEach(r => {
       const st = ruleState(currentUser, r.id);
@@ -7298,7 +7451,7 @@ window.__L3D = {
     });
     const mine = AV.reqsOf(currentUser).slice(0, 12);
     body.innerHTML = `
-    ${gained ? `<div class="glass" style="margin-bottom:14px;padding:13px 16px;background:linear-gradient(135deg,rgba(30,187,138,.14),rgba(30,187,138,.04));border:1px solid rgba(30,187,138,.4);font-size:13px">✅ سکه‌های مسابقات شما ثبت شد: <b>+${D.fa(gained)} 🪙</b></div>` : ''}
+    ${c.auto ? `<div class="glass" style="margin-bottom:14px;padding:13px 16px;background:linear-gradient(135deg,rgba(30,187,138,.14),rgba(30,187,138,.04));border:1px solid rgba(30,187,138,.4);font-size:13px">🏆 سکه‌های قهرمانی شما (خودکار): <b>+${D.fa(c.auto)} 🪙</b> از ${D.fa(auto.length)} قهرمانی — با تغییر نتایج مسابقات، این عدد هم به‌روز می‌شود.</div>` : ''}
     <div class="glass" style="margin-bottom:16px">
       <div class="card-head"><span class="ic">🪙</span><h3>دریافت سکه — ارسال درخواست به مدیریت</h3><span class="tag">سکهٔ من: ${D.fa(c.total)}</span></div>
       <div class="golfrule" style="margin:8px 0 12px;line-height:2">📝 با زدن «ارسال درخواست»، درخواست شما به <b>پنل مدیریت</b> می‌رود. سکه فقط پس از <b>تأیید مدیر</b> به کیف‌پول شما اضافه می‌شود.</div>
@@ -7316,10 +7469,17 @@ window.__L3D = {
         </div>`).join('') : `<div style="color:var(--muted);font-size:12.5px;padding:8px">هنوز درخواستی نداده‌اید.</div>`}
     </div>
     <div class="glass">
-      <div class="card-head"><span class="ic">🏆</span><h3>سکه‌های خودکار مسابقات</h3><span class="tag">از نتایج فصل</span></div>
+      <div class="card-head"><span class="ic">🏆</span><h3>سکه‌های خودکار مسابقات</h3><span class="tag" id="mz-auto-tag">${D.fa(c.auto || 0)} 🪙 از ${D.fa(auto.length)} قهرمانی</span></div>
       <div style="font-size:12px;color:var(--muted);margin-top:8px;line-height:2">
         قهرمانی در مسابقات به‌صورت خودکار و بدون نیاز به تأیید، برای شما سکه می‌سازد:<br>
         🥇 قهرمان مسابقهٔ سطح ۱ = <b class="gold-text">۲۰ سکه</b> &nbsp;•&nbsp; سطح ۲ = <b class="gold-text">۱۵ سکه</b> &nbsp;•&nbsp; سطح ۳ = <b class="gold-text">۱۰ سکه</b>
+      </div>
+      <div id="mz-autolist" style="margin-top:10px">
+        ${auto.length ? auto.map(a => `
+          <div class="req-row" data-autotid="${a.tid}">
+            <span style="flex:1;min-width:170px;font-size:12.5px">🥇 ${esc(a.title)}<div style="font-size:10.5px;color:var(--muted);margin-top:3px">${esc(a.label)}</div></span>
+            <span class="chip gold">+${D.fa(a.amount)} 🪙</span>
+          </div>`).join('') : `<div style="color:var(--muted);font-size:12.5px;padding:8px">هنوز قهرمانی ثبت‌شده‌ای ندارید.</div>`}
       </div>
     </div>`;
     body.querySelectorAll('[data-req]').forEach(b => b.addEventListener('click', () => {
