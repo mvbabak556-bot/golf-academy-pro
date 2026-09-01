@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>آکادمی گلف ۱۴۰۵ — داشبورد PRO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="bg-mesh"></div>
+<canvas id="particles"></canvas>
+
+<!-- ═══════════ ورود ═══════════ -->
+<div id="login">
+  <img src="assets/login_bg.png" class="bg-img" alt="">
+  <div class="login-card glass gold-border">
+    <div class="login-logo"><img src="assets/ball_3d.png" alt=""></div>
+    <h1 class="gold-text">آکادمی گلف ۱۴۰۵</h1>
+    <div class="sub">داشبورد حرفهای فرماندهی — فقط اعضای مجاز</div>
+    <div class="err-msg" id="login-err"></div>
+    <form id="login-form">
+      <div class="field">
+        <label>نام کاربری</label>
+        <input type="text" id="login-user" placeholder="admin" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label>رمز عبور</label>
+        <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" required>
+        <span class="toggle-pass" id="toggle-pass">👁️</span>
+      </div>
+      <button type="submit" class="btn">ورود به داشبورد 🏌️</button>
+    </form>
+    <div class="hint">دسترسی آزمایشی: <b>admin</b> / <b>golf1405</b> &nbsp;•&nbsp; <b>coach</b> / <b>golf1405</b></div>
+  </div>
+</div>
+
+<!-- ═══════════ اپلیکیشن ═══════════ -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo"><img src="assets/ball_3d.png" alt=""></div>
+      <div>
+        <h2>GolfAcademy <span style="color:var(--gold-l)">PRO</span></h2>
+        <small>فصل ۱۴۰۵ • فرماندهی</small>
+      </div>
+    </div>
+
+    <div class="nav-group">داشبورد</div>
+    <div class="nav-item" data-page="world"><span class="ico">🌍</span>دنیای سه‌بعدی</div>
+    <div class="nav-item" data-page="cmd"><span class="ico">🎯</span>فرماندهی</div>
+    <div class="nav-item" data-page="race"><span class="ico">🏁</span>رقابت فصل</div>
+    <div class="nav-item" data-page="player"><span class="ico">🏌️</span>مرکز بازیکن</div>
+    <div class="nav-item" data-page="match"><span class="ico">🥇</span>فرماندهی مسابقه</div>
+    <div class="nav-item" data-page="course"><span class="ico">🗺️</span>هوش زمین</div>
+    <div class="nav-item" data-page="records"><span class="ico">🎖️</span>رکوردها</div>
+    <div class="nav-item" data-page="cal"><span class="ico">📅</span>تقویم فصل</div>
+    <div class="nav-item" data-page="tv"><span class="ico">📺</span>نمایش تلویزیونی</div>
+    <div class="nav-item" data-page="battle"><span class="ico">⚔️</span>میدان نبرد</div>
+    <div class="nav-item" data-page="academy"><span class="ico">🏫</span>پنل آکادمی</div>
+
+    <div class="nav-group">ابزار طراح</div>
+    <div class="nav-item" data-page="acourses"><span class="ico">🛠️</span>طراح زمین</div>
+    <div class="nav-item" data-page="atournaments"><span class="ico">🏆</span>طراح مسابقه</div>
+    <div class="nav-item" data-page="ascorecards"><span class="ico">⛳</span>ثبت نتایج</div>
+
+    <div class="side-foot">
+      <div class="user">
+        <div><b id="user-label">مدیر</b></div>
+        <div style="font-size:10.5px">@<span id="user-name">admin</span></div>
+      </div>
+      <button class="btn ghost sm" id="logout-btn" style="width:auto">خروج ↺</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="top-title">🎯 فرماندهی</h1>
+        <div class="crumb" id="top-crumb">داشبورد</div>
+      </div>
+      <div class="hud">
+        <div class="hud-chip"><span class="dot"></span>سیستم آنلاین</div>
+        <div class="hud-chip"><span>📅</span><span id="hud-date">—</span></div>
+        <div class="hud-chip gold"><span>⏱️</span><span class="clock" id="hud-clock">—</span></div>
+      </div>
+    </div>
+    <div id="view"></div>
+  </main>
+
+  <nav class="mob-nav">
+    <a href="#" data-page="world"><span class="ico">🌍</span>جهان</a>
+    <a href="#" data-page="cmd"><span class="ico">🎯</span>فرماندهی</a>
+    <a href="#" data-page="race"><span class="ico">🏁</span>رقابت</a>
+    <a href="#" data-page="player"><span class="ico">🏌️</span>بازیکن</a>
+    <a href="#" data-page="match"><span class="ico">🥇</span>مسابقه</a>
+    <a href="#" data-page="tv"><span class="ico">📺</span>تلویزیون</a>
+  </nav>
+</div>
+
+<div id="world">
+  <canvas id="world-canvas"></canvas>
+  <div id="world-hud">
+    <div id="world-hud-title">🌍 دنیای آکادمی گلف ۱۴۰۵</div>
+    <div id="world-hud-hint">🖱️ بکشید و بچرخانید &nbsp;•&nbsp; اسکرول برای زوم &nbsp;•&nbsp; روی هر بخش کلیک کنید</div>
+  </div>
+  <div id="world-caption"><div class="c-icon">🌍</div><div class="c-name"></div><div class="c-sub"></div></div>
+  <div id="world-actions">
+    <button id="world-enter" class="btn sm">🚀 ورود به صفحه</button>
+    <button id="world-hub" class="btn ghost sm">🗺️ بازگشت به جهان</button>
+  </div>
+  <button id="world-exit" class="btn ghost sm">خروج از جهان 🚪</button>
+  <div id="world-scanlines"></div>
+  <div id="world-tele">SYS.ONLINE • ۱۴۰۵ • GOLFACADEMY</div>
+</div>
+<div id="world-overlay"></div>
+<div class="modal" id="wshop-modal">
+  <div class="glass gold-border">
+    <h3>🛠️ کارگاه طراح — کدام ابزار؟</h3>
+    <div class="grid cols-3" id="wshop-btns">
+      <button class="btn ghost" data-w="acourses">🗺️ طراح زمین</button>
+      <button class="btn ghost" data-w="atournaments">🏆 طراح مسابقه</button>
+      <button class="btn ghost" data-w="ascorecards">⛳ ثبت نتایج</button>
+    </div>
+    <div style="margin-top:14px;text-align:center"><button class="btn ghost sm" id="wshop-close">انصراف</button></div>
+  </div>
+</div>
+<button id="back-world" class="btn ghost sm" title="بازگشت به دنیای سه‌بعدی">🌍 جهان</button>
+
+<script src="js/world3d.js"></script>
+<script src="js/data.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
