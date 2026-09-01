@@ -18,6 +18,7 @@ SIZES = {
     'avatar_m.png':    (280, 84),
     'avatar_f.png':    (280, 84),
     'lobby_bg_v3.png': (1536, 92),
+    'shop_hero.png':   (1280, 78),
     'open_tee.png':    (1100, 84),
     'open_swing.png':  (1100, 84),
     'open_sky.png':    (1100, 84),
@@ -48,13 +49,17 @@ def main():
     css = open(os.path.join(ROOT, 'css', 'style.css'), encoding='utf-8').read()
     html = re.sub(r'<link rel="stylesheet" href="css/style.css">',
                   '<style>' + css + '</style>', html)
+    if os.path.exists(os.path.join(ROOT, 'css', 'shop.css')):
+        scss = open(os.path.join(ROOT, 'css', 'shop.css'), encoding='utf-8').read()
+        html = re.sub(r'<link rel="stylesheet" href="css/shop.css">',
+                      '<style>' + scss + '</style>', html)
     if os.path.exists(os.path.join(ROOT, 'css', 'mgmt.css')):
         mcss = open(os.path.join(ROOT, 'css', 'mgmt.css'), encoding='utf-8').read()
         html = re.sub(r'<link rel="stylesheet" href="css/mgmt.css">',
                       '<style>' + mcss + '</style>', html)
 
     # 3) inline JS in load order
-    for jsname in ['holidays', 'data', 'charts', 'qrcode.min', 'landing', 'jdate', 'avatar', 'mgmt', 'app']:
+    for jsname in ['holidays', 'data', 'charts', 'qrcode.min', 'landing', 'jdate', 'avatar', 'shop', 'mgmt', 'app']:
         js = open(os.path.join(ROOT, 'js', jsname + '.js'), encoding='utf-8').read()
         html = re.sub(rf'<script src="js/{jsname}\.js"></script>',
                       lambda m: '<script>' + js + '</script>', html)

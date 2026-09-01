@@ -273,7 +273,7 @@
     else if (mgmtTab === 'calendar') mgmtCalendar(body);
     else if (mgmtTab === 'coins') mgmtCoins(body);
     else if (mgmtTab === 'honor') mgmtHonor(body);
-    else if (mgmtTab === 'shop') mgmtShop(body);
+    else if (mgmtTab === 'shop') { if (window.SHOP && SHOP.renderAdmin) SHOP.renderAdmin(body); else mgmtShop(body); }
     else if (mgmtTab === 'contact') mgmtContact(body);
     else if (mgmtTab === 'info') mgmtInfo(body);
     else if (mgmtTab === 'users') mgmtUsers(body);

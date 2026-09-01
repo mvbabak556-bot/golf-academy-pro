@@ -64,11 +64,6 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   ok(tabs >= 4, 'بخش اعضا ۴ تب دارد (خانه/سکه/راهنما/اوتار)');
   const mainMrg = await page.evaluate(() => getComputedStyle(document.querySelector('.main')).marginRight);
   ok(mainMrg === '0px', 'بدنهٔ اصلی در موبایل تمام‌عرض است (سایدبار کشویی)');
-  // 5) تب اوتار: گالری و دکمه‌های خرید در موبایل
-  await page.click('[data-mtab="avatar"]');
-  await page.waitForTimeout(800);
-  const buyBtns = await page.locator('[data-buy]').count();
-  ok(buyBtns >= 8, 'گالری اوتار با دکمه‌های خرید در موبایل نمایش داده می‌شود');
   // 6) گرید تک‌ستونه در موبایل (ترک اول تقریباً تمام‌عرض؛ ترک‌های ضمنی span نادیده گرفته می‌شوند)
   const disp = await page.evaluate(() => {
     const grid = document.querySelector('#view .grid');
@@ -77,6 +72,16 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   });
   const firstCol = disp ? parseFloat(disp.split(' ')[0]) : 0;
   ok(firstCol > 390 * 0.75, 'گرید صفحات در موبایل تک‌ستونه است (' + disp + ')');
+  // 5) تب اوتار: ویترین فروشگاه و دکمه‌های خرید در موبایل
+  await page.click('[data-mtab="avatar"]');
+  await page.waitForTimeout(1000);
+  const buyBtns = await page.locator('[data-buy]').count();
+  ok(buyBtns >= 8, 'گالری اوتار با دکمه‌های خرید در موبایل نمایش داده می‌شود (' + buyBtns + ')');
+  const shopCols = await page.evaluate(() => {
+    const g = document.querySelector('.as-grid');
+    return g ? getComputedStyle(g).gridTemplateColumns.split(' ').length : 0;
+  });
+  ok(shopCols === 2, 'ویترین فروشگاه در موبایل دوستونه است (' + shopCols + ')');
   ok(realErrors().length === 0, 'بدون خطای صفحه/کنسول' + (realErrors().length ? ' → ' + realErrors()[0] : ''));
   if (realErrors().length) console.log(realErrors().join('\n'));
   await browser.close();

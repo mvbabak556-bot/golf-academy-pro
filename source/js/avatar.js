@@ -172,6 +172,15 @@
     pxg:      { name:'PXG',                tier:'افسانه‌ای',c:'#A855F7' },
     taylor:   { name:'TaylorMade',         tier:'افسانه‌ای',c:'#A855F7' },
     swag:     { name:'Swag Golf',          tier:'افسانه‌ای',c:'#A855F7' },
+    ecco:     { name:'ECCO Golf',          tier:'بالا',    c:'#1EBB8A' },
+    mizuno:   { name:'Mizuno',             tier:'میان‌رده', c:'#2E86DE' },
+    srixon:   { name:'Srixon',             tier:'میان‌رده', c:'#2E86DE' },
+    cobra:    { name:'Cobra Golf',         tier:'میان‌رده', c:'#2E86DE' },
+    bridge:   { name:'Bridgestone Golf',   tier:'میان‌رده', c:'#2E86DE' },
+    sunmt:    { name:'Sun Mountain',       tier:'بالا',    c:'#1EBB8A' },
+    garmin:   { name:'Garmin Golf',        tier:'لاکچری',  c:'#D4AF37' },
+    bushnell: { name:'Bushnell Golf',      tier:'لاکچری',  c:'#D4AF37' },
+    shotscope:{ name:'Shot Scope',         tier:'بالا',    c:'#1EBB8A' },
   };
   const CATS = [
     ['shirt', '👕 پولوشرت و بالاتنه'],
@@ -180,7 +189,10 @@
     ['hat',   '🧢 کلاه و ویزور'],
     ['glove', '🧤 دستکش'],
     ['glass', '🕶️ عینک'],
-    ['club',  '🏌️ چوب و ساک'],
+    ['club',  '🏌️ چوب گلف'],
+    ['bag',   '🎒 کیف و ساک گلف'],
+    ['ball',  '⛳ توپ و تجهیزات'],
+    ['watch', '⌚ ساعت و اکسسوری'],
     ['hair',  '💇 مدل مو'],
     ['eyes',  '👀 چشم'],
     ['skin',  '🎨 رنگ پوست'],
@@ -263,10 +275,36 @@
     { id:'cl_pg',  cat:'club',  b:'ping',      n:'پاتر آنسر',                   price:65,  g:'a', type:'putter', c1:'#C9D4DE' },
     { id:'cl_ti',  cat:'club',  b:'titleist',  n:'درایور TSR',                  price:70,  g:'a', type:'driver', c1:'#101C33' },
     { id:'cl_tm',  cat:'club',  b:'taylor',    n:'درایور استلث',                price:80,  g:'a', type:'driver', c1:'#D7263D' },
-    { id:'cl_sm',  cat:'club',  b:'sunday',    n:'ساک لوپ سبک',                 price:90,  g:'a', type:'bag',    c1:'#1E8F6A' },
-    { id:'cl_sw',  cat:'club',  b:'swag',      n:'هدکاور کالکتور',              price:100, g:'a', type:'bag',    c1:'#A855F7' },
+    { id:'cl_sm',  cat:'bag',   b:'sunday',    n:'ساک لوپ سبک',                 price:90,  g:'a', type:'bag',    c1:'#1E8F6A' },
+    { id:'cl_sw',  cat:'bag',   b:'swag',      n:'هدکاور کالکتور',              price:100, g:'a', type:'bag',    c1:'#A855F7' },
     { id:'cl_sc',  cat:'club',  b:'scotty',    n:'پاتر نیوپورت اسکاتی',         price:150, g:'a', type:'putter', c1:'#F6E27A' },
-    { id:'cl_px',  cat:'club',  b:'pxg',       n:'ساک کریر PXG',                price:200, g:'a', type:'bag',    c1:'#101418' },
+    { id:'cl_px',  cat:'bag',   b:'pxg',       n:'ساک کریر PXG',                price:200, g:'a', type:'bag',    c1:'#101418' },
+    /* ── کیف و ساک گلف ── */
+    { id:'bg_no',  cat:'bag',   b:'academy',   n:'بدون کیف',                    price:0,   g:'a', type:'none' },
+    { id:'bg_ac',  cat:'bag',   b:'academy',   n:'ساک تمرینی آکادمی',           price:25,  g:'a', type:'bag',    c1:'#1E8F6A', c2:'#D4AF37' },
+    { id:'bg_sm',  cat:'bag',   b:'sunmt',     n:'سان‌مانتین ۲٫۵ پلاس',          price:95,  g:'a', type:'bag',    c1:'#2E86DE', c2:'#F4F6F8' },
+    { id:'bg_pg',  cat:'bag',   b:'ping',      n:'پینگ هوفر لایت',              price:115, g:'a', type:'bag',    c1:'#101C33', c2:'#E8571F' },
+    { id:'bg_ti',  cat:'bag',   b:'titleist',  n:'پلیرز ۴ استند‌بگ',             price:130, g:'a', type:'bag',    c1:'#0B2C5E', c2:'#FFFFFF' },
+    { id:'bg_gf',  cat:'bag',   b:'gfore',     n:'دیلاکس کریر G/FORE',          price:190, g:'a', type:'bag',    c1:'#D7263D', c2:'#FFFFFF' },
+    /* ── توپ و تجهیزات ── */
+    { id:'bl_no',  cat:'ball',  b:'academy',   n:'بدون توپ',                    price:0,   g:'a', type:'none' },
+    { id:'bl_ac',  cat:'ball',  b:'academy',   n:'توپ تمرینی آکادمی',           price:5,   g:'a', type:'ball',   c1:'#FFFFFF', c2:'#1E8F6A' },
+    { id:'bl_sr',  cat:'ball',  b:'srixon',    n:'زد-استار دایموند',            price:25,  g:'a', type:'ball',   c1:'#FFFFFF', c2:'#E8571F' },
+    { id:'bl_cw',  cat:'ball',  b:'callaway',  n:'کروم سافت X',                 price:35,  g:'a', type:'ball',   c1:'#F8FAFC', c2:'#2E86DE' },
+    { id:'bl_br',  cat:'ball',  b:'bridge',    n:'تور B X',                     price:40,  g:'a', type:'ball',   c1:'#FFFFFF', c2:'#D7263D' },
+    { id:'bl_tm',  cat:'ball',  b:'taylor',    n:'TP5 پایلوت',                  price:45,  g:'a', type:'ball',   c1:'#FFFFFF', c2:'#101418' },
+    { id:'bl_ti',  cat:'ball',  b:'titleist',  n:'پرو V1x',                     price:55,  g:'a', type:'ball',   c1:'#FFFFFF', c2:'#D4AF37' },
+    { id:'bl_bu',  cat:'ball',  b:'bushnell',  n:'فاصله‌یاب تور V6',             price:120, g:'a', type:'range',  c1:'#15181C', c2:'#D4AF37' },
+    /* ── ساعت و اکسسوری ── */
+    { id:'wt_no',  cat:'watch', b:'academy',   n:'بدون ساعت',                   price:0,   g:'a', type:'none' },
+    { id:'wt_ac',  cat:'watch', b:'academy',   n:'مچ‌بند ورزشی آکادمی',          price:20,  g:'a', type:'band',   c1:'#1E8F6A', c2:'#F4F6F8' },
+    { id:'wt_ss',  cat:'watch', b:'shotscope', n:'شات‌اسکوپ X5',                price:60,  g:'a', type:'watch',  c1:'#2A2F3A', c2:'#5FE3B0' },
+    { id:'wt_cb',  cat:'watch', b:'cobra',     n:'مچ‌بند کربنی کبرا',            price:75,  g:'a', type:'band',   c1:'#101418', c2:'#E8571F' },
+    { id:'wt_ga',  cat:'watch', b:'garmin',    n:'اپروچ S70 طلایی',             price:140, g:'a', type:'watch',  c1:'#12212F', c2:'#D4AF37' },
+    { id:'wt_gz',  cat:'watch', b:'garmin',    n:'اپروچ Z82 پرمیوم',            price:200, g:'a', type:'watch',  c1:'#0B0F14', c2:'#5FE3B0' },
+    /* ── کفش‌های جدید ── */
+    { id:'sn_ec',  cat:'shoes', b:'ecco',      n:'بایوم H4 چرم',                price:110, g:'a', c1:'#F4F6F8', c2:'#8A6A15' },
+    { id:'sn_mz',  cat:'shoes', b:'mizuno',    n:'جنم لایت‌بوست',               price:75,  g:'a', c1:'#101418', c2:'#2E86DE' },
     /* ── مو ── */
     { id:'hr_m1',  cat:'hair',  b:'academy',   n:'کوتاه کلاسیک (آقا)',           price:0,   g:'m', style:'short', c1:'#2A1E16' },
     { id:'hr_f1',  cat:'hair',  b:'academy',   n:'بلند سادهٔ خانم',              price:0,   g:'f', style:'long',  c1:'#2A1E16' },
@@ -291,6 +329,19 @@
     { id:'sk_3',   cat:'skin',  b:'academy',   n:'برنزه',                        price:0,   g:'a', c1:'#C68863' },
     { id:'sk_4',   cat:'skin',  b:'academy',   n:'تیره',                         price:0,   g:'a', c1:'#8D5524' },
   ];
+  /* ── متادیتای فروشگاه: امتیاز، برچسب، موجودی (پایدار بر اساس شناسه) ── */
+  function hashId(id){ let h = 0; String(id).split('').forEach(ch => { h = (h * 31 + ch.charCodeAt(0)) >>> 0; }); return h; }
+  function itemMeta(it){
+    const h = hashId(it.id);
+    const price = +it.price || 0;
+    const rate = it.rate !== undefined ? +it.rate : Math.round((3.6 + (h % 14) / 10) * 10) / 10;
+    const sold = it.sold !== undefined ? +it.sold : 40 + (h % 960);
+    const stock = it.stock !== undefined ? +it.stock : 3 + (h % 60);
+    const isNew = it.tagNew !== undefined ? !!it.tagNew : (h % 7 === 0);
+    const disc = +it.disc || 0;                       // قیمت قبل از تخفیف (اگر مدیر ست کند)
+    const toman = it.toman !== undefined ? +it.toman : price * 12000;
+    return { rate: Math.min(5, rate), sold, stock, isNew, disc, toman, price };
+  }
   /* ویرایش‌های مدیر روی فروشگاه: ga_shop = { edit:{id:{price,n,off}}, add:[item] } */
   const SHOP_KEY = 'ga_shop';
   function shopStore(){ const d = LSget(SHOP_KEY, {}); return { edit: d.edit || {}, add: Array.isArray(d.add) ? d.add : [] }; }
@@ -320,9 +371,117 @@
   const FREE_IDS = () => shop().filter(i => +i.price === 0).map(i => i.id);
   const DEFAULT_SEL = g => ({
     shirt:'sh_ac', pants:'pt_ac', shoes:'sn_ac', hat: g === 'f' ? 'ht_sc' : 'ht_no',
-    glove:'gl_no', glass:'gs_no', club:'cl_no',
+    glove:'gl_no', glass:'gs_no', club:'cl_no', bag:'bg_no', ball:'bl_no', watch:'wt_no',
     hair: g === 'f' ? 'hr_f1' : 'hr_m1', eyes:'ey_br', skin:'sk_2',
   });
+
+
+  /* ═════════ ۳٫۵) دسته‌ها، برندها و بسته‌های ویژه (قابل ویرایش از پنل مدیریت) ═════════ */
+  function shopMeta(){
+    const d = LSget(SHOP_KEY, {});
+    return {
+      cats:    Array.isArray(d.cats)    ? d.cats    : [],   // [{id,label,icon,off}]
+      brands:  (d.brands && typeof d.brands === 'object') ? d.brands : {},
+      bundles: Array.isArray(d.bundles) ? d.bundles : [],   // [{id,n,ids:[],price,off}]
+      hidden:  Array.isArray(d.hidden)  ? d.hidden  : [],   // شناسهٔ دسته‌های پنهان‌شده
+    };
+  }
+  function saveMeta(patch){
+    const d = LSget(SHOP_KEY, {});
+    LSset(SHOP_KEY, Object.assign({}, d, patch));
+  }
+  /* لیست نهایی دسته‌ها = پایه + سفارشی − پنهان‌شده‌ها */
+  function cats(){
+    const m = shopMeta();
+    const base = CATS.map(([id, label]) => ({ id, label, base:true }));
+    const out = base.concat(m.cats.filter(c => c && c.id && !base.some(b => b.id === c.id)));
+    return out.filter(c => !m.hidden.includes(c.id) && !c.off);
+  }
+  function catsAll(){
+    const m = shopMeta();
+    const base = CATS.map(([id, label]) => ({ id, label, base:true, off: m.hidden.includes(id) }));
+    return base.concat(m.cats.filter(c => c && c.id && !base.some(b => b.id === c.id)));
+  }
+  function addCat(c){ const m = shopMeta(); m.cats.push(c); saveMeta({ cats: m.cats }); }
+  function setCat(id, patch){
+    const m = shopMeta();
+    const i = m.cats.findIndex(c => c.id === id);
+    if (i > -1){ m.cats[i] = Object.assign({}, m.cats[i], patch); saveMeta({ cats: m.cats }); return; }
+    // دستهٔ پایه: فقط پنهان/آشکار کردن
+    const hid = new Set(m.hidden);
+    if (patch.off) hid.add(id); else hid.delete(id);
+    saveMeta({ hidden: Array.from(hid) });
+  }
+  function removeCat(id){
+    const m = shopMeta();
+    const i = m.cats.findIndex(c => c.id === id);
+    if (i > -1){ m.cats.splice(i, 1); saveMeta({ cats: m.cats }); }
+    else { const hid = new Set(m.hidden); hid.add(id); saveMeta({ hidden: Array.from(hid) }); }
+  }
+  function brands(){ return Object.assign({}, BRANDS, shopMeta().brands); }
+  function setBrand(id, obj){ const m = shopMeta(); m.brands[id] = Object.assign({}, m.brands[id] || BRANDS[id] || {}, obj); saveMeta({ brands: m.brands }); }
+  function removeBrand(id){ const m = shopMeta(); delete m.brands[id]; saveMeta({ brands: m.brands }); }
+  function bundles(){ return shopMeta().bundles.filter(b => !b.off); }
+  function bundlesAll(){ return shopMeta().bundles; }
+  function addBundle(b){ const m = shopMeta(); m.bundles.push(b); saveMeta({ bundles: m.bundles }); }
+  function setBundle(id, patch){
+    const m = shopMeta(); const i = m.bundles.findIndex(b => b.id === id);
+    if (i > -1){ m.bundles[i] = Object.assign({}, m.bundles[i], patch); saveMeta({ bundles: m.bundles }); }
+  }
+  function removeBundle(id){ const m = shopMeta(); saveMeta({ bundles: m.bundles.filter(b => b.id !== id) }); }
+
+  /* ── سبد خرید و علاقه‌مندی هر کاربر ── */
+  const CART_KEY = 'ga_cart', FAV_KEY = 'ga_fav';
+  function cart(user){ const d = LSget(CART_KEY, {}); return Array.isArray(d[user]) ? d[user] : []; }
+  function saveCart(user, a){ const d = LSget(CART_KEY, {}); d[user] = a; LSset(CART_KEY, d); }
+  function cartAdd(user, id){
+    const a = cart(user);
+    if (a.includes(id)) return { ok:false, msg:'این آیتم قبلاً در سبد شماست' };
+    const rec = avatarOf(user);
+    if (rec.owned.includes(id)) return { ok:false, msg:'این آیتم را از قبل دارید' };
+    a.push(id); saveCart(user, a);
+    return { ok:true, msg:'به سبد خرید اضافه شد 🛒' };
+  }
+  function cartRemove(user, id){ saveCart(user, cart(user).filter(x => x !== id)); }
+  function cartClear(user){ saveCart(user, []); }
+  function cartTotal(user){
+    return cart(user).reduce((s, id) => { const it = shopItem(id); return s + (it ? (+it.price || 0) : 0); }, 0);
+  }
+  /* خرید همهٔ آیتم‌های سبد با یک تراکنش */
+  function checkout(user){
+    const ids = cart(user).filter(id => shopItem(id));
+    if (!ids.length) return { ok:false, msg:'سبد خرید شما خالی است' };
+    const total = ids.reduce((s, id) => s + (+shopItem(id).price || 0), 0);
+    const bal = coinOf(user).total;
+    if (bal < total) return { ok:false, msg:'موجودی سکه کافی نیست — نیاز: ' + total + ' 🪙 / موجودی: ' + bal + ' 🪙' };
+    let n = 0;
+    ids.forEach(id => { const r = buyItem(user, id); if (r.ok) n++; });
+    cartClear(user);
+    return { ok:true, msg: n + ' آیتم خریداری شد و برای همیشه در کمد شماست ✓', n, total };
+  }
+  function favs(user){ const d = LSget(FAV_KEY, {}); return Array.isArray(d[user]) ? d[user] : []; }
+  function toggleFav(user, id){
+    const d = LSget(FAV_KEY, {}); const a = Array.isArray(d[user]) ? d[user] : [];
+    const i = a.indexOf(id);
+    if (i > -1) a.splice(i, 1); else a.push(id);
+    d[user] = a; LSset(FAV_KEY, d);
+    return i === -1;
+  }
+  /* خرید یک ست کامل (بسته) */
+  function buyBundle(user, bid){
+    const b = bundles().find(x => x.id === bid);
+    if (!b) return { ok:false, msg:'بسته پیدا نشد' };
+    const rec = avatarOf(user);
+    const need = (b.ids || []).filter(id => !rec.owned.includes(id));
+    if (!need.length) return { ok:false, msg:'همهٔ آیتم‌های این ست را دارید' };
+    const price = +b.price || need.reduce((s, id) => { const it = shopItem(id); return s + (it ? +it.price || 0 : 0); }, 0);
+    const left = spendCoins(user, price, 'bundle:' + bid, 'خرید ست ' + b.n);
+    if (left === null) return { ok:false, msg:'موجودی سکه کافی نیست' };
+    const d = avatarData(); const r = d[user] || rec;
+    need.forEach(id => { r.owned.push(id); const it = shopItem(id); if (it) r.sel[it.cat] = id; });
+    d[user] = r; saveAvatars(d);
+    return { ok:true, msg:'ست «' + b.n + '» خریداری و پوشیده شد ✓' };
+  }
 
   /* ═════════ ۴) داده‌ی آواتار کاربران ═════════ */
   const AV_KEY = 'ga_avatars';
@@ -484,6 +643,9 @@
     const glove = itemOf(sel, 'glove') || { type:'none' };
     const glass = itemOf(sel, 'glass') || { type:'none' };
     const club  = itemOf(sel, 'club')  || { type:'none' };
+    const bag   = itemOf(sel, 'bag')   || { type:'none' };
+    const ball  = itemOf(sel, 'ball')  || { type:'none' };
+    const watch = itemOf(sel, 'watch') || { type:'none' };
     const hairC = hair.c1 || '#2A1E16';
     const dark = (c, k) => shade(c, -(k || 18));
     const light = (c, k) => shade(c, (k || 16));
@@ -599,6 +761,34 @@
         <circle cx="154" cy="112" r="5" fill="#2A2F3A"/><circle cx="167" cy="108" r="5" fill="#2A2F3A"/><circle cx="182" cy="112" r="5" fill="#2A2F3A"/></g>`;
     }
 
+    /* ── کیف گلف (پشت آواتار) ── */
+    let bagSvg = '';
+    if (bag.type && bag.type !== 'none'){
+      const b1 = bag.c1 || '#1E8F6A', b2 = bag.c2 || light(b1, 18);
+      bagSvg = `<g><rect x="150" y="146" width="36" height="156" rx="16" fill="${b1}" stroke="rgba(0,0,0,.3)"/>
+        <rect x="150" y="180" width="36" height="18" fill="${b2}" opacity=".9"/>
+        <rect x="150" y="238" width="36" height="10" fill="rgba(255,255,255,.14)"/>
+        <g stroke="#C9D4DE" stroke-width="3"><path d="M158 146 L154 106"/><path d="M168 146 L168 102"/><path d="M178 146 L184 106"/></g>
+        <circle cx="154" cy="106" r="5" fill="#2A2F3A"/><circle cx="168" cy="102" r="5" fill="#2A2F3A"/><circle cx="184" cy="106" r="5" fill="#2A2F3A"/></g>`;
+    }
+    /* ── توپ / فاصله‌یاب کنار پا ── */
+    let ballSvg = '';
+    if (ball.type === 'ball'){
+      ballSvg = `<g><ellipse cx="34" cy="348" rx="11" ry="4" fill="rgba(0,0,0,.35)"/>
+        <circle cx="34" cy="340" r="9" fill="${ball.c1 || '#fff'}" stroke="rgba(0,0,0,.2)"/>
+        <circle cx="31" cy="337" r="1.5" fill="${dark(ball.c1 || '#fff', 12)}"/><circle cx="37" cy="339" r="1.5" fill="${dark(ball.c1 || '#fff', 12)}"/>
+        <path d="M28 346 Q34 350 40 346" stroke="${ball.c2 || '#1E8F6A'}" stroke-width="2" fill="none"/></g>`;
+    } else if (ball.type === 'range'){
+      ballSvg = `<g><rect x="22" y="326" width="30" height="18" rx="6" fill="${ball.c1 || '#15181C'}" stroke="rgba(0,0,0,.3)"/>
+        <circle cx="31" cy="335" r="5" fill="${ball.c2 || '#D4AF37'}" opacity=".9"/><circle cx="45" cy="335" r="3.4" fill="#0B0F14"/></g>`;
+    }
+    /* ── ساعت / مچ‌بند ── */
+    let watchSvg = '';
+    if (watch.type && watch.type !== 'none'){
+      const w1 = watch.c1 || '#2A2F3A', w2 = watch.c2 || '#5FE3B0';
+      watchSvg = `<g><rect x="44" y="192" width="16" height="12" rx="4" fill="${w1}" stroke="rgba(0,0,0,.25)"/>
+        <rect x="47" y="194.5" width="10" height="7" rx="2.5" fill="${w2}" opacity=".95"/></g>`;
+    }
     const eyeShine = eyeIt.shine ? `<circle cx="86" cy="92" r="8" fill="${eyeIt.c1}" opacity=".28"/><circle cx="114" cy="92" r="8" fill="${eyeIt.c1}" opacity=".28"/>` : '';
     const lips = gender === 'f' ? `<path d="M92 112 Q100 118 108 112 Q100 116 92 112Z" fill="#C0546A"/>` : '';
 
@@ -611,12 +801,13 @@
           <stop offset="0" stop-color="${light(skin,10)}"/><stop offset="1" stop-color="${dark(skin,10)}"/></radialGradient>
       </defs>
       <ellipse cx="100" cy="350" rx="62" ry="9" fill="rgba(0,0,0,.42)"/>
+      ${bagSvg}
       ${clubSvg}
       ${hairBack}
       ${legs}${shoesSvg}
       <path d="${bodyPath}" fill="url(#${g}sh)" stroke="rgba(0,0,0,.16)"/>
       ${shirtPat}
-      ${sleeve}${armL}${armR}${gloveSvg}
+      ${sleeve}${armL}${armR}${gloveSvg}${watchSvg}${ballSvg}
       <path d="M88 108 L112 108 L112 126 Q100 132 88 126 Z" fill="${dark(skin,12)}"/>
       <path d="M84 118 Q100 136 116 118 L124 124 Q100 146 76 124 Z" fill="${light(shirt.c1,6)}"/>
       <path d="M100 122 L92 140 L100 136 L108 140 Z" fill="${shirt.c2}"/>
@@ -688,6 +879,26 @@
       else if (it.type === 'bag') inner = `<rect x="28" y="16" width="24" height="42" rx="11" fill="${c1}" stroke="rgba(0,0,0,.3)"/><g stroke="#C9D4DE" stroke-width="3"><path d="M34 16 L30 4"/><path d="M40 16 L40 2"/><path d="M46 16 L50 4"/></g>`;
       else if (it.type === 'driver') inner = `<rect x="38" y="6" width="4" height="42" fill="#C9D4DE"/><ellipse cx="46" cy="52" rx="14" ry="8" fill="${c1}" stroke="rgba(0,0,0,.3)"/>`;
       else inner = `<rect x="38" y="6" width="4" height="44" fill="#C9D4DE"/><rect x="30" y="50" width="24" height="8" rx="3" fill="${c1}" stroke="rgba(0,0,0,.3)"/>`;
+    } else if (it.cat === 'bag'){
+      inner = it.type === 'none' ? `<text x="40" y="42" text-anchor="middle" font-size="20" fill="#8A93A6">—</text>`
+        : `<rect x="26" y="14" width="28" height="46" rx="13" fill="${c1}" stroke="rgba(0,0,0,.3)"/>
+           <rect x="26" y="30" width="28" height="9" fill="${c2}" opacity=".85"/>
+           <g stroke="#C9D4DE" stroke-width="3"><path d="M33 14 L29 2"/><path d="M40 14 L40 0"/><path d="M47 14 L51 2"/></g>
+           <circle cx="29" cy="3" r="4" fill="#2A2F3A"/><circle cx="40" cy="1" r="4" fill="#2A2F3A"/><circle cx="51" cy="3" r="4" fill="#2A2F3A"/>`;
+    } else if (it.cat === 'ball'){
+      inner = it.type === 'none' ? `<text x="40" y="42" text-anchor="middle" font-size="20" fill="#8A93A6">—</text>`
+        : it.type === 'range'
+          ? `<rect x="18" y="22" width="44" height="24" rx="7" fill="${c1}" stroke="rgba(0,0,0,.3)"/>
+             <circle cx="30" cy="34" r="7" fill="${c2}" opacity=".9"/><circle cx="52" cy="34" r="5" fill="#0B0F14"/>`
+          : `<circle cx="40" cy="34" r="19" fill="${c1}" stroke="rgba(0,0,0,.22)"/>
+             <g fill="${shade(c1,-14)}" opacity=".7"><circle cx="34" cy="28" r="2.2"/><circle cx="44" cy="27" r="2.2"/><circle cx="40" cy="36" r="2.2"/><circle cx="31" cy="38" r="2.2"/><circle cx="49" cy="36" r="2.2"/></g>
+             <path d="M28 46 Q40 52 52 46" stroke="${c2}" stroke-width="3" fill="none" opacity=".8"/>`;
+    } else if (it.cat === 'watch'){
+      inner = it.type === 'none' ? `<text x="40" y="42" text-anchor="middle" font-size="20" fill="#8A93A6">—</text>`
+        : `<rect x="34" y="8" width="12" height="20" rx="4" fill="${shade(c1,-10)}"/>
+           <rect x="34" y="40" width="12" height="20" rx="4" fill="${shade(c1,-10)}"/>
+           <rect x="26" y="24" width="28" height="22" rx="7" fill="${c1}" stroke="rgba(0,0,0,.3)"/>
+           <rect x="30" y="28" width="20" height="14" rx="4" fill="${c2}" opacity=".9"/>`;
     } else if (it.cat === 'hair'){
       const st2 = it.style || 'short';
       inner = `<ellipse cx="40" cy="40" rx="20" ry="22" fill="#EBBE8F"/>` + (
@@ -783,6 +994,9 @@
     ranks, rankOf, saveRank, resetRanks, levelOfPts, honorOf, setHonorOverride, honorStore,
     badgeSVG, renderAvatarSVG, itemPreviewSVG, rankCard, playRankUp, checkRankUp, particlesHTML, shade,
     BRANDS, CATS, shop, shopAll, shopItem, setShopItem, addShopItem, removeShopItem, resetShop, shopStore,
+    itemMeta, cats, catsAll, addCat, setCat, removeCat, brands, setBrand, removeBrand,
+    bundles, bundlesAll, addBundle, setBundle, removeBundle, buyBundle,
+    cart, cartAdd, cartRemove, cartClear, cartTotal, checkout, favs, toggleFav,
     avatarData, avatarOf, saveAvatars, setAvatar, selectItem, buyItem, DEFAULT_SEL, FREE_IDS,
     coinData, coinOf, addCoins, spendCoins, setAutoProvider, autoOf,
     reqs, reqsOf, pendingReqs, addReq, decideReq, deleteReq, clearDecided,

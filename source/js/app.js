@@ -1521,6 +1521,14 @@
 
   /* ── تب ساخت آواتار + فروشگاه برندها ── */
   function memAvatar(body, o){
+    /* ویترین حرفه‌ای فروشگاه آواتار (v8) */
+    if (window.SHOP && SHOP.renderShop){
+      SHOP.renderShop(body, currentUser, {
+        gender: genderOfUser(currentUser),
+        onChange: () => { updateCoinBadge(); memAvatar(body, o); },
+      });
+      return;
+    }
     const av = AV.avatarOf(currentUser, genderOfUser(currentUser));
     const c = coinOf(currentUser);
     const owned = new Set(av.owned);
