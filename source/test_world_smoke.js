@@ -255,6 +255,35 @@ const check = (cond, label, extra='') => { results.push([cond, label, extra]); i
   // holidays data sanity: 1405 count
   check(d.querySelector('.holi-list') !== null || true, 'holidays list rendered (or tab navigation applied)', '');
 
+  /* ═══════════ تقویم بزرگ: تعطیلات + پیمایش ماه ═══════════ */
+  d.querySelector('.nav-item[data-page="cal"]').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+  await sleep(350);
+  check(!!d.querySelector('#cal-grid'), 'big calendar grid renders');
+  check(!!d.querySelector('#cal-prev') && !!d.querySelector('#cal-next'), 'month navigation present');
+  const holNow = d.querySelectorAll('.cal-cell.holiday').length;
+  check(holNow >= 1, 'current month shows holiday cells', 'holidays=' + holNow);
+  // پیمایش تا فروردین (ماه با بیشترین تعطیلات)
+  let guard = 0;
+  while (!((d.querySelector('#cal-month-name')||{}).textContent||'').includes('فروردین') && guard < 14){
+    d.querySelector('#cal-prev').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+    await sleep(70); guard++;
+  }
+  const mn = (d.querySelector('#cal-month-name')||{}).textContent || '';
+  const holFar = d.querySelectorAll('.cal-cell.holiday').length;
+  check(mn.includes('فروردین'), 'navigated to فروردین', mn);
+  check(holFar >= 5, 'فروردین shows many holiday cells', 'holidays=' + holFar);
+  const sideTxt = (d.querySelector('#cal-side')||{}).textContent || '';
+  check(sideTxt.includes('نوروز') || sideTxt.includes('سیزده'), 'side panel lists Nowruz holidays', sideTxt.slice(0,60));
+  // فیلتر تایم‌لاین
+  const filters = d.querySelectorAll('.cal-f').length;
+  check(filters >= 5, 'timeline filters present', String(filters));
+  const tlTxt = (d.querySelector('#cal-timeline')||{}).textContent || '';
+  check(tlTxt.includes('جام'), 'timeline includes competitions', tlTxt.slice(0,50));
+  // دکمه امروز برمی‌گرداند به ماه جاری
+  d.querySelector('#cal-today').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+  await sleep(100);
+  check((d.querySelector('#cal-month-name')||{}).textContent.includes('شهریور'), 'امروز returns to current month');
+
   /* ── report ── */
   const fails = results.filter(r => !r[0]);
   console.log('\n══════════ SMOKE RESULT ══════════');
