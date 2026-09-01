@@ -137,6 +137,10 @@ var CSS = `
   box-shadow:0 10px 30px rgba(0,0,0,.45),0 0 24px rgba(212,175,55,.55);animation:l3dfbt 3.4s ease-in-out infinite;transition:transform .25s,box-shadow .25s}
 #l3d-enter:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 16px 42px rgba(0,0,0,.5),0 0 44px rgba(212,175,55,.85)}
 @keyframes l3dfbt{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+#l3d-sndhint{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:80;padding:7px 15px;border-radius:20px;
+  font-size:11.5px;font-weight:800;color:#0B0F14;background:linear-gradient(135deg,#f6e27a,#d4af37 60%,#b58c1c);
+  box-shadow:0 6px 18px rgba(0,0,0,.5),0 0 18px rgba(212,175,55,.5);opacity:0;transition:opacity .4s;pointer-events:none;white-space:nowrap}
+#l3d-sndhint.on{opacity:.95;animation:l3dfbt 2.4s ease-in-out infinite}
 #l3d.fadeout{animation:l3dfade .7s ease forwards}
 @keyframes l3dfade{to{opacity:0}}
 /* ═══ ریسپانسیو (موبایل مود) ═══ */
@@ -203,7 +207,7 @@ root.innerHTML =
     '<div class="fr" style="background-image:url(assets/open_hole.png)"></div>' +
     '<div class="vin"></div>' +
     '<div id="l3d-logo"><div class="lg-letters" id="l3d-lg"></div><div class="lg-sub" id="l3d-lgsub">آکادمی گلف ۱۴۰۵ — GolfAcademy.sa</div><div class="lg-line" id="l3d-lgline"></div></div>' +
-    '<div id="l3d-flash"></div><div id="l3d-wave"></div>' +
+    '<div id="l3d-flash"></div><div id="l3d-wave"></div><div id="l3d-sndhint">🔊 برای شنیدن صدای افتتاحیه، صفحه را لمس کنید</div>' +
     '<div class="l3d-brand">GOLFACADEMY</div>' +
   '</div>' +
   '<div id="l3d-stage">' +
@@ -332,8 +336,15 @@ function sfx(type){
 }
 
 /* باز کردن قفل صدا با اولین تماس کاربر (سیاست autoplay مرورگرها) — بدون هیچ صدای پنل */
+function sndHint(show){
+  var h = document.getElementById('l3d-sndhint');
+  if (h) h.classList[show ? 'add' : 'remove']('on');
+}
 ['pointerdown','touchstart','keydown'].forEach(function(ev){
-  document.addEventListener(ev, function(){ initAudio(); }, { passive: true });
+  document.addEventListener(ev, function(){
+    initAudio();
+    setTimeout(function(){ if (audioOn()) sndHint(false); }, 120);
+  }, { passive: true });
 });
 
 /* ─────────── اطلاعات سایت (قابل ویرایش از پلن مدیریت) ─────────── */
@@ -370,6 +381,8 @@ function photoOf(pid){
 var introTimers = [];
 function playIntro(){
   initAudio();
+  // سیاست مرورگرها: تا اولین لمس، صدا اجرا نمی‌شود → راهنمای کوچک نمایش داده می‌شود
+  setTimeout(function(){ if (!audioOn() && !STATE.introDone) sndHint(true); }, 500);
   // لوگو اسلم: حروف GOLFACADEMY یکی‌یکی
   var word = 'GOLFACADEMY';
   var lg = $('#l3d-lg');
@@ -397,6 +410,7 @@ function playIntro(){
 }
 function finishIntro(){
   STATE.introDone = true;
+  sndHint(false);
   for (var i=0;i<frames.length;i++) frames[i].style.opacity = 0;
   $('#l3d-flash').classList.remove('on'); $('#l3d-wave').classList.remove('on');
   intro.style.opacity = 0;
