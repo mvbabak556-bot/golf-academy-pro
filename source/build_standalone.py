@@ -43,9 +43,13 @@ def main():
     css = open(os.path.join(ROOT, 'css', 'style.css'), encoding='utf-8').read()
     html = re.sub(r'<link rel="stylesheet" href="css/style.css">',
                   '<style>' + css + '</style>', html)
+    if os.path.exists(os.path.join(ROOT, 'css', 'mgmt.css')):
+        mcss = open(os.path.join(ROOT, 'css', 'mgmt.css'), encoding='utf-8').read()
+        html = re.sub(r'<link rel="stylesheet" href="css/mgmt.css">',
+                      '<style>' + mcss + '</style>', html)
 
     # 3) inline JS in load order
-    for jsname in ['world3d', 'data', 'charts', 'app']:
+    for jsname in ['holidays', 'data', 'charts', 'world3d', 'mgmt', 'app']:
         js = open(os.path.join(ROOT, 'js', jsname + '.js'), encoding='utf-8').read()
         html = re.sub(rf'<script src="js/{jsname}\.js"></script>',
                       '<script>' + js + '</script>', html)

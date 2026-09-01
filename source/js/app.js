@@ -30,6 +30,29 @@
   }
   const USERS = { admin: cyrb53('golf1405'), coach: cyrb53('golf1405'), manager: cyrb53('golf1405') };
   const USER_LABEL = { admin: 'مدیر آکادمی', coach: 'مربی ارشد', manager: 'مدیریت' };
+  /* یوزر/پسورد بازیکنان (ساختهشده در پلن مدیریت) — فقط بازیکن فعال اجازهٔ ورود دارد */
+  function playerUsers(){
+    try { return JSON.parse(localStorage.getItem('ga_player_users') || '{}'); } catch(e){ return {}; }
+  }
+  function buildUsers(){
+    const u = Object.assign({}, USERS);
+    try {
+      const pusers = playerUsers();
+      Object.values(pusers).forEach(p => {
+        if (p && p.user && p.pass && p.active !== false) u[String(p.user).toLowerCase()] = cyrb53(p.pass);
+      });
+    } catch(e){}
+    return u;
+  }
+  function userLabelFor(u){
+    if (USER_LABEL[u]) return USER_LABEL[u];
+    try {
+      const pusers = playerUsers();
+      const hit = Object.values(pusers).find(p => p && p.user === u);
+      if (hit) return 'بازیکن — ' + ((hit.name + ' ' + (hit.family||'')).trim() || u);
+    } catch(e){}
+    return 'کاربر';
+  }
 
   /* ── State ── */
   let S = null;      // raw state (courses/tournaments/scorecards/activities)
@@ -1375,9 +1398,9 @@
       e.preventDefault();
       const u = user.value.trim().toLowerCase();
       const h = cyrb53(pass.value);
-      if (USERS[u] === h){
+      if (buildUsers()[u] === h){
         store.set('ga_session', u);
-        store.set('ga_user_label', USER_LABEL[u] || 'کاربر');
+        store.set('ga_user_label', userLabelFor(u));
         enterApp(u);
       } else {
         err.classList.add('show');
@@ -1421,7 +1444,7 @@
     initNav();
     initWorldUI();
     const sess = store.get('ga_session');
-    if (sess && USERS[sess]){
+    if (sess && buildUsers()[sess] !== undefined){
       enterApp(sess);
     }
   });

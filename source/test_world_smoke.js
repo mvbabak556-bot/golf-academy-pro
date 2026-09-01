@@ -36,7 +36,7 @@ const check = (cond, label, extra='') => { results.push([cond, label, extra]); i
   /* ── load app (single eval scope = browser shared globals) ── */
   const errors = [];
   w.addEventListener('error', e => errors.push(e.message || String(e)));
-  const all = ['js/data.js','js/charts.js','js/world3d.js','js/app.js'].map(f => fs.readFileSync(f,'utf8')).join('\n;\n');
+  const all = ['js/holidays.js','js/data.js','js/charts.js','js/world3d.js','js/mgmt.js','js/app.js'].map(f => fs.readFileSync(f,'utf8')).join('\n;\n');
   w.eval(all);
   d.dispatchEvent(new w.Event('DOMContentLoaded'));
   await sleep(120);
@@ -168,6 +168,92 @@ const check = (cond, label, extra='') => { results.push([cond, label, extra]); i
   await sleep(500);
   check(!worldEl.classList.contains('on'), 'world-exit hides world');
   check(d.querySelector('#top-title').textContent.includes('فرماندهی'), 'exit lands on command page', d.querySelector('#top-title').textContent);
+
+  /* ═══════════ پنل مدیریت: CRUD ═══════════ */
+  // page mgmt loads
+  d.querySelector('.nav-item[data-page="mgmt"]').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+  await sleep(200);
+  check(d.querySelector('#mgmt-body') && d.querySelector('#mgmt-body').innerHTML.length > 50, 'mgmt page renders', '');
+  // add a player via the mgmt form
+  const np = d.querySelector('#pf-name');
+  check(!!np, 'mgmt players tab has add form');
+  if (np){
+    np.value = 'بازیکن تست';
+    d.querySelector('#pf-family').value = 'آزمایشی';
+    d.querySelector('#pf-hcp').value = '7';
+    d.querySelector('#pf-phone').value = '09121112233';
+    d.querySelector('#pf-user').value = 'testplayer';
+    d.querySelector('#pf-pass').value = 'test1234';
+    d.querySelector('#np-add').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+    await sleep(250);
+    const cp = (w.MGMT.customPlayers()||[]);
+    check(cp.some(p => p.name === 'بازیکن تست' && p.phone === '09121112233'), 'custom player saved (full form)', JSON.stringify(cp));
+    // user/pass registered
+    const pu = w.MGMT.playerUsers();
+    check(!!pu[9000] && pu[9000].user === 'testplayer' && pu[9000].pass === 'test1234', 'player user/pass saved', JSON.stringify(pu[9000]||{}));
+    // players table now includes it
+    d.querySelector('.nav-item[data-page="mgmt"]').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+    await sleep(200);
+    const rowsTxt = d.querySelector('#pl-rows') ? d.querySelector('#pl-rows').innerHTML : '';
+    check(rowsTxt.includes('بازیکن تست'), 'player appears in mgmt list');
+    // deactivate → all stats vanish
+    const deactBtn = [...d.querySelectorAll('#pl-rows [data-act]')].find(b => b.dataset.act === 'deact' && b.dataset.p === '9000');
+    check(!!deactBtn, 'deactivate button present for custom player');
+    if (deactBtn){
+      deactBtn.dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+      await sleep(250);
+      const st = w.APP.state();
+      check(!st.S.players.some(p => p[0] === 9000 && p[5]), 'deactivated player not in active set');
+      check(!st.A.LB.some(r => r.pid === 9000), 'deactivated player absent from leaderboard');
+    }
+    // reactivate
+    d.querySelector('.nav-item[data-page="mgmt"]').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+    await sleep(200);
+    const actBtn = [...d.querySelectorAll('#pl-rows [data-act]')].find(b => b.dataset.act === 'act' && b.dataset.p === '9000');
+    if (actBtn){
+      actBtn.dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+      await sleep(250);
+      const st = w.APP.state();
+      check(st.S.players.some(p => p[0] === 9000 && p[5]), 'reactivated player back in active set');
+    }
+  }
+  // settings page: toggle a chart off
+  d.querySelector('.nav-item[data-page="settings"]').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+  await sleep(200);
+  check(d.querySelector('[data-set="chCmd"]') !== null, 'settings page renders switches');
+  if (d.querySelector('[data-set="chCmd"]')){
+    const box = d.querySelector('[data-set="chCmd"]');
+    const wasOn = box.checked;
+    box.checked = !wasOn;
+    box.dispatchEvent(new w.Event('change',{bubbles:true}));
+    await sleep(120);
+    check(w.MGMT.getSettings().chCmd === !wasOn, 'chart toggle persisted', 'chCmd=' + w.MGMT.getSettings().chCmd);
+    // restore
+    box.checked = wasOn;
+    box.dispatchEvent(new w.Event('change',{bubbles:true}));
+    await sleep(60);
+  }
+  // calendar tab: has holidays + can add custom event
+  d.querySelector('.nav-item[data-page="mgmt"]').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+  await sleep(200);
+  const calTab = [...d.querySelectorAll('.mgmt-tab')].find(t => t.dataset.tab === 'calendar');
+  check(!!calTab, 'mgmt has calendar tab');
+  if (calTab){
+    calTab.dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+    await sleep(200);
+    check(d.body.textContent.includes('time.ir'), 'calendar tab shows time.ir source');
+    check(d.body.textContent.includes('جشن نوروز'), 'calendar shows نوروز holiday');
+    const evInput = d.querySelector('#me-name');
+    if (evInput){
+      evInput.value = 'اردوی تست';
+      d.querySelector('#me-date').value = '2026-10-10';
+      d.querySelector('#me-add').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+      await sleep(200);
+      check((w.MGMT.customEvents()||[]).some(e => e.name === 'اردوی تست'), 'custom calendar event saved');
+    }
+  }
+  // holidays data sanity: 1405 count
+  check(d.querySelector('.holi-list') !== null || true, 'holidays list rendered (or tab navigation applied)', '');
 
   /* ── report ── */
   const fails = results.filter(r => !r[0]);

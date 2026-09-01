@@ -151,15 +151,16 @@
   const RESULT_LABEL = ['اول','دوم','سوم','شرکت‌کننده'];
 
   /* ── تولید کارت امتیاز (قطعی: هر بار با RNG تازه) ── */
-  function genScorecards(){
+  function genScorecards(players){
     const { gauss } = makeRNG(1405);
     const cards = [];
+    const ACT = players ? players.filter(p => p[5]) : ACTIVE;
     TOURNAMENTS.forEach(t => {
       const [code, name, lvl, cid, holes, dstr] = t;
       const d = dateFrom(dstr);
       if (d >= TODAY) return;
       const pars = parsOf(cid);
-      const field = ACTIVE.filter(p => dateFrom(p[4]) <= d).slice(0, 20);
+      const field = ACT.filter(p => dateFrom(p[4]) <= d).slice(0, 20);
       const rows = field.map(p => {
         const off = (p[3] - 9) * 0.22;
         const strokes = {};
@@ -176,17 +177,18 @@
   }
 
   /* ── فعالیتها: تمرین و آموزش (قطعی) ── */
-  function genActivities(){
+  function genActivities(players){
     const { randInt, pickN } = makeRNG(77);
     const acts = [];
+    const ACT = players ? players.filter(p => p[5]) : ACTIVE;
     const span = Math.floor((TODAY - SEASON_START) / 86400000);
     for (let i = 0; i < 26; i++){
       const d = new Date(SEASON_START.getTime() + randInt(0, span) * 86400000);
-      pickN(ACTIVE, randInt(7, 12)).forEach(p => acts.push({ date: d, pid: p[0], type: 'تمرین', points: 1 }));
+      pickN(ACT, randInt(7, 12)).forEach(p => acts.push({ date: d, pid: p[0], type: 'تمرین', points: 1 }));
     }
     for (let i = 0; i < 12; i++){
       const d = new Date(SEASON_START.getTime() + randInt(0, span) * 86400000);
-      pickN(ACTIVE, randInt(6, 10)).forEach(p => acts.push({ date: d, pid: p[0], type: 'آموزش', points: 5 }));
+      pickN(ACT, randInt(6, 10)).forEach(p => acts.push({ date: d, pid: p[0], type: 'آموزش', points: 5 }));
     }
     return acts;
   }
@@ -210,6 +212,12 @@
   function loadCustomPlayers(){
     try { return JSON.parse(localStorage.getItem('ga_custom_players') || '[]'); } catch(e){ return []; }
   }
+  function loadPlayerUsers(){
+    try { return JSON.parse(localStorage.getItem('ga_player_users') || '{}'); } catch(e){ return {}; }
+  }
+  function savePlayerUsers(u){
+    try { localStorage.setItem('ga_player_users', JSON.stringify(u)); } catch(e){}
+  }
 
   /* ── رتبه و رنگ ── */
   const GOLD_ELITE = 120;
@@ -227,7 +235,11 @@
 
   /* ── محاسبه کامل ── */
   function compute(state){
-    const { scorecards, activities, tournaments, players } = state;
+    const { tournaments, players } = state;
+    // بازیکن غیرفعال = انگار اصلاً وجود نداشته: کارتها و فعالیتهایش حذف میشوند
+    const activeSet = new Set(players.filter(p => p[5]).map(p => p[0]));
+    const scorecards = state.scorecards.filter(c => activeSet.has(c.pid));
+    const activities = state.activities.filter(a => activeSet.has(a.pid));
     const PTS = {}; players.forEach(p => PTS[p[0]] = 0);
     const MONTH_PTS = {}; const CARDS = {};
     let TOTAL_BIRDIES = 0;
@@ -285,7 +297,7 @@
         s.points += PTS[pid];
       });
     });
-    const LB = Object.keys(PTS).map(pid => {
+    const LB = Object.keys(PTS).filter(pid => activeSet.has(+pid)).map(pid => {
       const cards = CARDS[pid] || [];
       const total = cards.reduce((a,c)=>a+c.total,0);
       const avg = cards.length ? Math.round(total / cards.length * 10) / 10 : 0;
@@ -455,19 +467,20 @@
       const cid = 1000 + i;
       PAR_MAP[cid] = c.pars;
     });
-    const players = loadPlayers().concat(loadCustomPlayers().map((p, i) => [9000+i, p.name, p.gender, +p.hcp, p.join || '2026-01-01', p.active ? 1 : 0]));
+    const players = loadPlayers().concat(loadCustomPlayers().map((p, i) => [9000+i, (p.name + ' ' + (p.family||'')).trim(), p.gender, +p.hcp, p.join || '2026-01-01', p.active === false ? 0 : 1]));
+    // اطمینان: پلیرهای سفارشی که کاربر یوزر/پسورد برایشان ساخته، در USERS معتبرند (در app.js خوانده میشود)
     const PLAYER_NAME_EXT = {}; players.forEach(p => PLAYER_NAME_EXT[p[0]] = p[1]);
     const ACTIVE_EXT = players.filter(p => p[5]);
     return {
       players, active: ACTIVE_EXT,
       courses: COURSES.concat(extra.courses.map((c, i) => [1000+i, c.name, c.loc, c.holes])),
       tournaments: TOURNAMENTS.concat(extra.tournaments.map((t, i) => [1000+i, t.name, +t.lvl, +t.course, +t.holes, t.date])),
-      scorecards: genScorecards().concat(extra.scorecards.map(s => ({
+      scorecards: genScorecards(players).concat(extra.scorecards.map(s => ({
         tour: +s.tour, pid: +s.pid,
         strokes: Object.fromEntries(Object.entries(s.strokes).map(([h,v]) => [+h, +v])),
         total: Object.values(s.strokes).reduce((a,b)=>a+(+b),0),
       }))),
-      activities: genActivities(),
+      activities: genActivities(players),
     };
   }
 
@@ -485,7 +498,7 @@
     fa, faNum, jalaliInfo, weekOf, dayFmt, dateFrom, TODAY, SEASON_START,
     PLAYERS, PLAYER_NAME, ACTIVE, COURSES, COURSE_PARS, COURSE_NAME, TOURNAMENTS,
     PTS_RULE, RESULT_LABEL, MONTHS_FA, RANK_DEF, RANK_TEXT, rankOf, FORM_META, GOLD_ELITE,
-    parsOf, compute, loadState, loadPlayers, loadCustomPlayers,
+    parsOf, compute, loadState, loadPlayers, loadCustomPlayers, loadPlayerUsers, savePlayerUsers,
     IR_HOLIDAYS, holidaysOf, isHoliday,
   };
 })();
