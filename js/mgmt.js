@@ -137,7 +137,7 @@
     const v = $('#view');
     const tabs = [
       ['players','👥','بازیکنان'], ['courses','🗺️','زمین‌ها'], ['tournaments','🏆','مسابقات'],
-      ['results','⛳','نتایج'], ['calendar','📅','تقویم'],
+      ['programs','🎓','دوره‌ها'], ['results','⛳','نتایج'], ['calendar','📅','تقویم'],
     ];
     v.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:18px">
@@ -156,6 +156,7 @@
     if (mgmtTab === 'players') mgmtPlayers(body);
     else if (mgmtTab === 'courses') mgmtCourses(body);
     else if (mgmtTab === 'tournaments') mgmtTournaments(body);
+    else if (mgmtTab === 'programs') mgmtPrograms(body);
     else if (mgmtTab === 'results') mgmtResults(body);
     else if (mgmtTab === 'calendar') mgmtCalendar(body);
   }
@@ -777,18 +778,33 @@
   /* ── تب مسابقات ── */
   function mgmtTournaments(body){
     const S = gstate().S;
+    const rules = D.loadTourRules ? D.loadTourRules() : D.PTS_RULE;
     const base = D.TOURNAMENTS.map((t,i) => ({ t, base:true }));
     const extra = extraTours().map((t,i) => ({ t: [1000+i, t.name, +t.lvl, +t.course, +t.holes, t.date], base:false, idx:i }));
     const rows = base.concat(extra);
     body.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:16px">
       <div class="card-head"><span class="ic">➕</span><h3>طراح مسابقه — ثبت مسابقه جدید</h3><span class="tag">تاریخ شمسی • چندروزه</span></div>
+      <div class="rules-box" style="background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.25);border-radius:12px;padding:10px 12px;margin-top:10px">
+        <div style="font-size:11.5px;color:var(--gold-l);margin-bottom:8px">⚙️ قوانین امتیازدهی فصل (قابل ویرایش — نفر اول / دوم / سوم / شرکت)</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px">
+          ${[1,2,3].map(lv => `
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <span style="font-size:11px;color:var(--muted)">سطح ${D.fa(lv)}:</span>
+              ${['p1','p2','p3','entry'].map((k,i) => `<input class="input" id="r${lv}${k}" type="number" min="0" value="${rules[lv][i]}" style="width:52px;padding:5px 6px;text-align:center" title="${['اول','دوم','سوم','شرکت'][i]}">`).join('')}
+            </div>`).join('')}
+          <button class="btn sm ghost" id="rules-save" style="align-self:center">💾 ذخیره قوانین</button>
+        </div>
+      </div>
       <div class="field-grid" style="margin-top:10px">
         <div class="span2"><label>نام مسابقه</label><input class="input" id="mt-name" style="width:100%" placeholder="جام جدید"></div>
         <div><label>سطح</label><select class="sel" id="mt-lvl" style="width:100%"><option value="1">سطح ۱ (حرفه‌ای)</option><option value="2" selected>سطح ۲ (نیمه‌حرفه‌ای)</option><option value="3">سطح ۳ (آماتور)</option></select></div>
         <div><label>زمین</label><select class="sel" id="mt-crs" style="width:100%">${S.courses.map(c=>`<option value="${c[0]}">${esc(c[1])}</option>`).join('')}</select></div>
         <div><label>حفره</label><select class="sel" id="mt-holes" style="width:100%"><option>9</option><option selected>18</option></select></div>
-        <div><label>جایزهٔ نفر اول (امتیاز)</label><input class="input" id="mt-prize" type="number" value="20" style="width:100%"></div>
+        <div><label>🏆 امتیاز نفر اول</label><input class="input" id="mt-p1" type="number" min="0" value="20" style="width:100%"></div>
+        <div><label>🥈 امتیاز نفر دوم</label><input class="input" id="mt-p2" type="number" min="0" value="15" style="width:100%"></div>
+        <div><label>🥉 امتیاز نفر سوم</label><input class="input" id="mt-p3" type="number" min="0" value="10" style="width:100%"></div>
+        <div><label>🎟 امتیاز شرکت</label><input class="input" id="mt-entry" type="number" min="0" value="5" style="width:100%"></div>
       </div>
       <div class="field-grid" style="margin-top:10px">
         <div><label>تاریخ شروع <small>(شمسی)</small></label><div id="mt-start"></div></div>
@@ -805,10 +821,12 @@
       </tr></thead><tbody id="mt-rows"></tbody></table></div>
     </div>`;
     $('#mt-rows').innerHTML = rows.map(({t, base, idx}) => {
+      const pr = D.prizesOf(t);
       const past = D.dateFrom(t[5]) < D.TODAY;
       const j = D.jalaliInfo(D.dateFrom(t[5]));
       return `<tr>
-        <td class="num">${D.fa(t[0])}</td><td><b>${esc(t[1])}</b> ${base?'<span class="chip dim">پایه</span>':'<span class="chip purple">سفارشی</span>'}</td>
+        <td class="num">${D.fa(t[0])}</td><td><b>${esc(t[1])}</b> ${base?'<span class="chip dim">پایه</span>':'<span class="chip purple">سفارشی</span>'}
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">🏆${D.fa(pr[0])} 🥈${D.fa(pr[1])} 🥉${D.fa(pr[2])} 🎟${D.fa(pr[3])}</div></td>
         <td><span class="chip ${t[2]===1?'gold':t[2]===2?'green':'blue'}">سطح ${D.fa(t[2])}</span></td>
         <td style="color:var(--muted)">${esc(D.COURSE_NAME[t[3]]||'—')}</td>
         <td class="num">${D.fa(t[4])}</td>
@@ -847,6 +865,17 @@
       box.innerHTML = html;
     }
     renderTourSch();
+    $('#rules-save').addEventListener('click', () => {
+      const r = {};
+      [1,2,3].forEach(lv => r[lv] = ['p1','p2','p3','entry'].map(k => +($('#r'+lv+k).value||0)));
+      D.saveTourRules(r);
+      APP.toast('قوانین امتیازدهی فصل ذخیره شد ✓', 'green');
+    });
+    $('#mt-lvl').addEventListener('change', () => {
+      const r = D.loadTourRules ? D.loadTourRules() : D.PTS_RULE;
+      const pr = r[+$('#mt-lvl').value] || [15,10,7,3];
+      $('#mt-p1').value = pr[0]; $('#mt-p2').value = pr[1]; $('#mt-p3').value = pr[2]; $('#mt-entry').value = pr[3];
+    });
     $('#mt-add').addEventListener('click', () => {
       const name = $('#mt-name').value.trim();
       const start = $('#mt-start')._value();
@@ -854,7 +883,8 @@
       if (!name && !start){ APP.toast('حداقل نام یا تاریخ را وارد کنید', 'red'); return; }
       const schedule = [];
       $$('.mt-day-sel').forEach(s => schedule.push({ offset: +s.dataset.i, label: s.value }));
-      extra.push({ name: name || 'مسابقه ' + D.fa(extra.length+1), lvl: +$('#mt-lvl').value, course: +$('#mt-crs').value, holes: +$('#mt-holes').value, date: start, end, time: $('#mt-time').value, prize: +$('#mt-prize').value, schedule });
+      extra.push({ name: name || 'مسابقه ' + D.fa(extra.length+1), lvl: +$('#mt-lvl').value, course: +$('#mt-crs').value, holes: +$('#mt-holes').value, date: start, end, time: $('#mt-time').value,
+        p1: +($('#mt-p1').value||0), p2: +($('#mt-p2').value||0), p3: +($('#mt-p3').value||0), entry: +($('#mt-entry').value||0), schedule });
       saveTours(extra); APP.reloadData(); APP.go('mgmt'); mgmtTab='tournaments';
       APP.toast('مسابقه «' + (name||'بدون نام') + '» ثبت شد ✓', 'green');
     });
@@ -888,6 +918,13 @@
         <div><label>زمین</label><select class="sel" id="et-crs" style="width:100%">${S.courses.map(c=>`<option value="${c[0]}" ${c[0]===t[3]?'selected':''}>${esc(c[1])}</option>`).join('')}</select></div>
         <div><label>حفره</label><select class="sel" id="et-holes" style="width:100%"><option ${t[4]===9?'selected':''}>9</option><option ${t[4]===18?'selected':''}>18</option></select></div>
       </div>
+      <div class="form-section" style="margin-top:10px">🏆 امتیازهای مسابقه</div>
+      <div class="field-grid">
+        <div><label>نفر اول</label><input class="input" id="et-p1" type="number" min="0" value="${D.prizesOf(t)[0]}" style="width:100%"></div>
+        <div><label>نفر دوم</label><input class="input" id="et-p2" type="number" min="0" value="${D.prizesOf(t)[1]}" style="width:100%"></div>
+        <div><label>نفر سوم</label><input class="input" id="et-p3" type="number" min="0" value="${D.prizesOf(t)[2]}" style="width:100%"></div>
+        <div><label>شرکت</label><input class="input" id="et-entry" type="number" min="0" value="${D.prizesOf(t)[3]}" style="width:100%"></div>
+      </div>
       <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end">
         <button class="btn sm ghost" id="et-cancel">انصراف</button>
         <button class="btn sm" id="et-save">💾 ذخیره</button>
@@ -899,7 +936,8 @@
     $('#et-save').addEventListener('click', () => {
       const name = $('#et-name').value.trim();
       if (!name){ APP.toast('نام مسابقه را وارد کنید','red'); return; }
-      const data = { name, date: $('#et-date')._value(), lvl: +$('#et-lvl').value, course: +$('#et-crs').value, holes: +$('#et-holes').value };
+      const data = { name, date: $('#et-date')._value(), lvl: +$('#et-lvl').value, course: +$('#et-crs').value, holes: +$('#et-holes').value,
+        p1: +($('#et-p1').value||0), p2: +($('#et-p2').value||0), p3: +($('#et-p3').value||0), entry: +($('#et-entry').value||0) };
       if (base){
         let ov = {};
         try { ov = JSON.parse(localStorage.getItem('ga_tour_override') || '{}'); } catch(e){}
@@ -916,85 +954,244 @@
     });
   }
 
-  /* ── تب نتایج ── */
-  function mgmtResults(body){
-    const S = gstate().S;
-    const pastTours = S.tournaments.filter(t => D.dateFrom(t[5]) < D.TODAY);
-    body.innerHTML = `
-    <div class="glass gold-border" style="margin-bottom:16px">
-      <div class="card-head"><span class="ic">⛳</span><h3>ثبت نتیجه — ضربات هر میدان</h3><span class="tag">رتبه و امتیاز خودکار</span></div>
-      <div class="toolbar" style="margin-top:10px">
-        <span class="lbl">مسابقه:</span>
-        <select class="sel" id="mr-tour">${pastTours.map(t=>`<option value="${t[0]}">${esc(t[1])}</option>`).join('')}</select>
-        <span class="lbl">بازیکن:</span>
-        <select class="sel" id="mr-pl">${S.players.filter(p=>p[5]).map(p=>`<option value="${p[0]}">${esc(p[1])}</option>`).join('')}</select>
-      </div>
-      <div id="mr-holes" style="display:flex;gap:7px;flex-wrap:wrap;margin:14px 0"></div>
-      <button class="btn sm" id="mr-add">+ ثبت کارت امتیاز</button>
-    </div>
-    <div class="glass">
-      <div class="card-head"><span class="ic">📋</span><h3>کارت‌های ثبت‌شده</h3><span class="tag">${D.fa(extraCards().length)} کارت</span></div>
-      <div id="mr-list"></div>
-    </div>`;
-    let holeVals = [];
-    function drawHoles(){
-      const t = S.tournaments.find(x => x[0] === +$('#mr-tour').value);
-      const n = t ? t[4] : 9;
-      const pars = t ? D.parsOf(t[3]) : [];
-      holeVals = Array.from({length:n}, () => '');
-      $('#mr-holes').innerHTML = Array.from({length:n}, (_,i) => `
-        <div style="text-align:center">
-          <div style="font-size:10px;color:var(--muted)">ح${D.fa(i+1)} <small style="color:var(--gold-l)">پ${D.fa(pars[i])}</small></div>
-          <input class="input" type="number" min="1" max="12" data-i="${i}" style="width:52px;text-align:center;direction:ltr" placeholder="—">
-        </div>`).join('');
-      $$('#mr-holes input').forEach(inp => inp.addEventListener('input', () => { holeVals[+inp.dataset.i] = +inp.value || null; }));
+  /* ── مودال مشترک: انتخاب شرکت‌کنندگان (دبل‌کلیک) + نفرات اول تا سوم + امتیاز خودکار ── */
+  function openResultsModal(opts){
+    const all = opts.players; // [{pid, name}]
+    let part = (opts.participants || []).slice();
+    let top = Object.assign({}, opts.top || {});
+    let m = $('#modal-results');
+    if (!m){
+      m = document.createElement('div');
+      m.id = 'modal-results';
+      m.style.cssText = 'position:fixed;inset:0;z-index:210;display:flex;align-items:center;justify-content:center;background:rgba(4,8,14,.78);backdrop-filter:blur(6px)';
+      document.body.appendChild(m);
+      m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
     }
-    drawHoles();
-    $('#mr-tour').addEventListener('change', drawHoles);
-    $('#mr-add').addEventListener('click', () => {
-      const tour = +$('#mr-tour').value, pid = +$('#mr-pl').value;
-      const t = S.tournaments.find(x => x[0] === tour);
-      const strokes = {};
-      let ok = 0;
-      for (let h = 1; h <= t[4]; h++){
-        const val = holeVals[h-1];
-        if (val !== null && val > 0){ strokes[h] = val; ok++; }
-      }
-      if (ok < t[4]){ APP.toast('همهٔ میدان‌ها را پر کنید', 'red'); return; }
-      const lst = extraCards();
-      lst.push({ tour, pid, strokes });
-      saveCards(lst); APP.reloadData(); APP.go('mgmt'); mgmtTab='results';
-      APP.toast('کارت ثبت شد — رتبه و امتیاز خودکار محاسبه شد ✓', 'green');
+    const prizeRow = opts.prizes ? `
+      <div style="font-size:11.5px;color:var(--muted);margin:8px 0;text-align:center">
+        🏆 اول <b class="gold-text">${D.fa(opts.prizes[0])}</b> &nbsp;🥈 دوم <b class="gold-text">${D.fa(opts.prizes[1])}</b> &nbsp;🥉 سوم <b class="gold-text">${D.fa(opts.prizes[2])}</b> &nbsp;🎟 شرکت <b class="gold-text">${D.fa(opts.prizes[3])}</b> امتیاز
+      </div>` : '';
+    m.innerHTML = `
+    <div class="glass gold-border" style="width:min(860px,95vw);padding:20px;max-height:92vh;overflow:auto">
+      <div class="card-head"><span class="ic">🎯</span><h3>${opts.title}</h3><span class="tag">دبل‌کلیک برای جابه‌جایی</span></div>
+      ${prizeRow}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px">
+        <div>
+          <div class="lbl">👥 همهٔ بازیکنان</div>
+          <input class="input" id="rp-search" placeholder="🔍 جستجو..." style="width:100%;margin:6px 0;padding:7px 10px">
+          <div id="rp-all" class="rp-list" style="max-height:240px;overflow:auto"></div>
+        </div>
+        <div>
+          <div class="lbl">✅ شرکت‌کنندگان (${D.fa(part.length)} نفر)</div>
+          <div id="rp-part" class="rp-list" style="max-height:240px;overflow:auto"></div>
+        </div>
+      </div>
+      <div class="form-section" style="margin-top:12px">🏆 نفرات برتر (انتخاب از شرکت‌کنندگان — بقیه امتیاز شرکت می‌گیرند)</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+        <label class="lbl">نفر اول:</label><select class="sel" id="rp-1" style="min-width:150px"></select>
+        <label class="lbl">نفر دوم:</label><select class="sel" id="rp-2" style="min-width:150px"></select>
+        <label class="lbl">نفر سوم:</label><select class="sel" id="rp-3" style="min-width:150px"></select>
+      </div>
+      <div id="rp-extra"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
+        <button class="btn sm ghost" id="rp-cancel">بستن</button>
+        <button class="btn sm" id="rp-save">🎯 ثبت نتایج و امتیازدهی خودکار</button>
+      </div>
+    </div>`;
+    m.style.display = 'flex';
+    const allBox = m.querySelector('#rp-all'), partBox = m.querySelector('#rp-part');
+    function nameOf(pid){ const x = all.find(p => p.pid === +pid); return x ? x.name : '—'; }
+    function render(){
+      const q = (m.querySelector('#rp-search').value || '').trim();
+      const partSet = new Set(part);
+      allBox.innerHTML = all.filter(p => !partSet.has(p.pid) && (!q || p.name.includes(q))).map(p =>
+        `<div class="rp-item" data-pid="${p.pid}">${esc(p.name)}</div>`).join('') || '<div style="color:var(--muted);font-size:12px;padding:8px">—</div>';
+      partBox.innerHTML = part.map(pid =>
+        `<div class="rp-item sel" data-pid="${pid}">${esc(nameOf(pid))}</div>`).join('') || '<div style="color:var(--muted);font-size:12px;padding:8px">دبل‌کلیک روی بازیکنان تا اینجا بیایند</div>';
+      ['1','2','3'].forEach(k => {
+        const sel = m.querySelector('#rp-' + k);
+        const cur = top[k];
+        sel.innerHTML = '<option value="">— انتخاب —</option>' + part.map(pid => `<option value="${pid}" ${+cur === +pid ? 'selected' : ''}>${esc(nameOf(pid))}</option>`).join('');
+      });
+      m.querySelector('.lbl + div') && false;
+      const lbl = m.querySelector('#rp-part');
+      const header = lbl.previousElementSibling;
+      if (header) header.textContent = '✅ شرکت‌کنندگان (' + D.fa(part.length) + ' نفر)';
+    }
+    allBox.addEventListener('dblclick', e => {
+      const it = e.target.closest('.rp-item'); if (!it) return;
+      part.push(+it.dataset.pid); render();
     });
-    const lst = extraCards();
-    $('#mr-list').innerHTML = lst.length ? `<table class="tbl"><thead><tr><th>مسابقه</th><th>بازیکن</th><th>ضربات</th><th>عملیات</th></tr></thead><tbody>
-      ${lst.map((c,i) => {
-        const t = S.tournaments.find(x=>x[0]===c.tour);
-        const total = Object.values(c.strokes).reduce((a,b)=>a+b,0);
-        return `<tr><td>${esc(t?t[1]:'—')}</td><td><b>${esc(D.PLAYER_NAME[c.pid]||'—')}</b></td>
-        <td class="num" style="color:var(--gold-l)">${D.fa(total)}</td>
-        <td><div class="row-actions"><button class="btn sm ghost" data-act="editr" data-i="${i}">✏️</button><button class="btn sm danger" data-act="delr" data-i="${i}">🗑</button></div></td></tr>`;
-      }).join('')}</tbody></table>` : '<div style="color:var(--muted);font-size:12.5px;padding:8px">هنوز کارتی ثبت نشده است.</div>';
-    body.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => {
-      const i = +b.dataset.i, act = b.dataset.act;
-      if (act === 'delr'){ const a = extraCards(); a.splice(i,1); saveCards(a); APP.reloadData(); APP.go('mgmt'); mgmtTab='results'; APP.toast('کارت حذف شد 🗑','orange'); }
-      if (act === 'editr'){
-        const c = lst[i];
-        $('#mr-tour').value = String(c.tour);
-        $('#mr-pl').value = String(c.pid);
-        drawHoles();
-        $$('#mr-holes input').forEach(inp => {
-          const h = +inp.dataset.i + 1;
-          inp.value = c.strokes[h] || '';
-          holeVals[+inp.dataset.i] = c.strokes[h] || null;
-        });
-        const a = extraCards(); a.splice(i,1); saveCards(a);
-        APP.toast('کارت برای ویرایش باز شد — دوباره ثبت کنید', 'gold');
-      }
+    partBox.addEventListener('dblclick', e => {
+      const it = e.target.closest('.rp-item'); if (!it) return;
+      part = part.filter(p => p !== +it.dataset.pid);
+      ['1','2','3'].forEach(k => { if (+top[k] === +it.dataset.pid) delete top[k]; });
+      render();
+    });
+    m.querySelector('#rp-search').addEventListener('input', render);
+    ['1','2','3'].forEach(k => m.querySelector('#rp-' + k).addEventListener('change', e => {
+      if (e.target.value) top[k] = +e.target.value; else delete top[k];
     }));
+    m.querySelector('#rp-cancel').addEventListener('click', () => m.style.display = 'none');
+    m.querySelector('#rp-save').addEventListener('click', () => {
+      if (!part.length){ APP.toast('حداقل یک شرکت‌کننده انتخاب کنید', 'red'); return; }
+      const topVals = [top['1'], top['2'], top['3']].filter(v => v);
+      if (new Set(topVals).size !== topVals.length){ APP.toast('یک بازیکن نمی‌تواند همزمان دو رتبه بگیرد — رتبه‌ها را اصلاح کنید', 'red'); return; }
+      opts.onSave(part, top);
+      m.style.display = 'none';
+    });
+    render();
+    if (opts.afterRender) opts.afterRender(m);
+    return m;
   }
 
-  /* ── تب تقویم ── */
+  /* ── تب دوره‌ها: کلاس / تمرین / اردو (CRUD کامل + تاریخ + اطلاعات + امتیاز + نتایج) ── */
+  function mgmtPrograms(body){
+    const PROG_TYPES = [['کلاس','📚'],['تمرین','🏌️'],['اردو','🏕️']];
+    let editingIdx = -1;
+    body.innerHTML = `
+    <div class="glass gold-border" style="margin-bottom:16px">
+      <div class="card-head"><span class="ic">➕</span><h3 id="prg-title">ثبت دورهٔ جدید</h3><span class="tag">کلاس • تمرین • اردو</span></div>
+      <div class="field-grid" style="margin-top:10px">
+        <div class="span2"><label>نام دوره</label><input class="input" id="pr-name" style="width:100%" placeholder="مثلاً: کلاس پوتینگ مقدماتی"></div>
+        <div><label>نوع</label><select class="sel" id="pr-type" style="width:100%">${PROG_TYPES.map(([t,ic]) => `<option value="${t}">${ic} ${t}</option>`).join('')}</select></div>
+        <div><label>تاریخ شروع <small>(شمسی)</small></label><div id="pr-start"></div></div>
+        <div><label>تاریخ پایان <small>(شمسی)</small></label><div id="pr-end"></div></div>
+      </div>
+      <div style="margin-top:10px"><label>اطلاعات دوره / توضیحات</label>
+        <textarea class="input" id="pr-info" rows="2" style="width:100%;margin-top:5px;resize:vertical" placeholder="مثلاً: تمرین ضربات کوتاه با مربی — شنبه‌ها"></textarea>
+      </div>
+      <div class="form-section" style="margin-top:10px">🏆 امتیازهای دوره</div>
+      <div class="field-grid">
+        <div><label>🥇 نفر اول</label><input class="input" id="pr-p1" type="number" min="0" value="10" style="width:100%"></div>
+        <div><label>🥈 نفر دوم</label><input class="input" id="pr-p2" type="number" min="0" value="7" style="width:100%"></div>
+        <div><label>🥉 نفر سوم</label><input class="input" id="pr-p3" type="number" min="0" value="5" style="width:100%"></div>
+        <div><label>🎟 امتیاز شرکت</label><input class="input" id="pr-entry" type="number" min="0" value="2" style="width:100%"></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn sm" id="pr-add">📅 ثبت دوره</button>
+        <span style="color:var(--muted);font-size:11.5px;align-self:center">دوره ثبت می‌شود و در تقویم فصل نمایش داده می‌شود؛ برای هر دوره می‌توانید نتایج (شرکت‌کنندگان + نفرات برتر) ثبت کنید</span>
+      </div>
+    </div>
+    <div class="glass">
+      <div class="card-head"><span class="ic">🎓</span><h3>دوره‌های آموزشی / تمرین / اردو</h3><span class="tag">${D.fa(D.loadPrograms().length)} دوره</span></div>
+      <div id="pr-list" style="margin-top:8px"></div>
+    </div>`;
+    JDate.render($('#pr-start'), { value: D.shamsiToISO(1405,6,10), onChange(){} });
+    JDate.render($('#pr-end'),   { value: D.shamsiToISO(1405,6,10), onChange(){} });
+    function renderList(){
+      const lst = D.loadPrograms();
+      $('#pr-list').innerHTML = lst.length ? lst.map((p, i) => {
+        const j = D.jalaliInfo(D.dateFrom(p.start || p.date || ''));
+        const n = p.participants ? p.participants.length : 0;
+        return `<div class="h-item" style="align-items:flex-start">
+          <span class="h-day" style="min-width:80px">${D.fa(j.dd)} ${j.monthFa}</span>
+          <span style="flex:1">
+            <b>${PROG_TYPES.find(x=>x[0]===p.type)?PROG_TYPES.find(x=>x[0]===p.type)[1]:'📌'} ${esc(p.name)}</b>
+            <div style="font-size:10.5px;color:var(--muted);margin-top:3px">
+              ${esc(p.type||'')} • 🥇${D.fa(+p.p1||0)} 🥈${D.fa(+p.p2||0)} 🥉${D.fa(+p.p3||0)} 🎟${D.fa(+p.entry||0)} ${p.info ? '• ' + esc(String(p.info).slice(0,60)) : ''}
+              ${n ? `• <span class="chip green">${D.fa(n)} شرکت‌کننده</span>` : ''}
+            </div>
+          </span>
+          <button class="btn sm ghost" data-prres="${i}" title="نتایج">🎯</button>
+          <button class="btn sm ghost" data-predit="${i}" title="ویرایش">✏️</button>
+          <button class="btn sm danger" data-prdel="${i}">🗑</button></div>`;
+      }).join('') : '<div style="color:var(--muted);font-size:12.5px;padding:8px">هنوز دوره‌ای ثبت نشده است.</div>';
+      $$('#pr-list [data-prdel]').forEach(b => b.addEventListener('click', () => {
+        const a = D.loadPrograms(); a.splice(+b.dataset.prdel,1); D.savePrograms(a); APP.reloadData(); APP.go('mgmt'); mgmtTab='programs'; APP.toast('دوره حذف شد 🗑','orange');
+      }));
+      $$('#pr-list [data-predit]').forEach(b => b.addEventListener('click', () => {
+        const a = D.loadPrograms(); const p = a[+b.dataset.predit]; if (!p) return;
+        editingIdx = +b.dataset.predit;
+        $('#prg-title').textContent = '✏️ ویرایش دوره';
+        $('#pr-name').value = p.name || '';
+        $('#pr-type').value = p.type || 'کلاس';
+        if (p.start) $('#pr-start')._set(p.start);
+        if (p.end) $('#pr-end')._set(p.end);
+        $('#pr-info').value = p.info || '';
+        $('#pr-p1').value = p.p1 || 0; $('#pr-p2').value = p.p2 || 0; $('#pr-p3').value = p.p3 || 0; $('#pr-entry').value = p.entry || 0;
+        $('#pr-add').textContent = '💾 ذخیرهٔ ویرایش';
+        if ($('#pr-name').scrollIntoView) $('#pr-name').scrollIntoView({ behavior:'smooth', block:'center' });
+      }));
+      $$('#pr-list [data-prres]').forEach(b => b.addEventListener('click', () => {
+        const a = D.loadPrograms(); const p = a[+b.dataset.prres]; if (!p) return;
+        openResultsModal({
+          title: 'نتایج «' + p.name + '»',
+          prizes: [p.p1, p.p2, p.p3, p.entry],
+          players: activePlayersList(),
+          participants: p.participants || [],
+          top: p.top || {},
+          onSave: (participants, top) => {
+            p.participants = participants; p.top = top;
+            D.savePrograms(a); APP.reloadData(); APP.go('mgmt'); mgmtTab='programs';
+            APP.toast('نتایج دوره ثبت شد — امتیازها به شرکت‌کنندگان داده شد ✓', 'green');
+          }
+        });
+      }));
+    }
+    renderList();
+    // ── فعالیت‌های خودکار فصل (تمرین/آموزش فیک) — قابل حذف ──
+    const actBox = document.createElement('div');
+    actBox.className = 'glass';
+    actBox.style.marginTop = '16px';
+    actBox.innerHTML = '<div class="card-head"><span class="ic">⚡</span><h3>فعالیت‌های خودکار فصل (تمرین / آموزش)</h3><span class="tag">قابل حذف</span></div><div id="act-list" style="margin-top:8px;max-height:260px;overflow:auto"></div>';
+    body.appendChild(actBox);
+    function renderActs(){
+      const st = gstate();
+      const acts = (st.S && st.S.activities ? st.S.activities : []).slice();
+      acts.sort((a,b) => +new Date(b.date) - +new Date(a.date));
+      $('#act-list').innerHTML = acts.length ? acts.slice(0, 40).map((a, i) => {
+        const j = D.jalaliInfo(new Date(a.date));
+        return `<div class="h-item"><span class="h-day">${D.fa(j.dd)} ${j.monthFa}</span>
+          <span style="flex:1">${esc(D.PLAYER_NAME[a.pid]||'—')} — <span class="chip ${a.type==='تمرین'?'green':'purple'}">${esc(a.type)}</span></span>
+          <span class="chip gold">${D.fa(a.points)} امتیاز</span>
+          <button class="btn sm danger" data-actdel="${i}">🗑</button></div>`;
+      }).join('') : '<div style="color:var(--muted);font-size:12.5px;padding:8px">فعالیتی نیست.</div>';
+      $$('#act-list [data-actdel]').forEach(b => b.addEventListener('click', () => {
+        const acts2 = (gstate().S ? gstate().S.activities : []);
+        // حذف بر اساس تطبیق تاریخ+بازیکن+نوع (ایندکس در آرایهٔ مرتب‌شده)
+        const sorted = acts2.slice().sort((a,b) => +new Date(b.date) - +new Date(a.date));
+        const target = sorted[+b.dataset.actdel];
+        const idx = acts2.indexOf(target);
+        if (idx >= 0){
+          const del = D.loadDelActs();
+          del.push(idx);
+          D.saveDelActs(del);
+          APP.reloadData(); APP.go('mgmt'); mgmtTab='programs';
+          APP.toast('فعالیت حذف شد — امتیازش از سیستم برداشته شد', 'orange');
+        }
+      }));
+    }
+    renderActs();
+
+    $('#pr-add').addEventListener('click', () => {
+      const name = $('#pr-name').value.trim();
+      const start = $('#pr-start')._value();
+      const end = $('#pr-end')._value();
+      if (!name && !start){ APP.toast('حداقل نام یا تاریخ را وارد کنید', 'red'); return; }
+      const obj = {
+        name: name || 'دورهٔ ' + D.fa(editingIdx >= 0 ? editingIdx + 1 : D.loadPrograms().length + 1),
+        type: $('#pr-type').value, start, end, info: $('#pr-info').value.trim(),
+        p1: +($('#pr-p1').value||0), p2: +($('#pr-p2').value||0), p3: +($('#pr-p3').value||0), entry: +($('#pr-entry').value||0),
+      };
+      const a = D.loadPrograms();
+      if (editingIdx >= 0 && a[editingIdx]){
+        Object.assign(a[editingIdx], obj);
+        APP.toast('دوره ویرایش و ذخیره شد ✓', 'green');
+      } else {
+        a.push(obj);
+        APP.toast('دوره «' + obj.name + '» ثبت شد ✓', 'green');
+      }
+      D.savePrograms(a); APP.reloadData(); APP.go('mgmt'); mgmtTab='programs';
+    });
+  }
+
+  /* لیست بازیکنان فعال برای پیکر شرکت‌کنندگان */
+  function activePlayersList(){
+    const S = gstate().S;
+    return S.players.filter(p => p[5]).map(p => ({ pid: p[0], name: p[1] }));
+  }
+
   function mgmtCalendar(body){
     body.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:16px">
@@ -1119,6 +1316,141 @@
     }));
     }
     renderMeList();
+  }
+
+
+  /* ── تب نتایج ── */
+  function mgmtResults(body){
+    const S = gstate().S;
+    const results = D.loadResults();
+    body.innerHTML = `
+    <div class="glass gold-border" style="margin-bottom:16px">
+      <div class="card-head"><span class="ic">⛳</span><h3>نتایج مسابقات</h3><span class="tag">ثبت شرکت‌کنندگان + نفرات برتر + امتیاز خودکار</span></div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:6px">از لیست پایین مسابقه را انتخاب کنید و دکمهٔ «🎯 ثبت نتایج» را بزنید — با دبل‌کلیک بازیکنان را به شرکت‌کنندگان اضافه/حذف کنید، نفرات اول تا سوم را انتخاب کنید و امتیازها خودکار داده می‌شود.</div>
+      <div id="mr-tours" style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px"></div>
+    </div>
+    <div class="glass" style="margin-bottom:16px">
+      <div class="card-head"><span class="ic">🏌️</span><h3>کارت ضربات هر میدان</h3><span class="tag">ورود با کیبورد — Enter میدان بعدی</span></div>
+      <div class="toolbar" style="margin-top:10px">
+        <span class="lbl">مسابقه:</span><select class="sel" id="mr-tour" style="min-width:180px">${S.tournaments.map(t=>`<option value="${t[0]}">${esc(t[1])}</option>`).join('')}</select>
+        <span class="lbl">بازیکن:</span><select class="sel" id="mr-pl" style="min-width:160px">${S.players.filter(p=>p[5]).map(p=>`<option value="${p[0]}">${esc(p[1])}</option>`).join('')}</select>
+      </div>
+      <div id="mr-holes" style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"></div>
+      <button class="btn sm" id="mr-add">💾 ثبت کارت ضربات</button>
+    </div>
+    <div class="glass">
+      <div class="card-head"><span class="ic">📋</span><h3>نتایج ثبت‌شده</h3><span class="tag">${D.fa(Object.keys(results).length)} مسابقه</span></div>
+      <div id="mr-list" style="margin-top:8px"></div>
+    </div>`;
+
+    // ── ۱) لیست همهٔ مسابقات با دکمهٔ نتایج ──
+    const toursBox = $('#mr-tours');
+    toursBox.innerHTML = S.tournaments.map(t => {
+      const pr = D.prizesOf(t);
+      const j = D.jalaliInfo(D.dateFrom(t[5]));
+      const has = results[t[0]];
+      return `<div class="mr-tour-card ${has?'done':''}" data-tour="${t[0]}">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <b>${esc(t[1])}</b>
+          <span class="chip ${has?'green':'gold'}">${has?'ثبت شده ✓':'بدون نتیجه'}</span>
+        </div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:4px">${D.fa(j.dd)} ${j.monthFa} • سطح ${D.fa(t[2])} • ${esc(D.COURSE_NAME[t[3]]||'—')}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">🏆${D.fa(pr[0])} 🥈${D.fa(pr[1])} 🥉${D.fa(pr[2])} 🎟${D.fa(pr[3])}</div>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn sm" data-mrset="${t[0]}">🎯 ${has?'ویرایش نتایج':'ثبت نتایج'}</button>
+          ${has ? `<button class="btn sm danger" data-mrdel="${t[0]}">🗑</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+    $$('#mr-tours [data-mrset]').forEach(b => b.addEventListener('click', () => {
+      const tour = +b.dataset.mrset;
+      const t = S.tournaments.find(x => x[0] === tour);
+      if (!t) return;
+      openResultsModal({
+        title: 'نتایج «' + t[1] + '»',
+        prizes: D.prizesOf(t),
+        players: activePlayersList(),
+        participants: results[tour] ? results[tour].participants : [],
+        top: results[tour] ? results[tour].top : {},
+        onSave: (participants, top) => {
+          const r = D.loadResults();
+          r[tour] = { participants, top };
+          D.saveResults(r); APP.reloadData(); APP.go('mgmt'); mgmtTab='results';
+          APP.toast('نتایج «' + t[1] + '» ثبت شد — امتیازها خودکار محاسبه شد ✓', 'green');
+        }
+      });
+    }));
+    $$('#mr-tours [data-mrdel]').forEach(b => b.addEventListener('click', () => {
+      const r = D.loadResults(); delete r[+b.dataset.mrdel]; D.saveResults(r); APP.reloadData(); APP.go('mgmt'); mgmtTab='results'; APP.toast('نتیجه حذف شد 🗑','orange');
+    }));
+
+    // ── ۲) کارت ضربات هر میدان: بزرگ + کیبورد (Enter → بعدی، ارقام فارسی) ──
+    function toEN(str){ return String(str||'').replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)); }
+    function drawHoles(){
+      const t = S.tournaments.find(x => x[0] === +$('#mr-tour').value);
+      if (!t) return;
+      const n = t[4], pars = D.parsOf(t[3]);
+      $('#mr-holes').innerHTML = Array.from({length:n}, (_,i) => `
+        <div class="hole-box">
+          <div class="hole-lbl">ح${D.fa(i+1)} <small style="color:var(--gold-l)">پ${D.fa(pars[i])}</small></div>
+          <input class="input hole-inp" type="text" inputmode="numeric" autocomplete="off" data-i="${i}" style="width:64px;height:48px;font-size:20px;font-weight:800;text-align:center;direction:ltr" placeholder="—">
+        </div>`).join('');
+      const ins = $$('#mr-holes .hole-inp');
+      ins.forEach(inp => {
+        inp.addEventListener('input', () => {
+          inp.value = toEN(inp.value).replace(/[^0-9]/g, '').slice(0,2);
+        });
+        inp.addEventListener('keydown', e => {
+          if (e.key === 'Enter'){
+            e.preventDefault();
+            const next = ins[+inp.dataset.i + 1];
+            if (next) next.focus(); else ins[0].focus();
+          }
+        });
+      });
+      if (ins[0]) ins[0].focus();
+    }
+    drawHoles();
+    $('#mr-tour').addEventListener('change', drawHoles);
+    $('#mr-add').addEventListener('click', () => {
+      const tour = +$('#mr-tour').value, pid = +$('#mr-pl').value;
+      const strokes = {};
+      $$('#mr-holes .hole-inp').forEach(inp => {
+        const v = +inp.value;
+        if (v > 0 && v <= 30) strokes[+inp.dataset.i + 1] = v;
+      });
+      if (!Object.keys(strokes).length){ APP.toast('حداقل ضربات یک میدان را وارد کنید', 'red'); return; }
+      const lst = extraCards();
+      const i = lst.findIndex(c => c.tour === tour && c.pid === pid);
+      const card = { tour, pid, strokes };
+      if (i >= 0) lst[i] = card; else lst.push(card);
+      saveCards(lst); APP.reloadData(); APP.go('mgmt'); mgmtTab='results';
+      APP.toast('کارت ضربات ثبت شد ✓', 'green');
+    });
+
+    // ── ۳) نمایش نتایج ثبت‌شده ──
+    renderSavedResults();
+    function renderSavedResults(){
+      const r = D.loadResults();
+      const keys = Object.keys(r);
+      $('#mr-list').innerHTML = keys.length ? keys.map(tid => {
+        const t = S.tournaments.find(x => x[0] === +tid);
+        if (!t) return '';
+        const pr = D.prizesOf(t);
+        const res = r[tid]; const top = res.top || {};
+        const rows = (res.participants||[]).map(pid => {
+          let place = 'شرکت‌کننده', pts = pr[3];
+          if (top['1'] === pid){ place = '🥇 اول'; pts = pr[0]; }
+          else if (top['2'] === pid){ place = '🥈 دوم'; pts = pr[1]; }
+          else if (top['3'] === pid){ place = '🥉 سوم'; pts = pr[2]; }
+          return `<div class="h-item"><span style="flex:1">${esc(D.PLAYER_NAME[pid]||'—')}</span><span class="chip gold">${place}</span><span class="chip green">${D.fa(pts)} امتیاز</span></div>`;
+        }).join('');
+        return `<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b>${esc(t[1])}</b><span class="chip green">ثبت شده</span><span style="font-size:10.5px;color:var(--muted)">${D.fa(res.participants.length)} شرکت‌کننده</span></div>
+          <div style="margin-top:8px">${rows}</div>
+        </div>`;
+      }).join('') : '<div style="color:var(--muted);font-size:12.5px;padding:8px">هنوز نتیجه‌ای ثبت نشده است — از کادر بالا شروع کنید.</div>';
+    }
   }
 
   /* ── ابزارهای مشترک ── */

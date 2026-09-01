@@ -181,6 +181,41 @@
   const PTS_RULE = {1:[20,15,10,5], 2:[15,10,7,3], 3:[10,7,5,2]};
   const RESULT_LABEL = ['اول','دوم','سوم','شرکت‌کننده'];
 
+  /* ── قوانین امتیازدهی قابل ویرایش + نتایج ثبت‌شده + دوره‌ها ── */
+  function loadTourRules(){
+    try {
+      const r = JSON.parse(localStorage.getItem('ga_tour_rules') || 'null');
+      if (r && r[1] && r[2] && r[3]) return r;
+    } catch(e){}
+    return JSON.parse(JSON.stringify(PTS_RULE));
+  }
+  function saveTourRules(r){ try { localStorage.setItem('ga_tour_rules', JSON.stringify(r)); } catch(e){} }
+  function loadResults(){ try { return JSON.parse(localStorage.getItem('ga_results') || '{}'); } catch(e){ return {}; } }
+  function saveResults(r){ try { localStorage.setItem('ga_results', JSON.stringify(r)); } catch(e){} }
+  function loadPrograms(){ try { return JSON.parse(localStorage.getItem('ga_programs') || '[]'); } catch(e){ return []; } }
+  function savePrograms(a){ try { localStorage.setItem('ga_programs', JSON.stringify(a)); } catch(e){} }
+  function loadDelActs(){ try { return JSON.parse(localStorage.getItem('ga_del_acts') || '[]'); } catch(e){ return []; } }
+  function saveDelActs(a){ try { localStorage.setItem('ga_del_acts', JSON.stringify(a)); } catch(e){} }
+  function loadExtraTours(){ try { return JSON.parse(localStorage.getItem('ga_tournaments') || '[]'); } catch(e){ return []; } }
+  /* امتیازهای ۴گانهٔ یک تورنمنت: [اول، دوم، سوم، شرکت] — از override/extra، وگرنه قوانین سطح */
+  function prizesOf(t, rules){
+    rules = rules || loadTourRules();
+    const id = t[0], lvl = t[2] || 2;
+    const def = rules[lvl] || rules[2] || [15,10,7,3];
+    let p = null;
+    if (id >= 1000){
+      const ex = loadExtraTours()[id - 1000];
+      if (ex) p = [ex.p1, ex.p2, ex.p3, ex.entry];
+    } else {
+      try {
+        const ov = JSON.parse(localStorage.getItem('ga_tour_override') || '{}')[id];
+        if (ov && (ov.p1 !== undefined || ov.entry !== undefined)) p = [ov.p1, ov.p2, ov.p3, ov.entry];
+      } catch(e){}
+    }
+    if (p && p.every(x => x !== undefined && x !== null && x !== '')) return p.map(x => +x);
+    return def.map(x => +x);
+  }
+
   /* ── تولید کارت امتیاز (قطعی: هر بار با RNG تازه) ── */
   function genScorecards(players){
     const { gauss } = makeRNG(1405);
@@ -271,24 +306,58 @@
     const activeSet = new Set(players.filter(p => p[5]).map(p => p[0]));
     const scorecards = state.scorecards.filter(c => activeSet.has(c.pid));
     const activities = state.activities.filter(a => activeSet.has(a.pid));
+    const rules = loadTourRules();
+    const results = loadResults();
+    const programs = loadPrograms();
     const PTS = {}; players.forEach(p => PTS[p[0]] = 0);
     const MONTH_PTS = {}; const CARDS = {};
     let TOTAL_BIRDIES = 0;
     const info = {};
     tournaments.forEach(t => info[t[0]] = t);
+    const scoredTours = new Set(Object.keys(results).map(Number));
+
+    // نتایج ثبتشدهٔ مسابقات: امتیاز از نفرات اول تا سوم + شرکتکنندگان
+    Object.keys(results).forEach(tid => {
+      const t = info[+tid];
+      if (!t) return;
+      const res = results[tid];
+      const top = res.top || {};
+      const pr = prizesOf(t, rules);
+      const j = jalaliInfo(dateFrom(t[5]));
+      (res.participants || []).forEach(pid => {
+        if (!activeSet.has(pid)) return;
+        let place = 4;
+        if (top['1'] === pid) place = 1;
+        else if (top['2'] === pid) place = 2;
+        else if (top['3'] === pid) place = 3;
+        const pts = pr[Math.min(place, 4) - 1] || 0;
+        PTS[pid] += pts;
+        MONTH_PTS[j.monthFa] = MONTH_PTS[j.monthFa] || {};
+        MONTH_PTS[j.monthFa][pid] = (MONTH_PTS[j.monthFa][pid] || 0) + pts;
+      });
+    });
 
     scorecards.forEach(c => {
       const t = info[c.tour];
       if (!t) return;
-      const ptsRule = PTS_RULE[t[2]];
-      const group = scorecards.filter(x => x.tour === c.tour).sort((a,b) => a.total - b.total);
-      const rank = group.indexOf(c) + 1;
-      const place = Math.min(rank, 4);
-      const pts = ptsRule[place - 1];
-      PTS[c.pid] += pts;
       const j = jalaliInfo(dateFrom(t[5]));
-      MONTH_PTS[j.monthFa] = MONTH_PTS[j.monthFa] || {};
-      MONTH_PTS[j.monthFa][c.pid] = (MONTH_PTS[j.monthFa][c.pid] || 0) + pts;
+      const res = scoredTours.has(c.tour) ? results[c.tour] : null;
+      const top = res ? (res.top || {}) : null;
+      let rank = null, place = null, pts = 0;
+      if (res){
+        // امتیاز قبلاً از نتیجه داده شد؛ اینجا فقط رتبهٔ نمایشی برای کارت
+        rank = top && top['1'] === c.pid ? 1 : top && top['2'] === c.pid ? 2 : top && top['3'] === c.pid ? 3 : 4;
+        place = rank;
+      } else {
+        const ptsRule = rules[t[2]];
+        const group = scorecards.filter(x => x.tour === c.tour).sort((a,b) => a.total - b.total);
+        rank = group.indexOf(c) + 1;
+        place = Math.min(rank, 4);
+        pts = ptsRule[place - 1];
+        PTS[c.pid] += pts;
+        MONTH_PTS[j.monthFa] = MONTH_PTS[j.monthFa] || {};
+        MONTH_PTS[j.monthFa][c.pid] = (MONTH_PTS[j.monthFa][c.pid] || 0) + pts;
+      }
       const pars = parsOf(t[3]);
       const holes = t[4];
       let birdies = 0, parsN = 0, bogeys = 0, dbog = 0;
@@ -317,6 +386,28 @@
       s.attend++;
       if (a.type === 'تمرین') s.practices++;
       else if (a.type === 'آموزش') s.courses++;
+    });
+    // دوره‌های آموزشی / تمرین / اردو: امتیاز شرکت + نفرات برتر
+    programs.forEach(pr => {
+      const part = (pr.participants || []).filter(pid => activeSet.has(pid));
+      if (!part.length) return;
+      const j = jalaliInfo(dateFrom(pr.start || pr.date || ''));
+      const top = pr.top || {};
+      part.forEach(pid => {
+        const s = ST[pid];
+        if (!s) return;
+        s.attend++;
+        if (pr.type === 'تمرین') s.practices++;
+        else if (pr.type === 'کلاس' || pr.type === 'آموزش') s.courses++;
+        let place = 4;
+        if (top['1'] === pid) place = 1;
+        else if (top['2'] === pid) place = 2;
+        else if (top['3'] === pid) place = 3;
+        const pts = place === 1 ? (+pr.p1 || 0) : place === 2 ? (+pr.p2 || 0) : place === 3 ? (+pr.p3 || 0) : (+pr.entry || 0);
+        PTS[pid] += pts;
+        MONTH_PTS[j.monthFa] = MONTH_PTS[j.monthFa] || {};
+        MONTH_PTS[j.monthFa][pid] = (MONTH_PTS[j.monthFa][pid] || 0) + pts;
+      });
     });
     Object.entries(CARDS).forEach(([pid, arr]) => {
       const s = ST[pid];
@@ -511,7 +602,7 @@
         strokes: Object.fromEntries(Object.entries(s.strokes).map(([h,v]) => [+h, +v])),
         total: Object.values(s.strokes).reduce((a,b)=>a+(+b),0),
       }))),
-      activities: genActivities(players),
+      activities: genActivities(players).filter((a, i) => !loadDelActs().includes(i)),
     };
   }
 
@@ -530,6 +621,8 @@
     toJalaali, jalaaliToDateObject, j2d, shamsiToISO, isoToShamsi, parseShamsi,
     PLAYERS, PLAYER_NAME, ACTIVE, COURSES, COURSE_PARS, COURSE_NAME, TOURNAMENTS,
     PTS_RULE, RESULT_LABEL, MONTHS_FA, RANK_DEF, RANK_TEXT, rankOf, FORM_META, GOLD_ELITE,
+    loadTourRules, saveTourRules, loadResults, saveResults, loadPrograms, savePrograms,
+    loadDelActs, saveDelActs, loadExtraTours, prizesOf,
     parsOf, compute, loadState, loadPlayers, loadCustomPlayers, loadPlayerUsers, savePlayerUsers,
     IR_HOLIDAYS, holidaysOf, isHoliday,
   };

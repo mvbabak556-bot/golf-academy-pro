@@ -791,6 +791,15 @@
       const d = new Date(Date.UTC(2026, m-1, d2));
       ev({ d, end: d, name: n, type: 'اردو', col: 'orange', kind: 'اردو', icon: '🏕️', extra: '' });
     });
+    // دوره‌های آموزشی / تمرین / اردو (از پنل مدیریت)
+    (window.Data.loadPrograms ? Data.loadPrograms() : []).forEach(p => {
+      const d = D.dateFrom(p.start || p.date || '');
+      if (!d || isNaN(d)) return;
+      const end = p.end ? D.dateFrom(p.end) : d;
+      const type = TYPES.includes(p.type) ? p.type : 'کلاس';
+      ev({ d, end, name: p.name || 'دوره', type, col: type==='تمرین'?'green':type==='اردو'?'orange':'purple', kind: type,
+           icon: TYPE_ICON[type] || '📌', extra: p.info ? esc(String(p.info)).slice(0,50) : 'دورهٔ فصل' });
+    });
     // رویدادهای سفارشی (فقط ۴ نوع مجاز — بقیه نمایش داده نمی‌شوند)
     (MGMT.customEvents()||[]).forEach(e => {
       const type = e.type || '';
