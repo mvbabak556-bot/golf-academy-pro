@@ -154,8 +154,8 @@ tr.off-row{opacity:.5}
 
 /* ═══════════════ JDate — ورود تاریخ شمسی ═══════════════ */
 .jdate{position:relative}
-.jdate-row{display:flex;gap:6px;align-items:center}
-.jdate-manual{flex:1;direction:rtl;text-align:center;letter-spacing:.5px}
+.jdate-row{display:flex;gap:6px;align-items:center;min-width:0}
+.jdate-manual{flex:1;min-width:0;box-sizing:border-box;direction:rtl;text-align:center;letter-spacing:.5px}
 .jdate-cal-btn{
   width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;
   background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.35);border-radius:10px;font-size:16px;
@@ -211,3 +211,13 @@ tr.off-row{opacity:.5}
 .cal-month-hols{margin-top:10px;font-size:12px;color:var(--muted);padding:8px 12px;background:rgba(255,255,255,.02);border-radius:10px;border:1px solid rgba(255,255,255,.05)}
 .cal-month-hols b{color:#ff8d85}
 .hol-sel{color:#1EBB8A}
+/* چیپ رویداد داخل سلول تقویم (فقط ۴ نوع) */
+.cal-mini-ev{display:inline-block;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:1px 5px;font-size:9.5px;line-height:1.5;margin:1px 2px 0 0;color:#e8eef5;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;vertical-align:top}
+.cal-mini-ev.مسابقه{border-color:rgba(212,175,55,.55);background:rgba(212,175,55,.10);color:#f0d989}
+.cal-mini-ev.کلاس{border-color:rgba(168,85,247,.5);background:rgba(168,85,247,.10);color:#d8b4fe}
+.cal-mini-ev.تمرین{border-color:rgba(30,187,138,.5);background:rgba(30,187,138,.10);color:#8fe3c4}
+.cal-mini-ev.اردو{border-color:rgba(249,115,22,.5);background:rgba(249,115,22,.10);color:#fdba74}
+.cal-mini-more{display:inline-block;font-size:9.5px;color:var(--gold-l);margin:1px 2px 0 0}
+.cal-month-hols{font-size:12px;color:var(--muted);margin-top:10px;text-align:left}
+.cal-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:10.5px;color:var(--muted);margin-top:6px}
+.cal-legend .hol-sel{color:var(--gold-l)}

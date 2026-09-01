@@ -35,6 +35,7 @@
         </div>
         <div class="jdate-actions">
           <span class="jdate-result"></span>
+          <button class="btn sm jd-ok">ثبت تاریخ</button>
           <button class="btn sm ghost jd-close">بستن</button>
         </div>
       </div>`;
@@ -114,6 +115,13 @@
       setDayOptions(true);
     });
     el.querySelector('.jd-close').addEventListener('click', () => { pop.hidden = true; });
+    // دکمهٔ ثبت تاریخ: مقدار انتخابی دراپ‌داون‌ها اعمال و تأیید می‌شود
+    el.querySelector('.jd-ok').addEventListener('click', () => {
+      pop.hidden = true;
+      emit();
+      if (opts.onConfirm) opts.onConfirm(syncManual());
+      if (window.APP && APP.toast) APP.toast('تاریخ «' + syncManual() + '» ثبت شد ✓', 'green');
+    });
 
     // ورود دستی
     manual.addEventListener('keydown', e => {

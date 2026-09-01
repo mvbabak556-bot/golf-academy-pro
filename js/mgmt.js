@@ -206,58 +206,69 @@
       </div>
     </div>`;
   }
-  function readPlayerForm(){
+  function readPlayerForm(root){
+    root = root || document;
+    const q = sel => root.querySelector(sel);
+    const gv = (el, fallback) => el ? el.value.trim() : (fallback || '');
     return {
-      name: $('#pf-name').value.trim(),
-      family: $('#pf-family').value.trim(),
-      gender: $('#pf-gender').value,
-      birth: $('#pf-birth')._value ? $('#pf-birth')._value() : $('#pf-birth').value,
-      join: $('#pf-join')._value ? $('#pf-join')._value() : $('#pf-join').value,
-      hcp: Math.max(0, Math.min(36, +$('#pf-hcp').value || 10)),
-      phone: $('#pf-phone').value.trim(),
-      national: $('#pf-national').value.trim(),
-      email: $('#pf-email').value.trim(),
-      address: $('#pf-address').value.trim(),
-      father: $('#pf-father').value.trim(),
-      fatherPhone: $('#pf-fatherPhone').value.trim(),
-      mother: $('#pf-mother').value.trim(),
-      motherPhone: $('#pf-motherPhone').value.trim(),
-      user: $('#pf-user').value.trim(),
-      pass: $('#pf-pass').value,
+      name: gv(q('#pf-name')),
+      family: gv(q('#pf-family')),
+      gender: q('#pf-gender') ? q('#pf-gender').value : 'مرد',
+      birth: (q('#pf-birth') && q('#pf-birth')._value) ? q('#pf-birth')._value() : gv(q('#pf-birth')),
+      join: (q('#pf-join') && q('#pf-join')._value) ? q('#pf-join')._value() : gv(q('#pf-join')),
+      hcp: Math.max(0, Math.min(36, +(q('#pf-hcp') ? q('#pf-hcp').value : 10) || 10)),
+      phone: gv(q('#pf-phone')),
+      national: gv(q('#pf-national')),
+      email: gv(q('#pf-email')),
+      address: gv(q('#pf-address')),
+      father: gv(q('#pf-father')),
+      fatherPhone: gv(q('#pf-fatherPhone')),
+      mother: gv(q('#pf-mother')),
+      motherPhone: gv(q('#pf-motherPhone')),
+      user: gv(q('#pf-user')),
+      pass: q('#pf-pass') ? q('#pf-pass').value : '',
     };
   }
-  function wirePlayerForm(){
+  function wirePlayerForm(root){
+    root = root || document;
+    const q = sel => root.querySelector(sel);
     // عکس
-    const file = $('#pf-file');
+    const file = q('#pf-file');
     if (file) file.addEventListener('change', () => {
       const f = file.files && file.files[0];
       if (!f) return;
       if (f.size > 2.5*1024*1024){ APP.toast('حجم عکس زیاد است (حداکثر ۲.۵MB)', 'red'); return; }
       const rd = new FileReader();
       rd.onload = () => {
-        const img = $('#pf-photo');
+        const img = q('#pf-photo');
         img.src = rd.result; img.classList.remove('empty');
       };
       rd.readAsDataURL(f);
     });
-    // تاریخ‌های شمسی (تولد + عضویت)
-    const birthEl = $('#pf-birth');
+    // تاریخ‌های شمسی (تولد + عضویت) — iso از data-iso خود عنصر یا data-birth/data-join والد
+    const birthEl = q('#pf-birth');
     if (birthEl && !birthEl.classList.contains('jdate')){
-      const iso = birthEl.dataset.iso;
+      const wrap = root.querySelector('[data-birth]');
+      const iso = birthEl.dataset.iso || (wrap ? wrap.getAttribute('data-birth') : '');
       JDate.render(birthEl, { value: iso || D.shamsiToISO(1390,1,1), onChange(){} });
       if (iso){ const p = D.parseShamsi(D.isoToShamsi(iso)); if (p) birthEl._set(iso); }
     }
-    const joinEl = $('#pf-join');
+    const joinEl = q('#pf-join');
     if (joinEl && !joinEl.classList.contains('jdate')){
-      JDate.render(joinEl, { value: new Date().toISOString().slice(0,10), onChange(){} });
+      const wrap = root.querySelector('[data-join]');
+      const jiso = birthEl ? '' : ''; // placeholder no-op
+      const jv = (wrap ? wrap.getAttribute('data-join') : '') || '';
+      JDate.render(joinEl, { value: jv || new Date().toISOString().slice(0,10), onChange(){} });
+      if (jv && joinEl._set) joinEl._set(jv);
     }
     // تولید رمز
-    const gen = $('#pf-gen');
+    const gen = q('#pf-gen');
     if (gen) gen.addEventListener('click', () => {
       const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
       let pw = '';
       for (let i=0;i<8;i++) pw += chars[Math.floor(Math.random()*chars.length)];
-      $('#pf-pass').value = pw;
+      const passEl = q('#pf-pass');
+      if (passEl) passEl.value = pw;
       APP.toast('رمز تصادفی ساخته شد — حتماً ذخیره کنید', 'gold');
     });
   }
@@ -411,14 +422,16 @@
       </div>
     </div>`;
     m.style.display = 'flex';
-    wirePlayerForm();
+    const sc = m.querySelector('[data-birth]') || m;
+    wirePlayerForm(sc);
     $('#ep-cancel').addEventListener('click', () => m.style.display = 'none');
     $('#ep-save').addEventListener('click', () => {
-      const d = readPlayerForm();
+      const d = readPlayerForm(sc);
       const anyFilled = d.name || d.phone || d.national || d.email || d.user || d.father || d.mother;
       if (!anyFilled){ APP.toast('حداقل یک مورد را پر کنید', 'red'); return; }
       const fullName = ((d.name || 'بازیکن') + ' ' + d.family).trim();
-      const photo = $('#pf-photo').src && !$('#pf-photo').hasAttribute('data-empty') ? $('#pf-photo').src : full.photo;
+      const phEl = sc.querySelector('#pf-photo');
+      const photo = phEl && phEl.src && !phEl.hasAttribute('data-empty') ? phEl.src : full.photo;
       if (full.isCustom){
         const lst = customPlayers();
         const c = lst.find(x => x.id === pid - 9000);
@@ -989,7 +1002,7 @@
       <div class="field-grid" style="margin-top:10px">
         <div class="span2"><label>نام رویداد</label><input class="input" id="me-name" style="width:100%" placeholder="مثلاً: اردوی هفتگی"></div>
         <div><label>نوع</label><select class="sel" id="me-type" style="width:100%">
-          <option value="مسابقه">🏆 مسابقه</option><option value="تمرین">🏌️ تمرین</option><option value="کلاس">📚 کلاس</option><option value="اردو">⛺ اردو</option><option value="جشن">🎉 جشن و مراسم</option><option value="دیگر">📌 دیگر</option>
+          <option value="مسابقه">🏆 مسابقه</option><option value="تمرین">🏌️ تمرین</option><option value="کلاس">📚 کلاس</option><option value="اردو">⛺ اردو</option>
         </select></div>
         <div><label>رنگ</label><select class="sel" id="me-col" style="width:100%">
           <option value="green">سبز</option><option value="gold">طلایی</option><option value="blue">آبی</option><option value="purple">بنفش</option><option value="orange">نارنجی</option><option value="red">قرمز</option>
@@ -1001,28 +1014,15 @@
       </div>
       <div id="me-schedule" style="margin-top:12px"></div>
       <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
-        <button class="btn sm" id="me-add">+ افزودن رویداد</button>
-        <span style="color:var(--muted);font-size:11.5px;align-self:center">تاریخ شروع و پایان را انتخاب کنید — برای چند روز، برای هر روز برنامه تعیین کنید</span>
+        <button class="btn sm" id="me-add" style="min-width:150px">📅 ثبت رویداد در تقویم</button>
+        <span style="color:var(--muted);font-size:11.5px;align-self:center">شروع و پایان را با تقویم شمسی انتخاب کنید — برای چند روز، برای هر روز برنامه تعیین کنید</span>
       </div>
     </div>
     <div class="glass">
       <div class="card-head"><span class="ic">🗓️</span><h3>رویدادهای سفارشی تقویم</h3><span class="tag">${D.fa(customEvents().length)} رویداد</span></div>
       <div id="me-list" style="margin-top:8px"></div>
     </div>
-    <div class="glass" style="margin-top:16px">
-      <div class="card-head"><span class="ic">🇮🇷</span><h3>تعطیلات رسمی و مناسبت‌های ایران ۱۴۰۵ (منبع: time.ir)</h3><span class="tag">${D.fa(D.IR_HOLIDAYS.filter(h=>h[3]==='holiday').length)} تعطیل</span></div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:10px">
-        ${MONTHS_FA.map((m,mi) => {
-          const list = D.IR_HOLIDAYS.filter(h => h[0] === mi+1);
-          if (!list.length) return '';
-          return `<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px">
-            <b style="color:var(--gold-l);font-size:13px">${m}</b>
-            <div class="holi-list" style="margin-top:8px">${list.map(h => `
-              <div class="h-item"><span class="h-day">${D.fa(h[1])}</span><span style="flex:1">${esc(h[2])}</span><span class="chip ${h[3]==='holiday'?'red':'blue'}">${h[3]==='holiday'?'تعطیل':'مناسبت'}</span></div>`).join('')}
-            </div></div>`;
-        }).join('')}
-      </div>
-    </div>`;
+    `;
 
     const SCHED_OPTS = ['ورود','مسابقه','تمرین','کلاس','اهدای جام','تور','جلسه','مراسم','آزاد'];
     JDate.render($('#me-start'), { value: D.isoToShamsi(new Date().toISOString().slice(0,10)) && D.shamsiToISO(1405,6,10), onChange(){ renderSchedule(); } });
@@ -1054,6 +1054,11 @@
     }
     renderSchedule();
 
+    let editingIdx = -1;
+    const btn = $('#me-add');
+    function setBtn(){
+      btn.textContent = editingIdx >= 0 ? '💾 ذخیرهٔ ویرایش رویداد' : '📅 ثبت رویداد در تقویم';
+    }
     $('#me-add').addEventListener('click', () => {
       const name = $('#me-name').value.trim();
       const start = $('#me-start')._value();
@@ -1064,12 +1069,23 @@
       const schedule = [];
       $$('.me-day-sel').forEach(s => schedule.push({ offset: +s.dataset.i, label: s.value }));
       const lst = customEvents();
-      lst.push({ name: name || 'رویداد ' + D.fa(lst.length+1), type: $('#me-type').value, col: $('#me-col').value,
-        start, end, schedule });
-      saveEvents(lst); APP.go('mgmt'); mgmtTab='calendar';
-      APP.toast('رویداد «' + (name || 'بدون نام') + '» ثبت شد ✓', 'green');
+      const obj = { name: name || 'رویداد ' + D.fa(lst.length+1), type: $('#me-type').value, col: $('#me-col').value,
+        start, end, schedule };
+      if (editingIdx >= 0 && lst[editingIdx]){
+        Object.assign(lst[editingIdx], obj);
+        APP.toast('رویداد «' + name + '» ویرایش و ذخیره شد ✓', 'green');
+      } else {
+        lst.push(obj);
+        APP.toast('رویداد «' + (name || 'بدون نام') + '» ثبت شد ✓', 'green');
+      }
+      saveEvents(lst);
+      editingIdx = -1; setBtn();
+      $('#me-name').value = '';
+      $('#me-type').value = 'مسابقه'; $('#me-col').value = 'green';
+      renderMeList();
     });
 
+    function renderMeList(){
     const lst = customEvents();
     $('#me-list').innerHTML = lst.length ? `<div class="holi-list">
       ${lst.map((e,i) => {
@@ -1081,11 +1097,28 @@
           <span style="flex:1"><b>${esc(e.name)}</b>
             <div style="font-size:10.5px;color:var(--muted)">${esc(e.type||'')}${n>1?' • '+D.fa(n)+' روز':''}${sch?' • '+sch:''}</div>
           </span>
+          <button class="btn sm ghost" data-edme="${i}" title="ویرایش">✏️</button>
           <button class="btn sm danger" data-delme="${i}">🗑</button></div>`;
       }).join('')}</div>` : '<div style="color:var(--muted);font-size:12.5px;padding:8px">رویداد سفارشی ثبت نشده است.</div>';
     $$('#me-list [data-delme]').forEach(b => b.addEventListener('click', () => {
       const a = customEvents(); a.splice(+b.dataset.delme,1); saveEvents(a); APP.go('mgmt'); mgmtTab='calendar'; APP.toast('رویداد حذف شد 🗑','orange');
     }));
+    $$('#me-list [data-edme]').forEach(b => b.addEventListener('click', () => {
+      const lst = customEvents();
+      const i = +b.dataset.edme, e = lst[i];
+      if (!e) return;
+      editingIdx = i; setBtn();
+      $('#me-name').value = e.name || '';
+      $('#me-type').value = e.type || 'مسابقه';
+      $('#me-col').value = e.col || 'green';
+      if (e.start) $('#me-start')._set(e.start);
+      if (e.end) $('#me-end')._set(e.end);
+      renderSchedule();
+      if ($('#me-name').scrollIntoView) $('#me-name').scrollIntoView({ behavior:'smooth', block:'center' });
+      APP.toast('در حال ویرایش «' + (e.name||'') + '» — پس از تغییر، ذخیرهٔ ویرایش را بزنید', 'gold');
+    }));
+    }
+    renderMeList();
   }
 
   /* ── ابزارهای مشترک ── */

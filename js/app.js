@@ -763,8 +763,10 @@
     const MONTHS = D.MONTHS_FA;
     const DAYS_IN = [31,31,31,31,31,31,30,30,30,30,30,29];
     const WD = ['ش','ی','د','س','چ','پ','ج'];
+    const TYPE_ICON = { 'مسابقه':'🏆', 'کلاس':'📚', 'تمرین':'🏌️', 'اردو':'🏕️' };
+    const TYPES = ['مسابقه','کلاس','تمرین','اردو'];
 
-    // ── ساخت رویدادها (همه: مسابقه، کلاس، اردو، سفارشی، تعطیل، مناسبت) ──
+    // ── ساخت رویدادها (فقط: مسابقه، کلاس، تمرین، اردو) ──
     const events = [];
     let eid = 0;
     const ev = o => events.push(Object.assign({ id: ++eid }, o));
@@ -772,29 +774,32 @@
     S.tournaments.forEach(t => {
       const d = D.dateFrom(t[5]);
       ev({ d, end: d, name: t[1], type: 'مسابقه', col: t[2]===1?'gold':t[2]===2?'green':'blue',
-           kind: 'مسابقه', extra: `${esc(D.COURSE_NAME[t[3]]||'—')} • ${D.fa(t[4])} حفره` });
+           kind: 'مسابقه', icon: '🏆', extra: `${esc(D.COURSE_NAME[t[3]]||'—')} • ${D.fa(t[4])} حفره` });
     });
+    // کلاس‌های آکادمی (هر هفته یک‌بار، شهریور تا بهمن)
     [['کلاس مقدماتی گلف'],['کلاس پوتینگ'],['کلاس شورت گیم'],['کارگاه ذهنی'],['کلاس چوب‌های بلند'],['کلاس قوانین و آداب']].forEach(([n],i) => {
       const d = new Date(D.TODAY.getTime() + (7 + i*10)*86400000);
-      ev({ d, end: d, name: n, type: 'کلاس', col: 'purple', kind: 'کلاس', extra: '' });
+      ev({ d, end: d, name: n, type: 'کلاس', col: 'purple', kind: 'کلاس', icon: '📚', extra: 'کلاس آکادمی' });
     });
+    // تمرین‌های هفتگی
+    [['تمرین روز سه‌شنبه'],['تمرین پایان هفته'],['تمرین تخصصی چوب بلند']].forEach(([n],i) => {
+      const d = new Date(D.TODAY.getTime() + (5 + i*7)*86400000);
+      ev({ d, end: d, name: n, type: 'تمرین', col: 'green', kind: 'تمرین', icon: '🏌️', extra: 'تمرین هفتگی' });
+    });
+    // اردوهای فصل
     [[10,16,'اردوی آماده‌سازی جام بزرگ'],[11,2,'اردوی فنی پایان فصل']].forEach(([m,d2,n]) => {
       const d = new Date(Date.UTC(2026, m-1, d2));
-      ev({ d, end: d, name: n, type: 'اردو', col: 'orange', kind: 'اردو', extra: '' });
+      ev({ d, end: d, name: n, type: 'اردو', col: 'orange', kind: 'اردو', icon: '🏕️', extra: '' });
     });
-    // رویدادهای سفارشی (چندروزه با schedule در نظر گرفته می‌شود)
+    // رویدادهای سفارشی (فقط ۴ نوع مجاز — بقیه نمایش داده نمی‌شوند)
     (MGMT.customEvents()||[]).forEach(e => {
+      const type = e.type || '';
+      if (!TYPES.includes(type)) return;
       const d = D.dateFrom(e.date || e.start || '');
       if (!d || isNaN(d)) return;
       const end = e.end ? D.dateFrom(e.end) : d;
-      ev({ d, end, name: e.name, type: e.type || 'رویداد', col: 'blue', kind: 'سفارشی',
+      ev({ d, end, name: e.name, type, col: 'blue', kind: type, icon: TYPE_ICON[type] || '📌',
            extra: 'رویداد سفارشی', schedule: e.schedule || null });
-    });
-    // تعطیلات رسمی + مناسبت‌های ایران ۱۴۰۵ (time.ir)
-    D.IR_HOLIDAYS.forEach(h => {
-      const d = new Date(Date.UTC(2026, h[0]-1, h[1]));
-      ev({ d, end: d, name: h[2], type: h[3]==='holiday' ? 'تعطیل رسمی' : 'مناسبت',
-           col: h[3]==='holiday' ? 'red' : 'blue', kind: h[3]==='holiday' ? 'تعطیل' : 'مناسبت', extra: 'تقویم ایران ۱۴۰۵' });
     });
     events.sort((a,b) => a.d - b.d);
 
@@ -818,7 +823,7 @@
       <img src="assets/ball_3d.png" class="floaty fast glow-img green" style="width:64px;height:64px;border-radius:14px;object-fit:cover" alt="">
       <div>
         <div style="font-size:12px;color:var(--muted)">رویداد بعدی</div>
-        <div style="font-size:19px;font-weight:900" class="gold-text">${esc(events[nextIdx].name)}</div>
+        <div style="font-size:19px;font-weight:900" class="gold-text">${TYPE_ICON[events[nextIdx].type]||'📌'} ${esc(events[nextIdx].name)}</div>
         <div style="font-size:11.5px;color:var(--muted);margin-top:3px">${events[nextIdx].type} • ${D.fa(D.jalaliInfo(events[nextIdx].d).dd)} ${MONTHS[D.jalaliInfo(events[nextIdx].d).mm-1]}</div>
       </div>
       <div style="margin-right:auto;text-align:center">
@@ -826,8 +831,8 @@
         <div style="font-size:11px;color:var(--muted)">روز تا شروع</div>
       </div>
       <div style="text-align:center;padding:0 16px">
-        <div style="font-size:11px;color:var(--muted)">تعطیلات رسمی ۱۴۰۵</div>
-        <div style="font-size:16px;font-weight:800" class="gold-text">${D.fa(D.IR_HOLIDAYS.filter(h=>h[3]==='holiday').length)} روز</div>
+        <div style="font-size:11px;color:var(--muted)">رویدادهای فصل</div>
+        <div style="font-size:16px;font-weight:800" class="gold-text">${D.fa(events.length)} رویداد</div>
       </div>
       <button class="btn sm ghost" onclick="APP.go('mgmt')">⚙️ مدیریت تقویم</button>
     </div>
@@ -837,7 +842,7 @@
       <div class="glass cal-list-pane">
         <div class="card-head"><span class="ic">📋</span><h3>رویدادها</h3>
           <span style="margin-right:auto;display:flex;gap:5px;flex-wrap:wrap">
-            ${['all','مسابقه','تعطیل','مناسبت','کلاس','اردو','سفارشی'].map(f => `<button class="btn sm ghost cal-f ${f==='all'?'on':''}" data-f="${f}" style="padding:3px 8px;font-size:10.5px">${f==='all'?'همه':f}</button>`).join('')}
+            ${['all', ...TYPES].map(f => `<button class="btn sm ghost cal-f ${f==='all'?'on':''}" data-f="${f}" style="padding:3px 8px;font-size:10.5px">${f==='all'?'همه':(TYPE_ICON[f]||'') + f}</button>`).join('')}
           </span>
         </div>
         <div id="cal-events-list" class="cal-events-list"></div>
@@ -846,7 +851,7 @@
       <div class="glass cal-grid-pane">
         <div class="card-head"><span class="ic">🇮🇷</span>
           <h3>تقویم <span id="cal-month-name"></span></h3>
-          <span class="tag">تعطیلات ★ قرمز</span>
+          <span class="tag">فصل ۱۴۰۵</span>
           <div style="margin-right:auto;display:flex;gap:6px;align-items:center">
             <button class="btn sm ghost" id="cal-prev">▶</button>
             <button class="btn sm" id="cal-today" style="padding:4px 10px;font-size:11px">امروز</button>
@@ -854,32 +859,23 @@
           </div>
         </div>
         <div class="cal-legend">
-          <span><b class="hol-star">★</b> تعطیل رسمی</span>
-          <span><b class="hol-dot">●</b> مناسبت</span>
-          <span><b class="hol-ev">⛳</b> رویداد آکادمی</span>
-          <span><b class="hol-sel">◉</b> رویداد انتخابی</span>
+          ${TYPES.map(t => `<span>${TYPE_ICON[t]} ${t}</span>`).join('')}
+          <span class="hol-sel" style="border:1.5px dashed #D4AF37;border-radius:6px;padding:0 6px">رویداد انتخابی</span>
         </div>
         <div id="cal-grid" class="cal-grid-big" style="margin-top:10px"></div>
         <div id="cal-month-hols" class="cal-month-hols"></div>
       </div>
-    </div>
-
-    <div class="glass" style="margin-top:16px">
-      <div class="card-head"><span class="ic">🗓️</span><h3>تعطیلات و مناسبت‌های <span id="cal-side-title"></span></h3><span class="tag">time.ir</span></div>
-      <div id="cal-side" class="holi-list" style="margin-top:10px;max-height:360px;overflow:auto"></div>
     </div>`;
 
     // ── لیست رویدادها ──
     function renderList(){
       const wrap = $('#cal-events-list'); if (!wrap) return;
       const list = events.filter(e => filter === 'all' || e.kind === filter);
-      // گروه‌بندی: آینده / گذشته
       const future = list.filter(e => e.end >= D.TODAY);
       const past = list.filter(e => e.end < D.TODAY);
       const rows = [];
       const mk = (e, pastFlag) => {
         const j = D.jalaliInfo(e.d);
-        const je = D.jalaliInfo(e.end);
         const isSel = events[selIdx].id === e.id;
         const days = daysBetween(e.d, e.end);
         const range = days > 1 ? ` (${D.fa(days)} روز)` : '';
@@ -889,11 +885,11 @@
             <div class="cal-ev-m">${MONTHS[j.mm-1]}</div>
           </div>
           <div class="cal-ev-body">
-            <b>${esc(e.name)}</b>
+            <b>${e.icon} ${esc(e.name)}</b>
             <div class="cal-ev-sub">${e.type}${range}${e.extra ? ' — ' + e.extra : ''}</div>
             ${e.schedule ? `<div class="cal-ev-sch">${e.schedule.map(s => `<span>${esc(s.label)}</span>`).join('')}</div>` : ''}
           </div>
-          <span class="chip ${e.col}">${e.kind === 'مسابقه' ? '⛳' : e.kind === 'تعطیل' ? '★' : e.kind === 'مناسبت' ? '●' : ''}${e.kind}</span>
+          <span class="chip ${e.col}">${e.icon} ${e.kind}</span>
         </div>`;
       };
       future.slice(0, 60).forEach(e => rows.push(mk(e, false)));
@@ -905,8 +901,7 @@
         if (selIdx < 0) selIdx = nextIdx;
         const e = events[selIdx];
         viewMonth = D.jalaliInfo(e.d).mm;
-        renderList(); renderGrid(); renderSide();
-        // اسکرول به تقویم
+        renderList(); renderGrid(); renderMonthStats();
         const gp = document.querySelector('.cal-grid-pane');
         if (gp && gp.scrollIntoView) gp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }));
@@ -933,63 +928,62 @@
       html += '<div class="cal-grid-big-row">';
       for (let i=0;i<dow;i++) html += '<div class="cal-cell empty"></div>';
       for (let d=1; d<=daysInMonth; d++){
-        const holis = D.holidaysOf(1405, mm, d);
-        const isHol = holis.some(h=>h[3]==='holiday');
-        const isOcc = holis.some(h=>h[3]==='event');
         const isToday = (mm === D.jalaliInfo(D.TODAY).mm && d === D.jalaliInfo(D.TODAY).dd);
         const isSelDay = selDays.has(d);
         const dayEvs = events.filter(e => {
-          const j0 = D.jalaliInfo(e.d), j1 = D.jalaliInfo(e.end);
+          const j0 = D.jalaliInfo(e.d);
           if (j0.yy !== 1405 || j0.mm !== mm) return false;
           const n = daysBetween(e.d, e.end);
-          for (let i=0;i<n;i++){
-            if (j0.dd + i === d) return true;
-          }
+          for (let i=0;i<n;i++){ if (j0.dd + i === d) return true; }
           return false;
         });
-        const names = holis.map(h=>h[2]).concat(dayEvs.map(e=>e.name)).slice(0,3);
-        html += `<div class="cal-cell ${isHol?'holiday':isOcc?'event':''} ${dayEvs.length?'has-ev':''} ${isSelDay?'sel':''} ${isToday?'today':''}" title="${esc(names.join(' • '))}">
+        const labels = dayEvs.map(e => `${e.icon} ${esc(e.name)}`);
+        html += `<div class="cal-cell ${dayEvs.length?'has-ev':''} ${isSelDay?'sel':''} ${isToday?'today':''}" title="${esc(labels.join(' • '))}">
           <div class="cal-num">${D.fa(d)}</div>
-          ${dayEvs.length ? `<div class="cal-ev-mini">${dayEvs.slice(0,2).map(e=>esc(e.name)).join('، ')}${dayEvs.length>2?' +'+(dayEvs.length-2):''}</div>` : ''}
+          ${dayEvs.length ? `<div class="cal-ev-mini">${dayEvs.slice(0,3).map(e=>`<span class="cal-mini-ev ${e.kind}">${e.icon} ${esc(e.name)}</span>`).join('')}${dayEvs.length>3?'<span class="cal-mini-more">+'+D.fa(dayEvs.length-3)+'</span>':''}</div>` : ''}
         </div>`;
       }
       html += '</div>';
       grid.innerHTML = html;
-      // شمارش تعطیلات ماه
-      const hc = D.IR_HOLIDAYS.filter(h => h[0]===mm && h[3]==='holiday').length;
-      $('#cal-month-hols').innerHTML = `★ تعطیلات رسمی این ماه: <b>${D.fa(hc)} روز</b>`;
     }
 
-    // ── پنل کناری تعطیلات ماه ──
-    function renderSide(){
+    // ── آمار ماه ──
+    function renderMonthStats(){
       const mm = viewMonth;
-      $('#cal-side-title').textContent = MONTHS[mm-1];
-      const side = $('#cal-side'); if (!side) return;
-      const list = D.IR_HOLIDAYS.filter(h => h[0] === mm);
-      const customs = (MGMT.customEvents()||[]).filter(e => {
-        const d = e.date || e.start || '';
-        return d && D.jalaliInfo(D.dateFrom(d)).mm === mm;
-      });
-      const parts = [
-        ...list.map(h => `<div class="h-item"><span class="h-day">${D.fa(h[1])}</span><span style="flex:1">${esc(h[2])}</span><span class="chip ${h[3]==='holiday'?'red':'blue'}">${h[3]==='holiday'?'تعطیل':'مناسبت'}</span></div>`),
-        ...customs.map(e => `<div class="h-item"><span class="h-day">${D.fa(D.jalaliInfo(D.dateFrom(e.date||e.start)).dd)}</span><span style="flex:1"><b>${esc(e.name)}</b></span><span class="chip purple">سفارشی</span></div>`),
-      ];
-      side.innerHTML = parts.length ? parts.join('') : '<div style="color:var(--muted);font-size:12px;padding:6px">تعطیلی یا مناسبت خاصی در این ماه نیست.</div>';
+      const cnt = events.filter(e => {
+        const j0 = D.jalaliInfo(e.d);
+        if (j0.yy !== 1405 || j0.mm !== mm) return false;
+        const n = daysBetween(e.d, e.end);
+        for (let i=0;i<n;i++){ if (j0.dd + i >= 1 && j0.dd + i <= DAYS_IN[mm-1]) return true; }
+        return false;
+      }).length;
+      const hc = $('#cal-month-hols');
+      if (hc) hc.innerHTML = `📅 رویدادهای این ماه: <b>${D.fa(cnt)}</b>`;
     }
 
-    renderList(); renderGrid(); renderSide();
+    renderList(); renderGrid(); renderMonthStats();
 
-    $('#cal-prev').addEventListener('click', () => { viewMonth = viewMonth===1 ? 12 : viewMonth-1; renderGrid(); renderSide(); });
-    $('#cal-next').addEventListener('click', () => { viewMonth = viewMonth===12 ? 1 : viewMonth+1; renderGrid(); renderSide(); });
-    $('#cal-today').addEventListener('click', () => { viewMonth = D.jalaliInfo(D.TODAY).mm; renderGrid(); renderSide(); });
-    $$('.cal-f').forEach(b => b.addEventListener('click', () => {
+    $('#cal-prev').addEventListener('click', () => {
+      viewMonth = viewMonth === 1 ? 12 : viewMonth - 1;
+      renderGrid(); renderMonthStats();
+    });
+    $('#cal-next').addEventListener('click', () => {
+      viewMonth = viewMonth === 12 ? 1 : viewMonth + 1;
+      renderGrid(); renderMonthStats();
+    });
+    $('#cal-today').addEventListener('click', () => {
+      viewMonth = D.jalaliInfo(D.TODAY).mm;
+      selIdx = nextIdx;
+      renderList(); renderGrid(); renderMonthStats();
+    });
+    $$('#cal-events-list').forEach(()=>{});
+    v.querySelectorAll('.cal-f').forEach(b => b.addEventListener('click', () => {
       filter = b.dataset.f;
-      $$('.cal-f').forEach(x => x.classList.toggle('on', x === b));
+      v.querySelectorAll('.cal-f').forEach(x => x.classList.toggle('on', x === b));
       renderList();
     }));
   }
 
-  /* ═══════════ صفحه: نمایش تلویزیونی ═══════════ */
   function pageTv(){
 
   if (!MGMT.getSettings().chTv){
