@@ -17,6 +17,11 @@ SIZES = {
     'flag_3d.png':     (420, 82),
     'avatar_m.png':    (280, 84),
     'avatar_f.png':    (280, 84),
+    'lobby_bg_v3.png': (1536, 92),
+    'open_tee.png':    (1100, 84),
+    'open_swing.png':  (1100, 84),
+    'open_sky.png':    (1100, 84),
+    'open_hole.png':   (1100, 84),
 }
 
 def img_uri(name):
@@ -49,10 +54,10 @@ def main():
                       '<style>' + mcss + '</style>', html)
 
     # 3) inline JS in load order
-    for jsname in ['holidays', 'data', 'charts', 'world3d', 'mgmt', 'app']:
+    for jsname in ['holidays', 'data', 'charts', 'qrcode.min', 'landing', 'jdate', 'avatar', 'mgmt', 'app']:
         js = open(os.path.join(ROOT, 'js', jsname + '.js'), encoding='utf-8').read()
         html = re.sub(rf'<script src="js/{jsname}\.js"></script>',
-                      '<script>' + js + '</script>', html)
+                      lambda m: '<script>' + js + '</script>', html)
 
     # 4) assets -> base64 JPEG, replacing every literal reference (html + js)
     for name in SIZES:

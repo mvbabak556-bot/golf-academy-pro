@@ -36,9 +36,10 @@ body{
 
 /* ═══════════ ورود (Login) ═══════════ */
 #login{
-  position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;
+  position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;
   overflow:hidden;
 }
+#login.on{display:flex}
 #login .bg-img{
   position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
   animation:kb 22s ease-in-out infinite alternate; opacity:.55;
@@ -342,26 +343,69 @@ canvas.glow-canvas{filter:drop-shadow(0 0 6px rgba(212,175,55,.25))}
 .modal .glass{width:min(680px,94vw);max-height:86vh;overflow-y:auto}
 .modal h3{font-size:17px;margin-bottom:16px}
 
-/* ── فوتر موبایل ── */
-.mob-nav{display:none}
+/* ── فوتر موبایل (حذف شد — به‌جای آن منوی کشویی) ── */
 @media (max-width:1080px){
   .grid.cols-4,.grid.cols-5{grid-template-columns:repeat(2,1fr)}
   .grid.cols-3{grid-template-columns:repeat(2,1fr)}
 }
+/* ═══════════ موبایل مود: منوی کشویی + چیدمان گوشی ═══════════ */
+.menu-btn{
+  display:none;width:42px;height:42px;border-radius:12px;border:1px solid var(--line-soft);
+  background:var(--panel);color:var(--gold-l);font-size:20px;cursor:pointer;flex:0 0 auto;
+}
+#nav-overlay{position:fixed;inset:0;z-index:94;background:rgba(4,8,14,.66);backdrop-filter:blur(3px);display:none}
 @media (max-width:760px){
-  .sidebar{display:none}
-  .main{margin-right:0;padding:16px 14px 96px}
-  .grid.cols-2,.grid.cols-3,.grid.cols-4,.grid.cols-5{grid-template-columns:1fr}
-  .mob-nav{
-    display:flex;position:fixed;bottom:0;right:0;left:0;z-index:60;
-    background:rgba(13,19,28,.96);backdrop-filter:blur(16px);border-top:1px solid var(--line-soft);
-    overflow-x:auto;scrollbar-width:none;
+  .menu-btn{display:inline-flex;align-items:center;justify-content:center}
+  .sidebar{
+    display:flex;right:-280px;width:278px;z-index:95;
+    box-shadow:0 0 60px rgba(0,0,0,.7);transition:right .32s cubic-bezier(.2,.9,.3,1);
   }
-  .mob-nav a{flex:1 0 70px;text-align:center;padding:10px 6px;font-size:9.5px;color:var(--muted);text-decoration:none;font-weight:700}
-  .mob-nav a .ico{display:block;font-size:18px;margin-bottom:3px}
-  .mob-nav a.on{color:var(--gold-l)}
-  .hero-pano{height:170px}
+  body.nav-open .sidebar{right:0}
+  body.nav-open #nav-overlay{display:block}
+  .main{margin-right:0;padding:14px 12px 26px}
+  .topbar{margin-bottom:14px;gap:10px}
+  .topbar h1{font-size:18px}
+  .topbar .crumb{font-size:10.5px}
+  .topbar .hud{width:100%;gap:6px}
+  .hud-chip{padding:6px 10px;font-size:11px;border-radius:10px}
+  .hud-chip .dot{width:6px;height:6px}
+  .grid{gap:12px}
+  .grid.cols-2,.grid.cols-3,.grid.cols-4,.grid.cols-5{grid-template-columns:1fr}
+  .glass{border-radius:16px}
+  .glass.pad{padding:14px}
+  .hero-pano{height:140px}
   .big-num{font-size:34px}
+  .card-head h3{font-size:14.5px}
+  .card-head .tag{font-size:9.5px;padding:3px 8px}
+  .table-wrap{overflow-x:auto}
+  .tbl th,.tbl td{padding:7px 8px;font-size:11px;white-space:nowrap}
+  .podium{transform:scale(.82);transform-origin:top center}
+  .toolbar{flex-wrap:wrap;gap:8px}
+  .toolbar .input,.toolbar .sel{min-width:0!important;width:100%!important}
+  .field-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .field-grid .span2{grid-column:span 2}
+  .jdate-selects{grid-template-columns:repeat(3,1fr);gap:5px}
+  .cal-main{grid-template-columns:1fr;gap:12px}
+  .cal-grid-big-row{gap:2px}
+  .cal-cell{padding:3px 1px}
+  .cal-num{font-size:11px}
+  .cal-mini-ev{font-size:8px}
+  .cal-wd{font-size:9px;padding:4px 0}
+  .qrwrap{flex-direction:column;text-align:center}
+  .stat .val{font-size:20px!important}
+  .h-item{flex-wrap:wrap;gap:8px}
+  .h-item .h-day{min-width:auto!important}
+  .mgmt-tabs{overflow-x:auto;white-space:nowrap;padding-bottom:6px}
+  .mgmt-tab{flex:0 0 auto;padding:8px 12px;font-size:11.5px}
+  .rules-box{overflow-x:auto}
+  .chart-box{min-height:150px!important}
+}
+@media (max-width:480px){
+  .field-grid{grid-template-columns:1fr}
+  .field-grid .span2{grid-column:span 1}
+  .topbar .hud .hud-chip:first-child{display:none}
+  .hud-chip{font-size:10px;padding:5px 8px}
+  .menu-btn{width:38px;height:38px;font-size:18px}
 }
 /* اسکرول‌بار ظریف */
 ::-webkit-scrollbar{width:9px;height:9px}
@@ -369,70 +413,83 @@ canvas.glow-canvas{filter:drop-shadow(0 0 6px rgba(212,175,55,.25))}
 ::-webkit-scrollbar-thumb{background:#243144;border-radius:20px}
 ::-webkit-scrollbar-thumb:hover{background:#2f4258}
 
-/* ═══════════ دنیای سه‌بعدی ═══════════ */
-#world{
-  position:fixed; inset:0; z-index:90; display:none; background:#070c13;
-}
-#world.on{display:block}
-#world-canvas{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none}
-#world-canvas.dragging{cursor:grabbing}
-#world-hud{
-  position:absolute;top:20px;right:24px;left:24px;display:flex;justify-content:space-between;
-  align-items:flex-start;pointer-events:none;z-index:5;gap:12px;flex-wrap:wrap;
-}
-#world-hud-title{
-  font-size:15px;font-weight:800;color:var(--gold-l);
-  background:rgba(11,15,20,.66);border:1px solid var(--line);border-radius:14px;
-  padding:10px 18px;backdrop-filter:blur(10px);
-}
-#world-hud-hint{
-  font-size:11.5px;color:var(--muted);
-  background:rgba(11,15,20,.55);border:1px solid var(--line-soft);border-radius:12px;
-  padding:8px 14px;backdrop-filter:blur(8px);
-}
-#world-caption{
-  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;pointer-events:none;z-index:6;opacity:0;transition:opacity .3s;
-}
-#world-caption.show{opacity:1}
-#world-caption .c-icon{font-size:64px;animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 26px rgba(212,175,55,.8))}
-#world-caption .c-name{
-  margin-top:14px;font-size:34px;font-weight:900;
-  background:linear-gradient(100deg,#a8841f,var(--gold-l) 35%,#fff3c4 50%,var(--gold-l) 65%,#a8841f);
-  background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;
-  animation:shine 4s linear infinite;
-}
-#world-caption .c-sub{margin-top:8px;font-size:13px;color:var(--muted)}
-#world-exit{
-  position:absolute;bottom:22px;left:22px;z-index:7;opacity:.85;
-}
-#back-world{
-  position:fixed;bottom:20px;left:20px;z-index:70;
-  background:rgba(13,19,28,.92);border:1px solid var(--line);backdrop-filter:blur(10px);
-  box-shadow:0 10px 30px rgba(0,0,0,.5);
-}
-@media (max-width:760px){
-  #back-world{bottom:86px}
-  #world-hud-hint{display:none}
-}
-#world-overlay{
-  position:fixed;inset:0;z-index:120;background:#05080c;opacity:0;
-  pointer-events:none;transition:opacity .42s ease;
-}
-#world-overlay.show{opacity:1;pointer-events:all}
 
-/* ── دنیای سه‌بعدی — اکشن‌ها، اسکن‌لاین، تلهمتری ── */
-#world-actions{
-  position:absolute;bottom:22px;right:22px;z-index:8;display:none;gap:10px;align-items:center;
-}
-#world-actions.show{display:flex;animation:toastIn .35s cubic-bezier(.2,.9,.3,1.2)}
-@media (max-width:760px){ #world-actions{bottom:92px} }
-#world-scanlines{
-  position:absolute;inset:0;pointer-events:none;z-index:4;opacity:.14;mix-blend-mode:overlay;
-  background:repeating-linear-gradient(0deg, transparent 0 2px, rgba(120,255,190,.18) 2px 3px);
-}
-#world-tele{
-  position:absolute;top:20px;left:24px;z-index:5;font-size:10.5px;letter-spacing:2px;color:rgba(120,255,190,.75);
-  direction:ltr;background:rgba(8,14,22,.5);border:1px solid rgba(30,187,138,.25);border-radius:10px;padding:6px 12px;
-  font-family:Consolas,monospace;
+
+/* ═══════════════ v6 — کارت آواتار Honor Rank + فروشگاه برند ═══════════════ */
+.av-card{position:relative;border-radius:26px;padding:16px 14px 14px;overflow:hidden;text-align:center;
+  background:radial-gradient(95% 55% at 50% -8%, var(--bg3) 0%, var(--bg2) 34%, var(--bg1) 76%), linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.35));
+  border:2px solid var(--brd);box-shadow:0 18px 46px rgba(0,0,0,.55), 0 0 34px -6px var(--glow), inset 0 1px 0 rgba(255,255,255,.25);
+  transform-style:preserve-3d;transition:transform .35s ease, box-shadow .35s ease}
+.av-card:hover{transform:translateY(-4px) rotateX(3deg);box-shadow:0 26px 60px rgba(0,0,0,.6), 0 0 56px -4px var(--glow)}
+.av-card .av-halo{position:absolute;inset:-30% -10% auto -10%;height:70%;pointer-events:none;
+  background:radial-gradient(60% 60% at 50% 40%, var(--glow) 0%, transparent 70%);opacity:.4;filter:blur(6px)}
+.av-card .av-title-row{position:relative;z-index:3;display:flex;align-items:center;justify-content:center;gap:7px}
+.av-card .av-title-en{font-family:inherit;font-size:14px;font-weight:900;letter-spacing:.6px;color:var(--ttl);text-shadow:0 2px 10px rgba(0,0,0,.6)}
+.av-card .av-badge-mini{display:inline-flex;line-height:0}
+.av-card .av-name{position:relative;z-index:3;margin-top:3px;font-size:18px;font-weight:900;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.65)}
+.av-card .av-title-fa{position:relative;z-index:3;font-size:11.5px;color:var(--ttl);opacity:.92;margin-top:1px}
+.av-card .av-fig{position:relative;z-index:2;margin:6px auto 2px;display:flex;align-items:flex-end;justify-content:center}
+.av-card .av-fig .av-svg{filter:drop-shadow(0 12px 26px rgba(0,0,0,.55))}
+.av-card .av-chest{position:absolute;z-index:4;transform:translate(-50%,-50%);line-height:0;animation:avbadge 3.4s ease-in-out infinite}
+@keyframes avbadge{0%,100%{filter:drop-shadow(0 0 3px rgba(255,255,255,.35))}50%{filter:drop-shadow(0 0 12px rgba(255,255,255,.85))}}
+.av-card .av-foot{position:relative;z-index:3;display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:8px;
+  padding:6px 10px;border-radius:14px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.14)}
+.av-card .av-lv{font-size:11.5px;font-weight:900;color:var(--lightc)}
+.av-card .av-div{font-size:10.5px;color:var(--ttl);opacity:.9}
+/* ذرات */
+.av-parts{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.av-parts i{position:absolute;bottom:-12px;border-radius:50%;opacity:.75;animation:avfloat linear infinite}
+.av-p-emerald i{border-radius:2px}
+.av-parts .av-crown{position:absolute;top:6px;left:50%;transform:translateX(-50%);font-size:16px;opacity:.9;animation:avpulse 2.6s ease-in-out infinite}
+@keyframes avfloat{0%{transform:translateY(0) scale(.7);opacity:0}12%{opacity:.85}100%{transform:translateY(-330px) scale(1.15);opacity:0}}
+@keyframes avpulse{0%,100%{transform:translateX(-50%) scale(1);filter:drop-shadow(0 0 4px currentColor)}50%{transform:translateX(-50%) scale(1.18);filter:drop-shadow(0 0 16px currentColor)}}
+/* افکت ارتقاء رنک */
+.av-upfx{position:absolute;inset:0;z-index:9;pointer-events:none;display:none}
+.av-card.av-upping .av-upfx{display:block}
+.av-card.av-upping{animation:avcardup 4.2s ease}
+@keyframes avcardup{0%{filter:brightness(1)}18%{filter:brightness(2.1) saturate(1.4)}45%{filter:brightness(1.25)}100%{filter:brightness(1)}}
+.av-up-old{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);animation:avoldout 1.4s ease forwards}
+@keyframes avoldout{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%) scale(.4)}}
+.av-up-new{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) scale(0);opacity:0;animation:avnewin 1.6s cubic-bezier(.2,1.4,.4,1) 1.2s forwards}
+@keyframes avnewin{0%{opacity:0;transform:translate(-50%,-50%) scale(0) rotate(-40deg)}60%{opacity:1;transform:translate(-50%,-50%) scale(1.25) rotate(6deg)}100%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}}
+.av-up-ring{position:absolute;left:50%;top:44%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;border:2px solid #fff;opacity:0;animation:avring 1.8s ease 1.2s forwards}
+.av-up-ring.r2{animation-delay:1.6s}
+@keyframes avring{0%{opacity:.9;transform:scale(.3)}100%{opacity:0;transform:scale(4.2)}}
+.av-up-title{position:absolute;left:0;right:0;bottom:18%;font-size:15px;font-weight:900;opacity:0;text-shadow:0 3px 14px rgba(0,0,0,.8);animation:avtitle 2s ease 2.1s forwards}
+.av-up-title small{display:block;font-size:11px;opacity:.9;margin-top:2px}
+@keyframes avtitle{0%{opacity:0;transform:translateY(16px) scale(.9)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.av-up-crown{position:absolute;left:50%;top:8%;transform:translateX(-50%);font-size:34px;opacity:0;animation:avcrown 2.4s ease 1.5s forwards}
+@keyframes avcrown{0%{opacity:0;transform:translateX(-50%) translateY(-30px) scale(.4)}55%{opacity:1;transform:translateX(-50%) translateY(0) scale(1.2)}100%{opacity:.95;transform:translateX(-50%) translateY(0) scale(1)}}
+.av-up-burst{position:absolute;left:50%;top:44%}
+.av-up-burst i{position:absolute;width:5px;height:5px;border-radius:50%;transform:rotate(var(--a)) translateY(0);opacity:0;animation:avburst 1.5s ease 1.25s forwards}
+@keyframes avburst{0%{opacity:1;transform:rotate(var(--a)) translateY(0) scale(1)}100%{opacity:0;transform:rotate(var(--a)) translateY(-120px) scale(.3)}}
+/* فروشگاه */
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px;margin-top:10px}
+.shop-it{position:relative;border-radius:16px;padding:11px 9px 10px;text-align:center;background:rgba(255,255,255,.035);
+  border:1.6px solid rgba(255,255,255,.09);transition:transform .2s,border-color .2s,box-shadow .2s}
+.shop-it:hover{transform:translateY(-3px);border-color:rgba(212,175,55,.5);box-shadow:0 10px 26px rgba(0,0,0,.4)}
+.shop-it.on{border-color:rgba(212,175,55,.85);background:linear-gradient(135deg,rgba(212,175,55,.24),rgba(212,175,55,.07))}
+.shop-it.owned{border-color:rgba(30,187,138,.55)}
+.shop-it .sw{height:46px;border-radius:12px;margin-bottom:7px;border:1px solid rgba(255,255,255,.14);position:relative;overflow:hidden}
+.shop-it .sw b{position:absolute;inset:auto 0 0 0;height:36%;display:block}
+.shop-it .bnd{font-size:9.5px;font-weight:900;letter-spacing:.3px;padding:2px 7px;border-radius:20px;display:inline-block}
+.shop-it .nm{font-size:11.5px;font-weight:800;margin:5px 0 3px;min-height:30px;line-height:1.5}
+.shop-it .pr{font-size:11.5px;font-weight:900;color:#f6e27a}
+.shop-it .btn{margin-top:6px;padding:5px 12px;font-size:11px}
+.shop-cats{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:6px}
+.shop-cats .sc{padding:7px 12px;border-radius:30px;font-size:11.5px;font-weight:800;cursor:pointer;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--muted)}
+.shop-cats .sc.on{background:linear-gradient(135deg,#f6e27a,#d4af37);color:#0B0F14;border-color:transparent}
+/* ردیف درخواست سکه */
+.req-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 13px;border-radius:14px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);margin-bottom:8px}
+.req-row .st-p{color:#ffcf6b}.req-row .st-ok{color:#3BE3A2}.req-row .st-no{color:#ff8f82}
+/* گرید رنک‌ها در پنل مدیریت */
+.rank-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:9px}
+.rank-chip{cursor:pointer;border-radius:14px;padding:9px 6px;text-align:center;font-size:11px;font-weight:800;
+  border:1.6px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03)}
+.rank-chip.on{border-color:#d4af37;background:linear-gradient(135deg,rgba(212,175,55,.25),rgba(212,175,55,.06))}
+@media (max-width:760px){
+  .shop-grid{grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:9px}
+  .av-card .av-name{font-size:16px}
 }

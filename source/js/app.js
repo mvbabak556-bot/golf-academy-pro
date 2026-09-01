@@ -16,7 +16,7 @@
     }
   })();
 
-  /* ── احراز هویت (hash محلی) ── */
+  /* ── احراز هویت: یوزرهای سیستم (دو سطح: مدیر / عضو) ── */
   function cyrb53(str, seed=0){
     let h1 = 0xdeadbeef^seed, h2 = 0x41c6ce57^seed;
     for (let i=0, ch; i<str.length; i++){
@@ -28,24 +28,55 @@
     h2 = Math.imul(h2^(h2>>>16), 2246822507) ^ Math.imul(h1^(h1>>>13), 3266489909);
     return (4294967296*(2097151&h2)+(h1>>>0)).toString(36);
   }
-  const USERS = { admin: cyrb53('golf1405'), coach: cyrb53('golf1405'), manager: cyrb53('golf1405') };
-  const USER_LABEL = { admin: 'مدیر آکادمی', coach: 'مربی ارشد', manager: 'مدیریت' };
-  /* یوزر/پسورد بازیکنان (ساختهشده در پلن مدیریت) — فقط بازیکن فعال اجازهٔ ورود دارد */
+  const USERS_KEY = 'ga_users';
+  function loadUsers(){
+    try { const a = JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); if (Array.isArray(a)) return a; } catch(e){}
+    return [];
+  }
+  function saveUsers(a){ try { localStorage.setItem(USERS_KEY, JSON.stringify(a)); } catch(e){} }
+  /* ساخت اولیه: مدیر اصلی + مربی/مدیریت (مدیر) + یک یوزر عضو برای هر بازیکن */
+  function seedUsers(){
+    const cur = loadUsers();
+    if (cur.length) return cur;
+    const arr = [
+      { id: 1, user: 'admin',  pass: 'golf1405', name: 'مدیر آکادمی', role: 'admin',  active: true, main: true },
+      { id: 2, user: 'coach',  pass: 'golf1405', name: 'مربی ارشد',   role: 'admin',  active: true },
+      { id: 3, user: 'manager',pass: 'golf1405', name: 'مدیریت',      role: 'admin',  active: true },
+    ];
+    try {
+      D.loadState().players.forEach(p => {
+        arr.push({ id: 100 + p[0], user: 'p' + p[0], pass: 'golf1405', name: p[1], role: 'member', active: true, pid: p[0] });
+      });
+    } catch(e){}
+    saveUsers(arr);
+    return arr;
+  }
+  function userRec(u){
+    return loadUsers().find(x => String(x.user).toLowerCase() === String(u).toLowerCase()) || null;
+  }
+  function isMain(u){ const r = userRec(u); return !!(r && r.main && r.active); }
+  function isAdmin(u){ const r = userRec(u); return !!(r && r.role === 'admin' && r.active); }
+  /* یوزر/پسورد بازیکنان (ساخته‌شده در پلن مدیریت — سازگاری قدیمی) */
   function playerUsers(){
     try { return JSON.parse(localStorage.getItem('ga_player_users') || '{}'); } catch(e){ return {}; }
   }
   function buildUsers(){
-    const u = Object.assign({}, USERS);
+    const m = {};
+    seedUsers().forEach(u => { if (u.active) m[String(u.user).toLowerCase()] = cyrb53(u.pass); });
     try {
       const pusers = playerUsers();
       Object.values(pusers).forEach(p => {
-        if (p && p.user && p.pass && p.active !== false) u[String(p.user).toLowerCase()] = cyrb53(p.pass);
+        if (p && p.user && p.pass && p.active !== false) m[String(p.user).toLowerCase()] = cyrb53(p.pass);
       });
     } catch(e){}
-    return u;
+    return m;
   }
   function userLabelFor(u){
-    if (USER_LABEL[u]) return USER_LABEL[u];
+    const r = userRec(u);
+    if (r){
+      if (r.role === 'admin') return (r.main ? 'مدیر اصلی آکادمی' : (r.name || 'مدیر'));
+      return 'عضو آکادمی — ' + (r.name || u);
+    }
     try {
       const pusers = playerUsers();
       const hit = Object.values(pusers).find(p => p && p.user === u);
@@ -65,9 +96,21 @@
   }
 
   /* ── ابزارهای کمکی UI ── */
-  const avatar = pid => pid % 2 ? 'assets/avatar_m.png' : 'assets/avatar_f.png';
+  const avatar = pid => (window.Data && Data.photoOf) ? Data.photoOf(pid) : (pid % 2 ? 'assets/avatar_m.png' : 'assets/avatar_f.png');
   const ringColor = rk => rk === 'Gold Elite' ? 'gold' : rk === 'Red' ? 'red' : rk === 'Blue' ? 'blue' : rk === 'Green' ? 'green' : 'dim';
   function rankPill(rk){ return `<span class="rank-pill" style="background:${D.RANK_DEF.find(r=>r[0]===rk)[3]}22;color:${D.RANK_DEF.find(r=>r[0]===rk)[3]};border:1px solid ${D.RANK_DEF.find(r=>r[0]===rk)[3]}55">${D.RANK_TEXT[rk]}</span>`; }
+  /* Honor Rank — چیپ رنک برای کل سایت */
+  function honorOfPid(pid){
+    let u = null;
+    try { u = loadUsers().find(x => x.pid === pid); } catch(e){}
+    const pts = (A && A.LB) ? ((A.LB.find(r => r.pid === pid) || {}).pts || 0) : 0;
+    return AV.honorOf(u ? u.user : ('pid' + pid), pts);
+  }
+  function honorChip(pid, mini){
+    const hn = honorOfPid(pid); const r = hn.rank;
+    return `<span class="rank-pill" style="display:inline-flex;align-items:center;gap:5px;background:${r.bg2}33;color:${r.title};border:1px solid ${r.border}66" title="${esc(r.fa)} — Level ${r.lv}">
+      ${AV.badgeSVG(r, mini ? 15 : 18)}<span style="direction:ltr;font-size:${mini ? 10 : 11}px;font-weight:800">${esc(r.en)}</span></span>`;
+  }
   function formChips(form){
     return `<div class="form-chips">${(form||[]).map(f => {
       const m = D.FORM_META[f];
@@ -143,7 +186,7 @@
 
   /* ═══════════ روتر ═══════════ */
   const PAGES = {
-    world: { t:'دنیای سه‌بعدی', i:'🌍' },
+    memberzone: { t:'بخش اعضا', i:'👤' },
     cmd: { t:'فرماندهی', i:'🎯' }, race: { t:'رقابت فصل', i:'🏁' },
     player: { t:'مرکز بازیکن', i:'🏌️' }, match: { t:'فرماندهی مسابقه', i:'🥇' },
     course: { t:'هوش زمین', i:'🗺️' }, records: { t:'رکوردها', i:'🎖️' },
@@ -151,29 +194,44 @@
     battle: { t:'میدان نبرد', i:'⚔️' }, academy: { t:'پنل آکادمی', i:'🏫' },
     acourses: { t:'طراح زمین', i:'🛠️' }, atournaments: { t:'طراح مسابقه', i:'🛠️' },
     ascorecards: { t:'ثبت نتایج', i:'🛠️' },
-    mgmt: { t:'پلن مدیریت', i:'⚙️' }, settings: { t:'تنظیمات نمایش', i:'🛠️' },
+    mgmt: { t:'پلن مدیریت', i:'⚙️' }, users: { t:'یوزها', i:'🔐' }, settings: { t:'تنظیمات نمایش', i:'🛠️' },
   };
   let currentPage = 'cmd';
-  let playerSel = 8, matchSel = 11, courseSel = 1, coursePlayerSel = 8;
+  let playerSel = 8, matchSel = 1, courseSel = 1, coursePlayerSel = 8;
+
+  const MEM_PAGE_KEY = { cmd:'memCmd', race:'memRace', player:'memPlayer', match:'memMatch',
+    course:'memCourse', records:'memRecords', cal:'memCal', tv:'memTv' };
 
   function go(page){
     if (!PAGES[page]) page = 'cmd';
+    const rec = userRec(currentUser);
+    // اعضا: فقط بخش اعضا + آیتم‌هایی که مدیر در تنظیمات نمایش برایشان فعال کرده
+    if (rec && rec.role === 'member'){
+      const settings = MGMT.getSettings();
+      if (page !== 'memberzone'){
+        const key = MEM_PAGE_KEY[page];
+        if (!key || !settings[key]) page = 'memberzone';
+      }
+      if (page === 'users' || page === 'mgmt' || page === 'settings') page = 'memberzone';
+    }
+    if (page === 'users' && !isMain(currentUser)) page = 'cmd';
+    if (page === 'memberzone' && rec && rec.role !== 'member') page = 'cmd';
     currentPage = page;
     $$('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
-    $$('.mob-nav a').forEach(n => n.classList.toggle('on', n.dataset.page === page));
-    if (page === 'world'){
-      $('#view').innerHTML = '';
-      $('#top-title').textContent = '🌍 دنیای سه‌بعدی';
-      $('#top-crumb').textContent = 'داشبورد / دنیای سه‌بعدی';
-      enterWorld();
-      return;
-    }
-    hideWorld();
     $('#view').innerHTML = '';
     const p = PAGES[page];
     $('#top-title').textContent = `${p.i} ${p.t}`;
     $('#top-crumb').textContent = page.startsWith('a') ? 'ابزار طراح / ' + p.t : 'داشبورد / ' + p.t;
     RENDERERS[page]();
+    // برای اعضا، دکمه‌های مدیریتی صفحات نمایشی مخفی می‌شوند
+    if (rec && rec.role === 'member' && page !== 'memberzone'){
+      setTimeout(() => {
+        $('#view').querySelectorAll('[onclick]').forEach(b => {
+          const o = b.getAttribute('onclick') || '';
+          if (o.indexOf('mgmt') > -1 || o.indexOf('settings') > -1) b.style.display = 'none';
+        });
+      }, 60);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setTimeout(() => { initTilt(); runCountups(); growBars(); }, 40);
   }
@@ -387,7 +445,7 @@
       const maxPts = A.LB[0].pts;
       return `<tr class="top${r.rank<=3?r.rank:0}" data-name="${esc(r.name)}">
         <td>${medal(r.rank)} ${D.fa(r.rank)}</td>
-        <td><b>${esc(r.name)}</b>${r.streak>=2?' 🔥':''}</td>
+        <td><b>${esc(r.name)}</b>${r.streak>=2?' 🔥':''}<div style="margin-top:3px">${honorChip(r.pid, true)}</div></td>
         <td>${rankPill(r.color)}</td>
         <td class="num" style="color:var(--gold-l);font-weight:800">${D.faNum(r.pts,0)}</td>
         <td style="min-width:120px">${pbar(r.pts/maxPts*100, 'gold')}</td>
@@ -429,6 +487,7 @@
       <span class="lbl">⛳ مسابقه:</span>
       <select class="sel" id="pl-tour">${S.tournaments.filter(t => D.dateFrom(t[5]) < D.TODAY).map(t => `<option value="${t[0]}" ${t[0]===matchSel?'selected':''}>${esc(t[1])}</option>`).join('')}</select>
       <div style="flex:1"></div>
+      ${honorChip(playerSel)}
       ${rankPill(p.color)}
     </div>
     <div class="grid cols-4" id="pl-stats" style="margin-bottom:18px"></div>
@@ -553,13 +612,16 @@
       <div style="flex:1"></div>
       <span class="chip ${D.dateFrom(t[5]) >= D.TODAY ? 'blue' : 'green'}">${D.dateFrom(t[5]) >= D.TODAY ? 'آینده' : 'برگزار شده'}</span>
     </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding:10px 14px;border-radius:12px;border:1px solid rgba(212,175,55,.4);background:linear-gradient(90deg,rgba(212,175,55,.1),rgba(30,187,138,.06));font-size:12.5px;color:var(--text,#dfe8f2)">
+      ⛳ <b style="color:#f0d989">قانون گلف:</b> برندهٔ مسابقه کسی است که ۱۸ حفره (مجموع پار ۷۲) را با <b style="color:#7ee8b8">کمترین ضربه</b> به پایان برساند — مثلاً ۶۵ ضربه نسبت به ۷۰ ضربه برنده است. پایین‌ترین مجموع = قهرمان.
+    </div>
     <div class="grid cols-4" id="mt-stats" style="margin-bottom:18px"></div>
     <div class="grid cols-3">
       <div class="glass tilt" style="grid-column:span 2">
         <div class="card-head"><span class="ic">📋</span><h3>نتایج بازیکنان</h3><span class="tag">${esc(t[1])}</span></div>
         <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>رتبه</th><th>بازیکن</th><th>ضربات</th><th>پار</th><th>در برابر پار</th><th>پرنده</th><th>نتیجه</th><th>امتیاز</th></tr></thead><tbody>
         ${cards.map((c, i) => {
-          const pl = A.LB.find(r => r.pid === c.pid) || { name: D.PLAYER_NAME[c.pid], color:'White' };
+          const pl = A.LB.find(r => r.pid === c.pid) || { name: D.nameOf(c.pid), color:'White' };
           const rank = i+1;
           const pts = D.PTS_RULE[t[2]][Math.min(rank,4)-1];
           return `<tr class="top${rank<=3?rank:0}">
@@ -588,7 +650,7 @@
       </div>
     </div>`;
     const st = [
-      ['👥','شرکتکنندگان', cards.length, 'var(--purple)'], ['👑','قهرمان', winner ? esc(A.LB.find(r=>r.pid===winner.pid)?.name || D.PLAYER_NAME[winner.pid]) : '—', 'var(--gold)'],
+      ['👥','شرکتکنندگان', cards.length, 'var(--purple)'], ['👑','قهرمان', winner ? esc(A.LB.find(r=>r.pid===winner.pid)?.name || D.nameOf(winner.pid)) : '—', 'var(--gold)'],
       ['🏆','اسکور قهرمان', winner ? D.fa(winner.total) + ' ضربه' : '—', 'var(--gold-l)'], ['⛳','پار', D.fa(cards[0] ? cards[0].par : ''), 'var(--teal)'],
       ['🐦','کل پرندهها', totalBird, 'var(--green-l)'], ['🌋','سختترین حفره', hardest ? 'ح' + D.fa(hardest.h) : '—', 'var(--red)'],
       ['📉','میانگین vs پار', (avgVspar>0?'+':'') + D.fa(avgVspar.toFixed(2)), 'var(--blue)'], ['🏌️','میدان', D.fa(t[4]) + ' حفره', 'var(--orange)'],
@@ -600,7 +662,7 @@
       </div>`).join('');
     setTimeout(() => {
       const top8 = cards.slice(0, 8);
-      Charts.barsH($('#mt-bird'), top8.map(c => D.PLAYER_NAME[c.pid].slice(0,12)), top8.map(c => c.bird), { color:'#1EBB8A', showVal:true });
+      Charts.barsH($('#mt-bird'), top8.map(c => D.nameOf(c.pid).slice(0,12)), top8.map(c => c.bird), { color:'#1EBB8A', showVal:true });
       const hs = Object.keys(diff).map(Number).sort((a,b)=>a-b);
       Charts.barsV($('#mt-hard'), hs.map(h=>'ح'+D.fa(h)), hs.map(h => diff[h]), {
         color:'#E74C3C', showVal:true, fmt:v=>(v>0?'+':'')+v.toFixed(1),
@@ -702,7 +764,7 @@
     const mostWin = A.LB.reduce((a,b) => b.win > a.win ? b : a);
     const champs = [
       ['👑','قهرمان فصل', A.LB[0].name, D.faNum(A.LB[0].pts,0) + ' امتیاز', 'var(--gold)'],
-      ['⭐','قهرمان ماه', A.champM ? (() => { const e = Object.entries(A.MONTH_PTS[A.champM]||{}).sort((a,b)=>b[1]-a[1])[0]; return e ? D.PLAYER_NAME[+e[0]] : '—'; })() : '—', A.champM ? A.champM : '—', 'var(--green-l)'],
+      ['⭐','قهرمان ماه', A.champM ? (() => { const e = Object.entries(A.MONTH_PTS[A.champM]||{}).sort((a,b)=>b[1]-a[1])[0]; return e ? D.nameOf(+e[0]) : '—'; })() : '—', A.champM ? A.champM : '—', 'var(--green-l)'],
       ['🌸','فاز بهار', A.PHASE_CHAMP['بهار'].name, D.faNum(A.PHASE_CHAMP['بهار'].pts,0) + ' امتیاز', 'var(--blue)'],
       ['☀️','فاز تابستان', A.PHASE_CHAMP['تابستان'].name, D.faNum(A.PHASE_CHAMP['تابستان'].pts,0) + ' امتیاز', 'var(--orange)'],
       ['🥇','بیشترین برد', mostWin.name, D.fa(mostWin.win) + ' عنوان', 'var(--purple)'],
@@ -717,6 +779,9 @@
         <h2 class="gold-text" style="font-size:24px;font-weight:900">تالار افتخارات ۱۴۰۵</h2>
         <div style="color:var(--muted);font-size:12.5px;margin-top:4px">رکوردها و قهرمانان فصل — Hall of Fame</div>
       </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding:10px 14px;border-radius:12px;border:1px solid rgba(212,175,55,.4);background:linear-gradient(90deg,rgba(212,175,55,.1),rgba(30,187,138,.06));font-size:12.5px;color:var(--text,#dfe8f2)">
+      🏆 <b style="color:#f0d989">رکورد امتیاز گلف:</b> هر مسابقه ۱۸ حفره و پار ۷۲ است؛ <b style="color:#7ee8b8">کمترین مجموع ضربات برنده است</b> — رکورد فصل متعلق به کمترین ضربه در یک دور کامل است.
     </div>
     <div class="grid cols-4" id="rec-champs" style="margin-bottom:18px"></div>
     <div class="grid cols-3">
@@ -761,176 +826,228 @@
   function pageCal(){
     const v = $('#view');
     const MONTHS = D.MONTHS_FA;
-    // ── جمع‌آوری رویدادها: مسابقات + کلاس‌ها + اردوها + سفارشی + تعطیلات ──
+    const DAYS_IN = [31,31,31,31,31,31,30,30,30,30,30,29];
+    const WD = ['ش','ی','د','س','چ','پ','ج'];
+    const TYPE_ICON = { 'مسابقه':'🏆', 'کلاس':'📚', 'تمرین':'🏌️', 'اردو':'🏕️' };
+    const TYPES = ['مسابقه','کلاس','تمرین','اردو'];
+
+    // ── ساخت رویدادها (فقط: مسابقه، کلاس، تمرین، اردو) ──
     const events = [];
+    let eid = 0;
+    const ev = o => events.push(Object.assign({ id: ++eid }, o));
+
     S.tournaments.forEach(t => {
-      events.push({ d: D.dateFrom(t[5]), name: t[1], type: `مسابقه سطح ${D.fa(t[2])}`, col: t[2]===1?'gold':t[2]===2?'green':'blue', kind:'مسابقه', extra: `${esc(D.COURSE_NAME[t[3]])} • ${D.fa(t[4])} حفره` });
+      const d = D.dateFrom(t[5]);
+      ev({ d, end: d, name: t[1], type: 'مسابقه', col: t[2]===1?'gold':t[2]===2?'green':'blue',
+           kind: 'مسابقه', icon: '🏆', extra: `${esc(D.COURSE_NAME[t[3]]||'—')} • ${D.fa(t[4])} حفره` });
     });
-    [['کلاس مقدماتی گلف'],['کلاس پوتینگ'],['کلاس شورت گیم'],['کارگاه ذهنی'],['کلاس چوب‌های بلند'],['کلاس قوانین و آداب']].forEach(([n],i) => {
-      events.push({ d: new Date(D.TODAY.getTime() + (7 + i*10)*86400000), name: n, type: 'کلاس آموزشی', col: 'purple', kind:'کلاس', extra: '' });
+    // تمرین هفتگی پنجشنبه: از ابتدای امسال تا پایان سال (همهٔ اعضا)
+    (window.Data.thursdaysSeason ? Data.thursdaysSeason() : []).forEach(iso => {
+      const d = D.dateFrom(iso);
+      ev({ d, end: d, name: 'تمرین هفتگی پنجشنبه', type: 'تمرین', col: 'green', kind: 'تمرین', icon: '🏌️', extra: 'تمرین هفتگی — همهٔ اعضای آکادمی' });
     });
-    [[10,16,'اردوی آماده‌سازی جام بزرگ'],[11,2,'اردوی فنی پایان فصل']].forEach(([m,d2,n]) => {
-      events.push({ d: new Date(Date.UTC(2026, m-1, d2)), name: n, type: 'اردو', col: 'orange', kind:'اردو', extra: '' });
+    // دوره‌های آموزشی / تمرین / اردو (از پنل مدیریت)
+    (window.Data.loadPrograms ? Data.loadPrograms() : []).forEach(p => {
+      const d = D.dateFrom(p.start || p.date || '');
+      if (!d || isNaN(d)) return;
+      const end = p.end ? D.dateFrom(p.end) : d;
+      const type = TYPES.includes(p.type) ? p.type : 'کلاس';
+      ev({ d, end, name: p.name || 'دوره', type, col: type==='تمرین'?'green':type==='اردو'?'orange':'purple', kind: type,
+           icon: TYPE_ICON[type] || '📌', extra: p.info ? esc(String(p.info)).slice(0,50) : 'دورهٔ فصل' });
     });
+    // رویدادهای سفارشی (فقط ۴ نوع مجاز — بقیه نمایش داده نمی‌شوند)
     (MGMT.customEvents()||[]).forEach(e => {
-      events.push({ d: D.dateFrom(e.date), name: e.name, type: e.type, col: 'blue', kind:'سفارشی', extra: 'رویداد سفارشی' });
-    });
-    // تعطیلات رسمی و مناسبت‌های ایران ۱۴۰۵ (time.ir)
-    D.IR_HOLIDAYS.forEach(h => {
-      const d = new Date(Date.UTC(2026, h[0]-1, h[1]));
-      events.push({ d, name: h[2], type: h[3]==='holiday' ? 'تعطیل رسمی' : 'مناسبت', col: h[3]==='holiday' ? 'red' : 'blue', kind: h[3]==='holiday' ? 'تعطیل' : 'مناسبت', extra: 'تقویم ایران ۱۴۰۵' });
+      const type = e.type || '';
+      if (!TYPES.includes(type)) return;
+      const d = D.dateFrom(e.date || e.start || '');
+      if (!d || isNaN(d)) return;
+      const end = e.end ? D.dateFrom(e.end) : d;
+      ev({ d, end, name: e.name, type, col: 'blue', kind: type, icon: TYPE_ICON[type] || '📌',
+           extra: 'رویداد سفارشی', schedule: e.schedule || null });
     });
     events.sort((a,b) => a.d - b.d);
 
-    const next = events.find(e => e.d >= D.TODAY);
-    const holidaysCount = D.IR_HOLIDAYS.filter(h=>h[3]==='holiday').length;
-    const todayJ = D.jalaliInfo(D.TODAY);
-    let viewMonth = todayJ.mm;   // ماه نمایش در تقویم بزرگ
-    let calFilter = 'all';       // فیلتر تایم‌لاین
+    const nextIdx = Math.max(0, events.findIndex(e => e.d >= D.TODAY));
+    let selIdx = nextIdx;
+    let viewMonth = D.jalaliInfo(events[selIdx].d).mm;
+    let filter = 'all';
 
-    // ── شروع ماه شمسی: ۱ فروردین ۱۴۰۵ = ۲۰۲۶-۰۳-۲۱ ──
     function jalMonthStart(mm){
       const base = new Date(Date.UTC(2026, 2, 21));
       const off = mm <= 6 ? (mm-1)*31 : 186 + (mm-7)*30;
       return new Date(base.getTime() + off*86400000);
     }
-    const DAYS_IN = [31,31,31,31,31,31,30,30,30,30,30,29];
+    function dstr(d){ return d.toISOString().slice(0,10); }
+    function daysBetween(a, b){
+      return Math.round((b - a) / 86400000) + 1;
+    }
 
     v.innerHTML = `
-    <div class="glass gold-border" style="margin-bottom:18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
-      <img src="assets/ball_3d.png" class="floaty fast glow-img green" style="width:74px;height:74px;border-radius:14px;object-fit:cover" alt="">
+    <div class="glass gold-border" style="margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <img src="assets/ball_3d.png" class="floaty fast glow-img green" style="width:64px;height:64px;border-radius:14px;object-fit:cover" alt="">
       <div>
         <div style="font-size:12px;color:var(--muted)">رویداد بعدی</div>
-        <div style="font-size:20px;font-weight:900" class="gold-text">${next ? esc(next.name) : '—'}</div>
+        <div style="font-size:19px;font-weight:900" class="gold-text">${TYPE_ICON[events[nextIdx].type]||'📌'} ${esc(events[nextIdx].name)}</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:3px">${events[nextIdx].type} • ${D.fa(D.jalaliInfo(events[nextIdx].d).dd)} ${MONTHS[D.jalaliInfo(events[nextIdx].d).mm-1]}</div>
       </div>
       <div style="margin-right:auto;text-align:center">
-        <div class="big-num gold-text">${next ? D.fa(Math.max(0, Math.ceil((next.d - D.TODAY)/86400000))) : '—'}</div>
+        <div class="big-num gold-text">${D.fa(Math.max(0, Math.ceil((events[nextIdx].d - D.TODAY)/86400000)))}</div>
         <div style="font-size:11px;color:var(--muted)">روز تا شروع</div>
       </div>
-      <div style="text-align:center;padding:0 18px">
-        <div style="font-size:11px;color:var(--muted)">تعطیلات رسمی ۱۴۰۵</div>
-        <div style="font-size:16px;font-weight:800" class="gold-text">${D.fa(holidaysCount)} تعطیل</div>
+      <div style="text-align:center;padding:0 16px">
+        <div style="font-size:11px;color:var(--muted)">رویدادهای فصل</div>
+        <div style="font-size:16px;font-weight:800" class="gold-text">${D.fa(events.length)} رویداد</div>
       </div>
-      <button class="btn sm ghost" onclick="APP.go('mgmt')" style="margin-right:auto">⚙️ مدیریت تقویم</button>
+      <button class="btn sm ghost" onclick="APP.go('mgmt')">⚙️ مدیریت تقویم</button>
     </div>
-    <div class="glass gold-border" style="margin-bottom:18px">
-      <div class="card-head">
-        <span class="ic">🇮🇷</span>
-        <h3>تقویم رسمی ایران ۱۴۰۵</h3>
-        <span class="tag">تعطیلات ★ — منبع time.ir</span>
-        <div style="margin-right:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <button class="btn sm ghost" id="cal-prev">▶</button>
-          <div style="text-align:center;min-width:132px">
-            <div id="cal-month-name" style="font-size:16px;font-weight:900" class="gold-text"></div>
-            <div style="font-size:10.5px;color:var(--muted)">تعطیلات این ماه: <span id="cal-month-hols"></span></div>
-          </div>
-          <button class="btn sm ghost" id="cal-next">◀</button>
-          <button class="btn sm" id="cal-today" style="padding:5px 12px;font-size:11.5px">امروز</button>
-        </div>
-      </div>
-      <div class="cal-legend">
-        <span><b class="hol-star">★</b> تعطیل رسمی</span>
-        <span><b class="hol-dot">●</b> مناسبت</span>
-        <span><b class="hol-ev">⛳</b> مسابقه / رویداد آکادمی</span>
-      </div>
-      <div id="cal-grid" style="margin-top:10px"></div>
-    </div>
-    <div class="grid cols-3" style="margin-bottom:18px">
-      <div class="glass">
-        <div class="card-head"><span class="ic">🗓️</span><h3 id="cal-side-title">تعطیلات و مناسبت‌های ماه</h3><span class="tag">time.ir</span></div>
-        <div id="cal-side" style="margin-top:10px"></div>
-      </div>
-      <div class="glass" style="grid-column:span 2">
-        <div class="card-head"><span class="ic">📅</span><h3>تقویم رویدادها</h3>
-          <span style="margin-right:auto;display:flex;gap:6px;flex-wrap:wrap">
-            ${['all','مسابقه','تعطیل','مناسبت','کلاس','اردو','سفارشی'].map(f => `<button class="btn sm ghost cal-f ${f==='all'?'on':''}" data-f="${f}" style="padding:4px 10px;font-size:11px">${f==='all'?'همه':f}</button>`).join('')}
+
+    <div class="cal-main">
+      <!-- لیست رویدادها -->
+      <div class="glass cal-list-pane">
+        <div class="card-head"><span class="ic">📋</span><h3>رویدادها</h3>
+          <span style="margin-right:auto;display:flex;gap:5px;flex-wrap:wrap">
+            ${['all', ...TYPES].map(f => `<button class="btn sm ghost cal-f ${f==='all'?'on':''}" data-f="${f}" style="padding:3px 8px;font-size:10.5px">${f==='all'?'همه':(TYPE_ICON[f]||'') + f}</button>`).join('')}
           </span>
         </div>
-        <div id="cal-timeline" class="timeline" style="margin-top:10px;max-height:540px;overflow:auto"></div>
+        <div id="cal-events-list" class="cal-events-list"></div>
+      </div>
+      <!-- تقویم ماه -->
+      <div class="glass cal-grid-pane">
+        <div class="card-head"><span class="ic">🇮🇷</span>
+          <h3>تقویم <span id="cal-month-name"></span></h3>
+          <span class="tag">فصل ۱۴۰۵</span>
+          <div style="margin-right:auto;display:flex;gap:6px;align-items:center">
+            <button class="btn sm ghost" id="cal-prev">▶</button>
+            <button class="btn sm" id="cal-today" style="padding:4px 10px;font-size:11px">امروز</button>
+            <button class="btn sm ghost" id="cal-next">◀</button>
+          </div>
+        </div>
+        <div class="cal-legend">
+          ${TYPES.map(t => `<span>${TYPE_ICON[t]} ${t}</span>`).join('')}
+          <span class="hol-sel" style="border:1.5px dashed #D4AF37;border-radius:6px;padding:0 6px">رویداد انتخابی</span>
+        </div>
+        <div id="cal-grid" class="cal-grid-big" style="margin-top:10px"></div>
+        <div id="cal-month-hols" class="cal-month-hols"></div>
       </div>
     </div>`;
 
-    // ── رندر تقویم بزرگ ──
+    // ── لیست رویدادها ──
+    function renderList(){
+      const wrap = $('#cal-events-list'); if (!wrap) return;
+      const list = events.filter(e => filter === 'all' || e.kind === filter);
+      const future = list.filter(e => e.end >= D.TODAY);
+      const past = list.filter(e => e.end < D.TODAY);
+      const rows = [];
+      const mk = (e, pastFlag) => {
+        const j = D.jalaliInfo(e.d);
+        const isSel = events[selIdx].id === e.id;
+        const days = daysBetween(e.d, e.end);
+        const range = days > 1 ? ` (${D.fa(days)} روز)` : '';
+        return `<div class="cal-ev-item ${isSel?'sel':''} ${pastFlag?'past':''}" data-id="${e.id}">
+          <div class="cal-ev-date">
+            <div class="cal-ev-d">${D.fa(j.dd)}</div>
+            <div class="cal-ev-m">${MONTHS[j.mm-1]}</div>
+          </div>
+          <div class="cal-ev-body">
+            <b>${e.icon} ${esc(e.name)}</b>
+            <div class="cal-ev-sub">${e.type}${range}${e.extra ? ' — ' + e.extra : ''}</div>
+            ${e.schedule ? `<div class="cal-ev-sch">${e.schedule.map(s => `<span>${esc(s.label)}</span>`).join('')}</div>` : ''}
+          </div>
+          <span class="chip ${e.col}">${e.icon} ${e.kind}</span>
+        </div>`;
+      };
+      future.slice(0, 60).forEach(e => rows.push(mk(e, false)));
+      if (past.length) rows.push('<div class="cal-ev-group">برگزار شده</div>');
+      past.slice(-30).forEach(e => rows.push(mk(e, true)));
+      wrap.innerHTML = rows.join('') || '<div style="color:var(--muted);font-size:12px;padding:10px">رویدادی نیست.</div>';
+      $$('#cal-events-list .cal-ev-item').forEach(it => it.addEventListener('click', () => {
+        selIdx = events.findIndex(e => e.id === +it.dataset.id);
+        if (selIdx < 0) selIdx = nextIdx;
+        const e = events[selIdx];
+        viewMonth = D.jalaliInfo(e.d).mm;
+        renderList(); renderGrid(); renderMonthStats();
+        const gp = document.querySelector('.cal-grid-pane');
+        if (gp && gp.scrollIntoView) gp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }));
+    }
+
+    // ── تقویم ماه ──
     function renderGrid(){
       const mm = viewMonth;
       $('#cal-month-name').textContent = MONTHS[mm-1] + ' ۱۴۰۵';
-      const holCount = D.IR_HOLIDAYS.filter(h => h[0]===mm && h[3]==='holiday').length;
-      $('#cal-month-hols').textContent = D.fa(holCount) + ' روز';
       const grid = $('#cal-grid'); if (!grid) return;
+      const sel = events[selIdx];
+      const selDays = new Set();
+      if (sel){
+        const j0 = D.jalaliInfo(sel.d), j1 = D.jalaliInfo(sel.end);
+        if (j0.mm === mm && j0.yy === 1405){
+          const n = daysBetween(sel.d, sel.end);
+          for (let i=0;i<n;i++) selDays.add(j0.dd + i);
+        }
+      }
       const first = jalMonthStart(mm);
-      const dow = first.getUTCDay();  // 0=یکشنبه ... 6=شنبه
+      const dow = first.getUTCDay();
       const daysInMonth = DAYS_IN[mm-1];
-      const wdNames = ['ش','ی','د','س','چ','پ','ج'];
-      let html = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;text-align:center;direction:rtl">
-        ${wdNames.map(w=>`<div class="cal-wd">${w}</div>`).join('')}`;
-      for (let i=0; i<dow; i++) html += '<div></div>';
+      let html = `<div class="cal-grid-big-row">${WD.map(w=>`<div class="cal-wd">${w}</div>`).join('')}</div>`;
+      html += '<div class="cal-grid-big-row">';
+      for (let i=0;i<dow;i++) html += '<div class="cal-cell empty"></div>';
       for (let d=1; d<=daysInMonth; d++){
-        const holis = D.holidaysOf(1405, mm, d);
-        const isHol = holis.some(h=>h[3]==='holiday');
-        const isOcc = holis.some(h=>h[3]==='event');
-        const isToday = (mm === todayJ.mm && d === todayJ.dd);
-        const evs = events.filter(e => {
-          const j = D.jalaliInfo(e.d);
-          return j.yy===1405 && j.mm===mm && j.dd===d;
+        const isToday = (mm === D.jalaliInfo(D.TODAY).mm && d === D.jalaliInfo(D.TODAY).dd);
+        const isSelDay = selDays.has(d);
+        const dayEvs = events.filter(e => {
+          const j0 = D.jalaliInfo(e.d);
+          if (j0.yy !== 1405 || j0.mm !== mm) return false;
+          const n = daysBetween(e.d, e.end);
+          for (let i=0;i<n;i++){ if (j0.dd + i === d) return true; }
+          return false;
         });
-        const names = holis.map(h=>h[2]).concat(evs.map(e=>e.name)).slice(0,3);
-        html += `<div class="cal-cell ${isHol?'holiday':isOcc?'event':''} ${evs.length?'has-ev':''} ${isToday?'today':''}" title="${esc(names.join(' • '))}">
-          <div class="cal-box">
-            <div class="cal-num">${D.fa(d)}</div>
-            ${evs.length ? `<div class="cal-ev">${esc(evs[0].name)}${evs.length>1?' +'+(evs.length-1):''}</div>`:''}
-          </div>
-          ${names.length ? `<div class="holi-tip">${esc(names.join(' • '))}</div>` : ''}
+        const labels = dayEvs.map(e => `${e.icon} ${esc(e.name)}`);
+        html += `<div class="cal-cell ${dayEvs.length?'has-ev':''} ${isSelDay?'sel':''} ${isToday?'today':''}" title="${esc(labels.join(' • '))}">
+          <div class="cal-num">${D.fa(d)}</div>
+          ${dayEvs.length ? `<div class="cal-ev-mini">${dayEvs.slice(0,3).map(e=>`<span class="cal-mini-ev ${e.kind}">${e.icon} ${esc(e.name)}</span>`).join('')}${dayEvs.length>3?'<span class="cal-mini-more">+'+D.fa(dayEvs.length-3)+'</span>':''}</div>` : ''}
         </div>`;
       }
       html += '</div>';
       grid.innerHTML = html;
     }
-    function renderSide(){
-      const mm = viewMonth;
-      $('#cal-side-title').textContent = 'تعطیلات و مناسبت‌های ' + MONTHS[mm-1];
-      const side = $('#cal-side'); if (!side) return;
-      const list = D.IR_HOLIDAYS.filter(h => h[0] === mm);
-      const customs = (MGMT.customEvents()||[]).filter(e => D.jalaliInfo(D.dateFrom(e.date)).mm === mm);
-      const parts = [
-        ...list.map(h => `<div class="h-item"><span class="h-day">${D.fa(h[1])}</span><span style="flex:1">${esc(h[2])}</span><span class="chip ${h[3]==='holiday'?'red':'blue'}">${h[3]==='holiday'?'تعطیل':'مناسبت'}</span></div>`),
-        ...customs.map(e => `<div class="h-item"><span class="h-day">${D.fa(D.jalaliInfo(D.dateFrom(e.date)).dd)}</span><span style="flex:1"><b>${esc(e.name)}</b></span><span class="chip purple">سفارشی</span></div>`),
-      ];
-      side.innerHTML = parts.length ? `<div class="holi-list">${parts.join('')}</div>` : '<div style="color:var(--muted);font-size:12px;padding:6px">تعطیلی یا مناسبت خاصی در این ماه نیست.</div>';
-    }
-    function renderTimeline(){
-      const tl = $('#cal-timeline'); if (!tl) return;
-      const list = events.filter(e => {
-        if (calFilter==='all') return true;
-        return e.kind === calFilter;
-      });
-      tl.innerHTML = list.map(e => {
-        const j = D.jalaliInfo(e.d);
-        const past = e.d < D.TODAY;
-        const cnt = e.d >= D.TODAY ? D.fa(Math.ceil((e.d-D.TODAY)/86400000)) + ' روز' : 'برگزار شد';
-        return `<div class="tl-item">
-          <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
-            <div class="d">${D.fa(j.dd)} ${j.monthFa} — ${j.wd}</div>
-            <b style="font-size:13.5px">${esc(e.name)}</b>
-            ${e.extra ? `<span style="color:var(--muted);font-size:11.5px">${e.extra}</span>` : ''}
-            <span class="chip ${e.col}">${e.type}</span>
-            <span class="chip ${past ? 'dim' : 'green'}" style="margin-right:auto">${cnt}</span>
-          </div>
-        </div>`;
-      }).join('') || '<div style="color:var(--muted);font-size:12.5px;padding:10px">رویدادی با این فیلتر نیست.</div>';
-    }
-    renderGrid(); renderSide(); renderTimeline();
 
-    $('#cal-prev').addEventListener('click', () => { viewMonth = viewMonth===1 ? 12 : viewMonth-1; renderGrid(); renderSide(); });
-    $('#cal-next').addEventListener('click', () => { viewMonth = viewMonth===12 ? 1 : viewMonth+1; renderGrid(); renderSide(); });
-    $('#cal-today').addEventListener('click', () => { viewMonth = todayJ.mm; renderGrid(); renderSide(); });
-    $$('.cal-f').forEach(b => b.addEventListener('click', () => {
-      calFilter = b.dataset.f;
-      $$('.cal-f').forEach(x => x.classList.toggle('on', x === b));
-      renderTimeline();
+    // ── آمار ماه ──
+    function renderMonthStats(){
+      const mm = viewMonth;
+      const cnt = events.filter(e => {
+        const j0 = D.jalaliInfo(e.d);
+        if (j0.yy !== 1405 || j0.mm !== mm) return false;
+        const n = daysBetween(e.d, e.end);
+        for (let i=0;i<n;i++){ if (j0.dd + i >= 1 && j0.dd + i <= DAYS_IN[mm-1]) return true; }
+        return false;
+      }).length;
+      const hc = $('#cal-month-hols');
+      if (hc) hc.innerHTML = `📅 رویدادهای این ماه: <b>${D.fa(cnt)}</b>`;
+    }
+
+    renderList(); renderGrid(); renderMonthStats();
+
+    $('#cal-prev').addEventListener('click', () => {
+      viewMonth = viewMonth === 1 ? 12 : viewMonth - 1;
+      renderGrid(); renderMonthStats();
+    });
+    $('#cal-next').addEventListener('click', () => {
+      viewMonth = viewMonth === 12 ? 1 : viewMonth + 1;
+      renderGrid(); renderMonthStats();
+    });
+    $('#cal-today').addEventListener('click', () => {
+      viewMonth = D.jalaliInfo(D.TODAY).mm;
+      selIdx = nextIdx;
+      renderList(); renderGrid(); renderMonthStats();
+    });
+    $$('#cal-events-list').forEach(()=>{});
+    v.querySelectorAll('.cal-f').forEach(b => b.addEventListener('click', () => {
+      filter = b.dataset.f;
+      v.querySelectorAll('.cal-f').forEach(x => x.classList.toggle('on', x === b));
+      renderList();
     }));
   }
 
-  /* ═══════════ صفحه: نمایش تلویزیونی ═══════════ */
   function pageTv(){
 
   if (!MGMT.getSettings().chTv){
@@ -999,7 +1116,7 @@
     ].map(([ic,n,ids,c]) => ({
       ic, n, c, ids,
       pts: ids.reduce((a,pid)=>a+(A.PTS[pid]||0),0),
-      members: ids.map(pid => A.LB.find(r=>r.pid===pid) || { name: D.PLAYER_NAME[pid], pts:0, color:'White' }),
+      members: ids.map(pid => A.LB.find(r=>r.pid===pid) || { name: D.nameOf(pid), pts:0, color:'White' }),
     }));
     teams.sort((a,b) => b.pts - a.pts);
     const maxT = Math.max(...teams.map(t=>t.pts), 1);
@@ -1109,6 +1226,370 @@
       </div>`).join('');
   }
 
+  /* ═══════════ سکه، درخواست‌ها و آواتار اعضا (v6) ═══════════ */
+  const coinData = () => AV.coinData();
+  const coinOf = u => AV.coinOf(u);
+  const addCoins = (u, a, s, n) => AV.addCoins(u, a, s, n);
+  const spentCoins = (u, a, s, n) => AV.spendCoins(u, a, s, n);
+
+  const COIN_RULES = [
+    { id:'story',    ic:'📱', title:'استوری اینستاگرام با تگ کردن پیج آکادمی', amount:10, desc:'استوری خود را با @golfacademy.sa تگ کنید و لینک/توضیح را در درخواست بنویسید', every:1 },
+    { id:'post1k',   ic:'🎬', title:'پست / ریلز اینستاگرام — ویدیو با ۱۰۰۰+ بازدید', amount:30, desc:'پست ویدیویی با تگ آکادمی (تک یا مشترک با پیج آکادمی)', every:1 },
+    { id:'post2k',   ic:'🎥', title:'پست / ریلز اینستاگرام — ویدیو با ۲۰۰۰+ بازدید', amount:50, desc:'ویدیو بالای ۲۰۰۰ بازدید با تگ آکادمی', every:1 },
+    { id:'refer',    ic:'🤝', title:'معرفی عضو جدید به آکادمی', amount:50, desc:'نام عضو معرفی‌شده را در توضیح درخواست بنویسید', every:0 },
+    { id:'practice', ic:'🏌️', title:'حضور در تمرین هفتگی پنجشنبه', amount:5, desc:'حضور کامل در جلسهٔ تمرین گروهی آکادمی', every:1 },
+    { id:'enter',    ic:'🏆', title:'شرکت در مسابقهٔ ماهانه', amount:5, desc:'شرکت در هر مسابقهٔ رسمی فصل', every:0 },
+  ];
+  const COIN_AUTO = [
+    { lvl:1, rank:1, amount:20, label:'قهرمان مسابقهٔ سطح ۱' },
+    { lvl:2, rank:1, amount:15, label:'قهرمان مسابقهٔ سطح ۲' },
+    { lvl:3, rank:1, amount:10, label:'قهرمان مسابقهٔ سطح ۳' },
+  ];
+  /* سکه‌های خودکار مسابقات — یک‌بار برای هر رتبه از هر مسابقه */
+  function autoAwardCoins(user){
+    let gained = 0;
+    try {
+      const results = D.loadResults ? D.loadResults() : {};
+      const c = coinOf(user);
+      const keys = new Set(c.log.map(l => l.source));
+      Object.keys(results).forEach(tid => {
+        const t = S.tournaments.find(x => x[0] === +tid);
+        if (!t) return;
+        const top = results[tid].top || {};
+        const pid = (userRec(user) || {}).pid;
+        if (!pid) return;
+        COIN_AUTO.forEach(rule => {
+          if (+t[2] !== rule.lvl) return;
+          if (+top[rule.rank] !== pid) return;
+          const key = 'auto:' + tid + ':' + rule.rank;
+          if (keys.has(key)) return;
+          addCoins(user, rule.amount, key, rule.label);
+          keys.add(key);
+          gained += rule.amount;
+        });
+      });
+    } catch(e){}
+    return gained;
+  }
+  /* وضعیت هر فعالیت برای کاربر: can | pending | done | done-today */
+  function ruleState(user, ruleId){
+    const rule = COIN_RULES.find(r => r.id === ruleId);
+    const today = new Date().toISOString().slice(0,10);
+    const rs = AV.reqsOf(user).filter(r => r.ruleId === ruleId);
+    const pend = rs.find(r => r.status === 'pending');
+    if (pend) return { s:'pending', req: pend };
+    const oks = rs.filter(r => r.status === 'ok');
+    if (rule && rule.every === 1){
+      if (oks.some(r => r.date === today)) return { s:'done-today' };
+    } else if (oks.length) return { s:'done' };
+    const rej = rs.find(r => r.status === 'no');
+    return { s:'can', rej: rej || null };
+  }
+  function canClaim(user, ruleId){ return ruleState(user, ruleId).s === 'can'; }
+  /* امتیاز فصل عضو (مبنای Honor Rank) */
+  function ptsOfUser(user){
+    const rec = userRec(user) || {};
+    if (!rec.pid || !A || !A.LB) return 0;
+    const row = A.LB.find(r => r.pid === rec.pid);
+    return row ? row.pts : 0;
+  }
+  function genderOfUser(user){
+    const rec = userRec(user) || {};
+    try {
+      const p = rec.pid ? S.players.find(x => x[0] === rec.pid) : null;
+      if (p && p[2] === 'زن') return 'f';
+    } catch(e){}
+    return 'm';
+  }
+  function honorOfUser(user){ return AV.honorOf(user, ptsOfUser(user)); }
+  function updateCoinBadge(){
+    const el = $('#mz-coin-n');
+    if (el) el.textContent = D.fa(coinOf(currentUser).total);
+  }
+
+  /* ═══════════ صفحه: بخش اعضا ═══════════ */
+  let memTab = 'home';
+  let shopCat = 'shirt';
+  function pageMemberZone(){
+    const v = $('#view');
+    const rec = userRec(currentUser) || {};
+    const name = rec.name || currentUser;
+    const pid = rec.pid;
+    const row = pid && A && A.LB ? A.LB.find(r => r.pid === pid) : null;
+    const coin = coinOf(currentUser);
+    const c = coin.total;
+    const hn = honorOfUser(currentUser);
+    const tabs = [
+      ['home','🏠','خانهٔ من'], ['earn','🪙','دریافت سکه'], ['guide','📜','راهنمای سکه'], ['avatar','🎨','ساخت اوتار'],
+    ];
+    v.innerHTML = `
+    <div class="glass gold-border" style="margin-bottom:16px;padding:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="width:74px;height:74px;border-radius:50%;overflow:hidden;border:3px solid ${hn.rank.border};box-shadow:0 0 26px -4px ${hn.rank.glow};display:flex;align-items:flex-end;justify-content:center;background:radial-gradient(120% 80% at 50% 0%, ${hn.rank.bg3}, ${hn.rank.bg1})">
+        ${AV.renderAvatarSVG(AV.avatarOf(currentUser, genderOfUser(currentUser)).sel, { gender: AV.avatarOf(currentUser).gender, w:66, h:110 })}
+      </div>
+      <div style="flex:1;min-width:180px">
+        <h2 class="gold-text" style="font-size:21px;font-weight:900">👤 بخش ویژهٔ اعضا</h2>
+        <div style="color:var(--muted);font-size:12.5px;margin-top:4px">خوش آمدید، <b style="color:var(--white)">${esc(name)}</b> — رنک شما:
+          <b style="color:${hn.rank.title}">${esc(hn.rank.en)}</b> <span style="opacity:.8">(${esc(hn.rank.fa)} • Level ${D.fa(hn.lv)})</span></div>
+      </div>
+      <div class="coin-chip" id="mz-coin" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:40px;background:linear-gradient(135deg,#f6e27a,#d4af37);color:#0B0F14;font-weight:900;font-size:16px;box-shadow:0 6px 20px rgba(212,175,55,.45)">
+        🪙 <span id="mz-coin-n">${D.fa(c)}</span>
+      </div>
+    </div>
+    <div class="mgmt-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      ${tabs.map(t => `<div class="mgmt-tab ${memTab===t[0]?'on':''}" data-mtab="${t[0]}">${t[1]} ${t[2]}</div>`).join('')}
+    </div>
+    <div id="mz-body"></div>`;
+    v.querySelectorAll('[data-mtab]').forEach(t => t.addEventListener('click', () => { memTab = t.dataset.mtab; pageMemberZone(); }));
+    const body = $('#mz-body');
+    if (memTab === 'home') memHome(body, { rec, name, pid, row, coin, hn });
+    else if (memTab === 'earn') memEarn(body, { coin });
+    else if (memTab === 'guide') memGuide(body, { hn });
+    else if (memTab === 'avatar') memAvatar(body, { coin, hn, name });
+    /* انیمیشن ارتقاء رنک — اگر سطح عضو بالا رفته باشد */
+    const oldLv = AV.checkRankUp(currentUser, hn.lv);
+    if (oldLv) setTimeout(() => {
+      const card = document.getElementById('mz-card');
+      if (card){ AV.playRankUp(card, oldLv, hn.lv); toast('🎉 ارتقاء رنک! اکنون ' + hn.rank.en + ' — ' + hn.rank.fa, 'green'); }
+    }, 700);
+  }
+
+  /* ── کارت رنک عضو ── */
+  function honorCardHTML(user, name, size, id){
+    const av = AV.avatarOf(user, genderOfUser(user));
+    return AV.rankCard({ user, name, sel: av.sel, gender: av.gender, honor: honorOfUser(user), size: size || 'md', id: id || '' });
+  }
+  function honorProgHTML(hn){
+    if (!hn.next) return `<div style="font-size:11.5px;color:var(--muted);margin-top:8px">به بالاترین رنک آکادمی رسیده‌اید 👑</div>`;
+    return `
+      <div style="margin-top:10px;font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between">
+        <span>تا رنک بعدی: <b style="color:${hn.next.title}">${esc(hn.next.en)}</b></span>
+        <span>${D.fa(Math.round(hn.pts))} / ${D.fa(hn.next.pts)} امتیاز</span>
+      </div>
+      <div class="pbar gold" style="margin-top:6px"><i style="width:${Math.round(hn.prog)}%"></i></div>`;
+  }
+
+  function memHome(body, o){
+    const s = MGMT.getSettings();
+    const enabled = [];
+    Object.keys(MEM_PAGE_KEY).forEach(pg => { if (s[MEM_PAGE_KEY[pg]]) enabled.push(pg); });
+    const names = { cmd:'فرماندهی', race:'رقابت فصل', player:'مرکز بازیکن', match:'فرماندهی مسابقه', course:'هوش زمین', records:'رکوردها', cal:'تقویم فصل', tv:'نمایش تلویزیونی' };
+    const pend = AV.reqsOf(currentUser).filter(r => r.status === 'pending').length;
+    body.innerHTML = `
+    <div class="grid cols-3">
+      <div class="glass" style="text-align:center">
+        <div class="card-head"><span class="ic">🏅</span><h3>کارت رنک من</h3><span class="tag">Honor Rank</span></div>
+        <div style="margin-top:10px;display:flex;justify-content:center">${honorCardHTML(currentUser, o.name, 'md', 'mz-card')}</div>
+        ${honorProgHTML(o.hn)}
+      </div>
+      <div class="glass tilt">
+        <div class="card-head"><span class="ic">🏌️</span><h3>وضعیت من در فصل</h3><span class="tag">۱۴۰۵</span></div>
+        ${o.row ? `
+          <div style="display:flex;justify-content:space-between;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px"><span style="color:var(--muted)">رتبه در فصل</span><b class="gold-text">${D.fa(o.row.rank)}</b></div>
+          <div style="display:flex;justify-content:space-between;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px"><span style="color:var(--muted)">امتیاز فصل</span><b class="gold-text">${D.faNum(o.row.pts,0)}</b></div>
+          <div style="display:flex;justify-content:space-between;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px"><span style="color:var(--muted)">مسابقات</span><b>${D.fa(o.row.matches)}</b></div>
+          <div style="display:flex;justify-content:space-between;padding:9px 12px;font-size:13px"><span style="color:var(--muted)">برد</span><b>${D.fa(o.row.win)}</b></div>
+        ` : `<div style="color:var(--muted);font-size:12.5px;padding:8px">اطلاعات شما در جدول فصل ثبت نشده است.</div>`}
+        <div style="margin-top:12px;padding:11px 13px;border-radius:13px;background:linear-gradient(135deg,rgba(212,175,55,.16),rgba(212,175,55,.05));border:1px solid rgba(212,175,55,.35);font-size:12.5px;text-align:center">
+          🪙 موجودی سکهٔ شما: <b class="gold-text" style="font-size:16px">${D.fa(o.coin.total)}</b>
+        </div>
+        ${pend ? `<div style="margin-top:9px;font-size:11.5px;color:#ffcf6b;text-align:center">⏳ ${D.fa(pend)} درخواست سکهٔ شما در انتظار تأیید مدیریت است</div>` : ''}
+      </div>
+      <div class="glass">
+        <div class="card-head"><span class="ic">🗂️</span><h3>بخش‌های فعال‌شده برای شما</h3><span class="tag">دسترسی‌ها</span></div>
+        ${enabled.length ? `
+          <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:10px">
+            ${enabled.map(pg => `<button class="btn sm ghost" data-mgo="${pg}" style="font-size:12px">${names[pg]}</button>`).join('')}
+          </div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.9">این بخش‌ها فقط جنبهٔ نمایشی دارند؛ برای ویرایش به مدیر آکادمی مراجعه کنید.</div>
+        ` : `<div style="color:var(--muted);font-size:12.5px;padding:10px;line-height:2">هنوز بخشی برای شما فعال نشده است — <b style="color:var(--gold-l)">مدیر آکادمی</b> در «تنظیمات نمایش ← بخش اعضا» تصمیم می‌گیرد کدام بخش‌ها را ببینید.</div>`}
+        <div class="card-head" style="margin-top:14px"><span class="ic">🎯</span><h3>راه‌های سریع</h3></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn sm" data-mtabgo="earn">🪙 دریافت سکه</button>
+          <button class="btn sm ghost" data-mtabgo="avatar">🎨 ساخت اوتار</button>
+          <button class="btn sm ghost" data-mtabgo="guide">📜 راهنمای سکه</button>
+        </div>
+      </div>
+    </div>`;
+    body.querySelectorAll('[data-mgo]').forEach(b => b.addEventListener('click', () => { APP.go(b.dataset.mgo); }));
+    body.querySelectorAll('[data-mtabgo]').forEach(b => b.addEventListener('click', () => { memTab = b.dataset.mtabgo; pageMemberZone(); }));
+  }
+
+  /* ── تب دریافت سکه: ارسال درخواست به مدیریت ── */
+  function memEarn(body, o){
+    const gained = autoAwardCoins(currentUser);
+    if (gained) updateCoinBadge();
+    const c = coinOf(currentUser);
+    let rows = '';
+    COIN_RULES.forEach(r => {
+      const st = ruleState(currentUser, r.id);
+      const btn = st.s === 'can'
+        ? `<button class="btn sm" data-req="${r.id}">ارسال درخواست</button>`
+        : st.s === 'pending'
+          ? `<button class="btn sm ghost" data-req="${r.id}" disabled>در انتظار تأیید ⏳</button>`
+          : `<button class="btn sm ghost" data-req="${r.id}" disabled>${st.s === 'done-today' ? 'امروز ثبت شد ✓' : 'ثبت شد ✓'}</button>`;
+      rows += `
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);margin-bottom:9px;flex-wrap:wrap">
+        <span style="font-size:26px">${r.ic}</span>
+        <div style="flex:1;min-width:200px">
+          <b style="font-size:13.5px">${esc(r.title)}</b>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px">${esc(r.desc)}</div>
+          ${st.s === 'can' ? `<input class="input" data-note="${r.id}" placeholder="توضیح یا لینک (اختیاری)" style="width:100%;margin-top:7px;font-size:11.5px">` : ''}
+          ${st.rej ? `<div style="font-size:11px;color:#ff8f82;margin-top:5px">درخواست قبلی رد شد${st.rej.adminNote ? ' — ' + esc(st.rej.adminNote) : ''} • می‌توانید دوباره درخواست دهید</div>` : ''}
+        </div>
+        <span class="chip gold" style="font-size:13px;font-weight:900">+${D.fa(r.amount)} 🪙</span>
+        ${btn}
+      </div>`;
+    });
+    const mine = AV.reqsOf(currentUser).slice(0, 12);
+    body.innerHTML = `
+    ${gained ? `<div class="glass" style="margin-bottom:14px;padding:13px 16px;background:linear-gradient(135deg,rgba(30,187,138,.14),rgba(30,187,138,.04));border:1px solid rgba(30,187,138,.4);font-size:13px">✅ سکه‌های مسابقات شما ثبت شد: <b>+${D.fa(gained)} 🪙</b></div>` : ''}
+    <div class="glass" style="margin-bottom:16px">
+      <div class="card-head"><span class="ic">🪙</span><h3>دریافت سکه — ارسال درخواست به مدیریت</h3><span class="tag">سکهٔ من: ${D.fa(c.total)}</span></div>
+      <div class="golfrule" style="margin:8px 0 12px;line-height:2">📝 با زدن «ارسال درخواست»، درخواست شما به <b>پنل مدیریت</b> می‌رود. سکه فقط پس از <b>تأیید مدیر</b> به کیف‌پول شما اضافه می‌شود.</div>
+      <div style="margin-top:10px">${rows}</div>
+    </div>
+    <div class="glass" style="margin-bottom:16px">
+      <div class="card-head"><span class="ic">📨</span><h3>درخواست‌های من</h3><span class="tag">${D.fa(mine.length)} مورد</span></div>
+      ${mine.length ? mine.map(r => `
+        <div class="req-row">
+          <span style="flex:1;min-width:170px;font-size:12.5px">${esc(r.title)}${r.note ? `<div style="font-size:10.5px;color:var(--muted);margin-top:3px">${esc(r.note)}</div>` : ''}</span>
+          <span class="chip gold">+${D.fa(r.amount)} 🪙</span>
+          <span style="font-size:11.5px" class="${r.status === 'pending' ? 'st-p' : r.status === 'ok' ? 'st-ok' : 'st-no'}">
+            ${r.status === 'pending' ? '⏳ در انتظار تأیید' : r.status === 'ok' ? '✅ تأیید شد' : '⛔ رد شد'}</span>
+          <span style="font-size:11px;color:var(--muted)">${esc(D.faDate ? D.faDate(r.date) : r.date)}</span>
+        </div>`).join('') : `<div style="color:var(--muted);font-size:12.5px;padding:8px">هنوز درخواستی نداده‌اید.</div>`}
+    </div>
+    <div class="glass">
+      <div class="card-head"><span class="ic">🏆</span><h3>سکه‌های خودکار مسابقات</h3><span class="tag">از نتایج فصل</span></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px;line-height:2">
+        قهرمانی در مسابقات به‌صورت خودکار و بدون نیاز به تأیید، برای شما سکه می‌سازد:<br>
+        🥇 قهرمان مسابقهٔ سطح ۱ = <b class="gold-text">۲۰ سکه</b> &nbsp;•&nbsp; سطح ۲ = <b class="gold-text">۱۵ سکه</b> &nbsp;•&nbsp; سطح ۳ = <b class="gold-text">۱۰ سکه</b>
+      </div>
+    </div>`;
+    body.querySelectorAll('[data-req]').forEach(b => b.addEventListener('click', () => {
+      const rule = COIN_RULES.find(r => r.id === b.dataset.req);
+      if (!rule || ruleState(currentUser, rule.id).s !== 'can') return;
+      const noteEl = body.querySelector(`[data-note="${rule.id}"]`);
+      const rec = userRec(currentUser) || {};
+      AV.addReq({
+        user: currentUser, name: rec.name || currentUser, pid: rec.pid || 0,
+        ruleId: rule.id, title: rule.title, amount: rule.amount, note: noteEl ? noteEl.value.trim() : '',
+      });
+      APP.toast('درخواست شما برای مدیریت ارسال شد — پس از تأیید، ' + D.fa(rule.amount) + ' سکه اضافه می‌شود ⏳', 'green');
+      pageMemberZone();
+    }));
+  }
+
+  /* ── تب راهنما ── */
+  function memGuide(body, o){
+    let rows = '';
+    COIN_RULES.concat([{ id:'w1', ic:'🥇', title:'قهرمان مسابقهٔ سطح ۱ (خودکار)', amount:20 },
+      { id:'w2', ic:'🥈', title:'قهرمان مسابقهٔ سطح ۲ (خودکار)', amount:15 },
+      { id:'w3', ic:'🥉', title:'قهرمان مسابقهٔ سطح ۳ (خودکار)', amount:10 }]).forEach(r => {
+      rows += `<div class="row"><span class="pnm"><span style="font-size:20px">${r.ic}</span><span>${esc(r.title)}</span></span><span style="font-weight:900;color:#f6e27a">+${D.fa(r.amount)} 🪙</span></div>`;
+    });
+    const rs = AV.ranks();
+    body.innerHTML = `
+    <div class="glass" style="margin-bottom:16px">
+      <div class="card-head"><span class="ic">📜</span><h3>اطلاعات دریافت سکه — جدول کامل</h3><span class="tag">GolfCoin 🪙</span></div>
+      <div style="margin-top:10px">${rows}</div>
+      <div class="golfrule" style="margin-top:14px;line-height:2">🪙 <b>سکه چیست؟</b> سکه‌های آکادمی را از فعالیت‌های ورزشی و اجتماعی به دست می‌آورید و در <b>فروشگاه اوتار</b> خرج می‌کنید. هر خرید برای همیشه در کمد شما می‌ماند. خودت طراحی کن، ایده بگیر و استایل مخصوص خودت را بساز!</div>
+      <div class="golfrule" style="margin-top:10px;line-height:2">⏳ همهٔ درخواست‌های سکه، پس از بررسی و <b>تأیید مدیریت</b> اعمال می‌شوند.</div>
+    </div>
+    <div class="glass">
+      <div class="card-head"><span class="ic">🏅</span><h3>نردبان Honor Rank — ۱۵ سطح، ۵ دیویژن</h3><span class="tag">رنک شما: ${esc(o.hn.rank.en)}</span></div>
+      <div class="rank-grid" style="margin-top:12px">
+        ${rs.map(r => `<div class="rank-chip ${r.lv === o.hn.lv ? 'on' : ''}" style="border-color:${r.lv === o.hn.lv ? r.border : 'rgba(255,255,255,.12)'}">
+          <div style="display:flex;justify-content:center">${AV.badgeSVG(r, 30)}</div>
+          <div style="color:${r.title};margin-top:5px">${esc(r.en)}</div>
+          <div style="font-size:10px;color:var(--muted)">${esc(r.fa)}</div>
+          <div style="font-size:10px;color:var(--gold-l);margin-top:3px">Lv ${D.fa(r.lv)} • ${D.fa(r.pts)}+ امتیاز</div>
+        </div>`).join('')}
+      </div>
+      <div class="golfrule" style="margin-top:12px;line-height:2">🎖️ رنک شما با امتیاز فصل بالا می‌رود؛ با هر ارتقاء، رنگ کارت، هالهٔ نور، نشان روی سینه و عنوان آواتار شما تغییر می‌کند.</div>
+    </div>`;
+  }
+
+  /* ── تب ساخت آواتار + فروشگاه برندها ── */
+  function memAvatar(body, o){
+    const av = AV.avatarOf(currentUser, genderOfUser(currentUser));
+    const c = coinOf(currentUser);
+    const owned = new Set(av.owned);
+    const items = AV.shop().filter(i => i.cat === shopCat && (i.g === 'a' || i.g === av.gender));
+    const cats = AV.CATS;
+    body.innerHTML = `
+    <div class="grid cols-3">
+      <div class="glass" style="text-align:center">
+        <div class="card-head"><span class="ic">🎨</span><h3>آواتار من</h3><span class="tag">Live 3D Card</span></div>
+        <div style="margin-top:10px;display:flex;justify-content:center">${honorCardHTML(currentUser, (userRec(currentUser)||{}).name || currentUser, 'md', 'mz-card')}</div>
+        ${honorProgHTML(o.hn)}
+        <div style="margin-top:12px;font-size:12.5px;color:var(--muted)">موجودی: <b class="gold-text" style="font-size:16px">${D.fa(c.total)} 🪙</b></div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap">
+          <button class="btn sm ${av.gender === 'm' ? '' : 'ghost'}" data-gender="m">🙍‍♂️ آقا</button>
+          <button class="btn sm ${av.gender === 'f' ? '' : 'ghost'}" data-gender="f">🙍‍♀️ خانم</button>
+          <button class="btn sm ghost" id="av-reset">↺ ساده‌سازی</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.9">کمد شما: <b class="gold-text">${D.fa(av.owned.length)}</b> آیتم — خریدهای شما همیشه باقی می‌مانند.</div>
+      </div>
+      <div class="glass" style="grid-column:span 2">
+        <div class="card-head"><span class="ic">🛍️</span><h3>فروشگاه استایل گلف — برندهای برتر دنیا</h3><span class="tag">${D.fa(AV.shop().length)} آیتم</span></div>
+        <div class="shop-cats" style="margin-top:10px">
+          ${cats.map(([id, lbl]) => `<div class="sc ${shopCat === id ? 'on' : ''}" data-acat="${id}">${lbl}</div>`).join('')}
+        </div>
+        <div class="shop-grid">
+          ${items.map(it => {
+            const isOwned = owned.has(it.id);
+            const isSel = av.sel[it.cat] === it.id;
+            const price = +it.price || 0;
+            const canBuy = c.total >= price;
+            const br = AV.BRANDS[it.b] || { name:'—', tier:'—', c:'#8A93A6' };
+            const sw1 = it.c1 || '#8A93A6', sw2 = it.c2 || AV.shade(sw1, -18);
+            return `<div class="shop-it ${isSel ? 'on' : ''} ${isOwned && !isSel ? 'owned' : ''}">
+              <div class="sw" style="background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(0,0,0,.25));display:flex;align-items:center;justify-content:center;height:58px">${AV.itemPreviewSVG(it, 66)}</div>
+              <span class="bnd" style="color:${br.c};background:${br.c}1f;border:1px solid ${br.c}44">${esc(br.name)}</span>
+              <div class="nm">${esc(it.n)}</div>
+              <div class="pr">${price === 0 ? 'رایگان' : D.fa(price) + ' 🪙'} <span style="font-size:9.5px;color:var(--muted)">• ${esc(br.tier)}</span></div>
+              ${isSel ? `<span class="chip gold">پوشیده ✓</span>`
+                : isOwned ? `<button class="btn sm" data-sel="${it.id}">پوشیدن</button>`
+                : `<button class="btn sm ${canBuy ? '' : 'ghost'}" data-buy="${it.id}" ${canBuy ? '' : 'disabled'}>${canBuy ? 'خرید' : 'سکه کم است'}</button>`}
+            </div>`;
+          }).join('') || `<div style="color:var(--muted);font-size:12.5px;padding:10px">آیتمی در این دسته موجود نیست.</div>`}
+        </div>
+      </div>
+    </div>`;
+    body.querySelectorAll('[data-acat]').forEach(t => t.addEventListener('click', () => { shopCat = t.dataset.acat; memAvatar(body, o); }));
+    body.querySelectorAll('[data-buy]').forEach(b => b.addEventListener('click', () => {
+      const res = AV.buyItem(currentUser, b.dataset.buy);
+      APP.toast(res.msg, res.ok ? 'green' : 'red');
+      updateCoinBadge();
+      pageMemberZone();
+    }));
+    body.querySelectorAll('[data-sel]').forEach(b => b.addEventListener('click', () => {
+      AV.selectItem(currentUser, b.dataset.sel);
+      pageMemberZone();
+    }));
+    body.querySelectorAll('[data-gender]').forEach(b => b.addEventListener('click', () => {
+      const g = b.dataset.gender;
+      const rec = AV.avatarOf(currentUser);
+      const sel = Object.assign({}, rec.sel);
+      /* اگر مو/کلاه فعلی برای جنسیت جدید نیست، به گزینهٔ پیش‌فرض برگرد */
+      ['hair','hat','shirt','pants'].forEach(cat => {
+        const it = AV.shopItem(sel[cat]);
+        if (it && it.g !== 'a' && it.g !== g) sel[cat] = AV.DEFAULT_SEL(g)[cat];
+      });
+      AV.setAvatar(currentUser, { gender: g, sel });
+      pageMemberZone();
+    }));
+    const rs = body.querySelector('#av-reset');
+    if (rs) rs.addEventListener('click', () => {
+      const rec = AV.avatarOf(currentUser);
+      AV.setAvatar(currentUser, { sel: AV.DEFAULT_SEL(rec.gender) });
+      APP.toast('آواتار به حالت ساده برگشت (خریدهای شما محفوظ است)', 'green');
+      pageMemberZone();
+    });
+  }
+
   /* ═══════════ ابزار طراح ═══════════ */
   function extraCourses(){ try{ return JSON.parse(store.get('ga_courses')||'[]'); }catch(e){ return []; } }
   function extraTours(){ try{ return JSON.parse(store.get('ga_tournaments')||'[]'); }catch(e){ return []; } }
@@ -1193,7 +1674,7 @@
         <div><label style="font-size:11px;color:var(--muted)">سطح</label><select class="sel" id="at-lvl" style="width:100%;margin-top:5px"><option value="1">سطح ۱</option><option value="2" selected>سطح ۲</option><option value="3">سطح ۳</option></select></div>
         <div><label style="font-size:11px;color:var(--muted)">زمین</label><select class="sel" id="at-crs" style="width:100%;margin-top:5px">${S.courses.map(c=>`<option value="${c[0]}">${esc(c[1])}</option>`).join('')}</select></div>
         <div><label style="font-size:11px;color:var(--muted)">حفره</label><select class="sel" id="at-holes" style="width:100%;margin-top:5px"><option>9</option><option selected>18</option></select></div>
-        <div><label style="font-size:11px;color:var(--muted)">تاریخ</label><input class="input" id="at-date" type="date" value="2026-09-25" style="width:100%;margin-top:5px;direction:ltr"></div>
+        <div style="grid-column:span 2"><label style="font-size:11px;color:var(--muted)">تاریخ</label><div class="jdate" id="at-date" data-iso="2026-09-25" style="margin-top:5px"></div></div>
       </div>
       <button class="btn sm" id="at-add" style="margin-top:14px">+ ثبت مسابقه</button>
     </div>
@@ -1214,9 +1695,10 @@
         </tr>`;
       }).join('')}</tbody></table></div>
     </div>`;
+    if (window.JDate && $('#at-date')) JDate.render($('#at-date'));
     $('#at-add').addEventListener('click', () => {
       const name = $('#at-name').value.trim();
-      const date = $('#at-date').value;
+      const date = $('#at-date')._value();
       if (!name || !date){ toast('نام و تاریخ را وارد کنید', 'red'); return; }
       const lst = extraTours();
       lst.push({ name, lvl: +$('#at-lvl').value, course: +$('#at-crs').value, holes: +$('#at-holes').value, date });
@@ -1282,117 +1764,12 @@
       ${lst.map((c,i) => {
         const t = S.tournaments.find(x=>x[0]===c.tour);
         const total = Object.values(c.strokes).reduce((a,b)=>a+b,0);
-        return `<tr><td>${esc(t?t[1]:'—')}</td><td><b>${esc(D.PLAYER_NAME[c.pid])}</b></td><td class="num" style="color:var(--gold-l)">${D.fa(total)}</td>
+        return `<tr><td>${esc(t?t[1]:'—')}</td><td><b>${esc(D.nameOf(c.pid))}</b></td><td class="num" style="color:var(--gold-l)">${D.fa(total)}</td>
         <td><button class="btn ghost sm" data-del="${i}">حذف</button></td></tr>`;
       }).join('')}</tbody></table>` : '<div style="color:var(--muted);font-size:12.5px">هنوز کارتی ثبت نشده است.</div>';
     $$('#as-list [data-del]').forEach(b => b.addEventListener('click', () => {
       const a = extraCards(); a.splice(+b.dataset.del,1); saveCards(a); reloadData(); go('ascorecards'); toast('کارت حذف شد', 'orange');
     }));
-  }
-
-  /* ═══════════ دنیای سه‌بعدی (World3D) ═══════════ */
-  let worldActive = false;
-  let worldZone = null;   // منطقه فعال در جهان
-  function enterWorld(){
-    worldActive = true;
-    worldZone = null;
-    const w = $('#world');
-    w.classList.add('on');
-    hideCaption(); hideWorldActions();
-    setTimeout(() => {
-      const cv = $('#world-canvas');
-      if (!window.World3D) return;
-      World3D.init(cv, { A, S, D });
-      World3D.reset();
-      World3D.start();
-      World3D.onZone = zone => {
-        if (worldZone === zone.id){ exitWorldTo(zone.page); return; }
-        showCaption(zone);
-        setTimeout(() => {
-          World3D.flyToZone(zone.id, () => {
-            worldZone = zone.id;
-            World3D.activateZone(zone.id);
-            hideCaption();
-            showWorldActions(zone);
-          });
-        }, 480);
-      };
-      World3D.onObject = obj => {
-        if (!obj || !obj.page) return;
-        if (obj.sel){
-          if (obj.sel.playerSel !== undefined) playerSel = obj.sel.playerSel;
-          if (obj.sel.matchSel !== undefined) matchSel = obj.sel.matchSel;
-          if (obj.sel.courseSel !== undefined) courseSel = obj.sel.courseSel;
-        }
-        exitWorldTo(obj.page);
-      };
-    }, 40);
-  }
-  function exitWorldTo(page){
-    hideWorld();
-    const overlay = $('#world-overlay');
-    overlay.classList.add('show');
-    setTimeout(() => {
-      if (page === 'workshop'){
-        go('acourses');
-        setTimeout(() => { $('#wshop-modal').classList.add('open'); }, 240);
-      } else {
-        go(page);
-      }
-      setTimeout(() => overlay.classList.remove('show'), 160);
-    }, 300);
-  }
-  function hideWorld(){
-    if (worldActive){
-      worldActive = false; worldZone = null;
-      $('#world').classList.remove('on');
-      hideWorldActions();
-      if (window.World3D) World3D.stop();
-    }
-  }
-  let captionTimer = null;
-  function showCaption(z){
-    clearTimeout(captionTimer);
-    const cap = $('#world-caption');
-    const ic = cap.querySelector('.c-icon'), nm = cap.querySelector('.c-name'), sub = cap.querySelector('.c-sub');
-    if (!ic || !nm || !sub) return;
-    ic.textContent = z.icon;
-    nm.textContent = z.name;
-    sub.textContent = 'در حال ورود...';
-    cap.classList.add('show');
-    captionTimer = setTimeout(() => {
-      const s2 = cap.querySelector('.c-sub');
-      if (s2) s2.textContent = 'دوربین در حال پرواز به مقصد';
-    }, 600);
-  }
-  function hideCaption(){ clearTimeout(captionTimer); $('#world-caption').classList.remove('show'); }
-  function showWorldActions(zone){
-    const wa = $('#world-actions');
-    $('#world-enter').textContent = `🚀 ورود به صفحهٔ ${zone.name}`;
-    wa.classList.add('show');
-  }
-  function hideWorldActions(){ $('#world-actions').classList.remove('show'); }
-  function initWorldUI(){
-    $('#world-exit').addEventListener('click', () => exitWorldTo('cmd'));
-    $('#world-enter').addEventListener('click', () => {
-      if (worldZone){
-        const z = { cmd:'cmd', race:'race', player:'player', match:'match', course:'course',
-          records:'records', cal:'cal', tv:'tv', battle:'battle', academy:'academy', workshop:'workshop' }[worldZone];
-        exitWorldTo(z);
-      }
-    });
-    $('#world-hub').addEventListener('click', () => {
-      if (window.World3D) World3D.backToHub();
-      worldZone = null; hideWorldActions();
-    });
-    $('#back-world').addEventListener('click', () => go('world'));
-    $('#wshop-close').addEventListener('click', () => $('#wshop-modal').classList.remove('open'));
-    $$('#wshop-btns [data-w]').forEach(b => {
-      b.addEventListener('click', () => { $('#wshop-modal').classList.remove('open'); go(b.dataset.w); });
-    });
-    $('#wshop-modal').addEventListener('click', e => {
-      if (e.target === $('#wshop-modal')) $('#wshop-modal').classList.remove('open');
-    });
   }
 
   /* ═══════════ Toast ═══════════ */
@@ -1417,11 +1794,12 @@
 
   /* ═══════════ RENDERERS ═══════════ */
   const RENDERERS = {
-    world: () => {}, cmd: pageCmd, race: pageRace, player: pagePlayer, match: pageMatch,
+    memberzone: pageMemberZone,
+    cmd: pageCmd, race: pageRace, player: pagePlayer, match: pageMatch,
     course: pageCourse, records: pageRecords, cal: pageCal, tv: pageTv,
     battle: pageBattle, academy: pageAcademy,
     acourses: pageACourses, atournaments: pageATours, ascorecards: pageAScorecards,
-    mgmt: () => MGMT.pageMgmt(), settings: () => MGMT.pageSettings(),
+    mgmt: () => MGMT.pageMgmt(), users: () => MGMT.pageUsers(), settings: () => MGMT.pageSettings(),
   };
 
   /* ═══════════ بارگذاری مجدد ═══════════ */
@@ -1454,14 +1832,35 @@
     });
   }
 
+  function applyRoleUI(rec){
+    const member = !!(rec && rec.role === 'member');
+    const settings = MGMT.getSettings();
+    $$('#app .nav-item').forEach(n => {
+      const p = n.dataset.page;
+      let show;
+      if (member){
+        if (p === 'memberzone') show = true;
+        else show = !!settings[MEM_PAGE_KEY[p]];
+      }
+      else if (p === 'memberzone') show = false;
+      else if (p === 'users') show = !!(rec && rec.main);
+      else show = true;
+      n.style.display = show ? '' : 'none';
+    });
+    $$('#app .nav-group').forEach(g => { g.style.display = member ? 'none' : ''; });
+    const mb = $('#side-mgmt-btn'); if (mb) mb.style.display = member ? 'none' : '';
+    $('#user-label').textContent = userLabelFor(currentUser);
+    $('#user-name').textContent = currentUser;
+  }
+
   function enterApp(u){
     currentUser = u;
-    $('#login').style.display = 'none';
+    const rec = userRec(u);
+    $('#login').classList.remove('on');
     $('#app').classList.add('on');
-    $('#user-label').textContent = USER_LABEL[u] || 'کاربر';
-    $('#user-name').textContent = u;
+    applyRoleUI(rec);
     reloadData();
-    go('cmd');
+    go(rec && rec.role === 'member' ? 'memberzone' : 'cmd');
     tickClock(); setInterval(tickClock, 1000);
   }
 
@@ -1471,27 +1870,34 @@
   }
 
   /* ═══════════ راهاندازی ═══════════ */
+  function closeNav(){
+    document.body.classList.remove('nav-open');
+  }
   function initNav(){
-    $$('.nav-item').forEach(n => n.addEventListener('click', () => go(n.dataset.page)));
-    $$('.mob-nav a').forEach(n => n.addEventListener('click', e => { e.preventDefault(); go(n.dataset.page); }));
+    $$('.nav-item').forEach(n => n.addEventListener('click', () => { go(n.dataset.page); closeNav(); }));
+    const mb = $('#menu-btn');
+    if (mb) mb.addEventListener('click', () => document.body.classList.toggle('nav-open'));
+    const ov = $('#nav-overlay');
+    if (ov) ov.addEventListener('click', closeNav);
     $('#logout-btn').addEventListener('click', logout);
   }
 
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && !$('#world').classList.contains('on')){
-      go('world');
-    }
-  });
   document.addEventListener('DOMContentLoaded', () => {
+    seedUsers();
     initParticles();
     initAuth();
     initNav();
-    initWorldUI();
     const sess = store.get('ga_session');
     if (sess && buildUsers()[sess] !== undefined){
       enterApp(sess);
     }
   });
 
-  window.APP = { go, reloadData, recompute, state: () => ({ S, A }), toast };
+  window.APP = {
+    go, reloadData, recompute, state: () => ({ S, A }), toast,
+    currentUser: () => currentUser,
+    isMain: () => isMain(currentUser),
+    isAdmin: () => isAdmin(currentUser),
+    users: { list: loadUsers, save: saveUsers, seed: seedUsers, rec: userRec, isMain, isAdmin, label: userLabelFor },
+  };
 })();
