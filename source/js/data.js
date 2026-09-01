@@ -191,6 +191,26 @@
     return acts;
   }
 
+  /* ── ذخیره تنظیمات مدیر (بازیکن فعال/غیرفعال + نمایش نمودارها) ── */
+  function loadPlayers(){
+    // بازیکنان پایه + تغییرات مدیر (فعال/غیرفعال، ویرایش مشخصات)
+    let edits = {};
+    try { edits = JSON.parse(localStorage.getItem('ga_players') || '{}'); } catch(e){}
+    return PLAYERS.map(p => {
+      const e = edits[p[0]];
+      if (!e) return p;
+      const np = p.slice();
+      if (e.active !== undefined) np[5] = e.active ? 1 : 0;
+      if (e.name) np[1] = e.name;
+      if (e.hcp !== undefined) np[3] = +e.hcp;
+      if (e.gender) np[2] = e.gender;
+      return np;
+    });
+  }
+  function loadCustomPlayers(){
+    try { return JSON.parse(localStorage.getItem('ga_custom_players') || '[]'); } catch(e){ return []; }
+  }
+
   /* ── رتبه و رنگ ── */
   const GOLD_ELITE = 120;
   const RANK_DEF = [
@@ -207,8 +227,8 @@
 
   /* ── محاسبه کامل ── */
   function compute(state){
-    const { scorecards, activities, tournaments } = state;
-    const PTS = {}; PLAYERS.forEach(p => PTS[p[0]] = 0);
+    const { scorecards, activities, tournaments, players } = state;
+    const PTS = {}; players.forEach(p => PTS[p[0]] = 0);
     const MONTH_PTS = {}; const CARDS = {};
     let TOTAL_BIRDIES = 0;
     const info = {};
@@ -247,7 +267,7 @@
       });
     });
     const ST = {};
-    PLAYERS.forEach(p => ST[p[0]] = { win:0, second:0, third:0, matches:0, practices:0, courses:0, points:0, attend:0 });
+    players.forEach(p => ST[p[0]] = { win:0, second:0, third:0, matches:0, practices:0, courses:0, points:0, attend:0 });
     activities.forEach(a => {
       const s = ST[a.pid];
       if (!s) return;
@@ -278,7 +298,7 @@
       }
       const holesPlayed = cards.reduce((a,c)=>a+Object.keys(c.strokes).length,0);
       const scoringAvg = cards.length ? Math.round(total / holesPlayed * 18 * 10) / 10 : 0;
-      const p = PLAYERS.find(x => x[0] === +pid) || PLAYERS[0];
+      const p = players.find(x => x[0] === +pid) || players[0];
       return {
         pid: +pid, name: PLAYER_NAME[pid], hcp: p[3], gender: p[2],
         pts: PTS[pid], color: rankOf(PTS[pid])[0], colorHex: rankOf(PTS[pid])[3],
@@ -405,7 +425,8 @@
     const TOT_PTS = Object.values(PTS).reduce((a,b)=>a+b,0);
     const MATCHES_HELD = scorecards.length ? [...new Set(scorecards.map(c=>c.tour))].length : 0;
     const GOLD_COUNT = Object.values(PTS).filter(v => v >= GOLD_ELITE).length;
-    const AVG_HCP = Math.round(ACTIVE.reduce((a,p)=>a+p[3],0)/ACTIVE.length*10)/10;
+    const activePlayers = players.filter(p => p[5]);
+    const AVG_HCP = activePlayers.length ? Math.round(activePlayers.reduce((a,p)=>a+p[3],0)/activePlayers.length*10)/10 : 0;
     const future = tournaments.filter(t => dateFrom(t[5]) >= TODAY).sort((a,b) => dateFrom(a[5]) - dateFrom(b[5]));
     const NEXT_T = future[0] || null;
     const COUNTDOWN = NEXT_T ? Math.ceil((dateFrom(NEXT_T[5]) - TODAY)/86400000) : 0;
@@ -434,8 +455,11 @@
       const cid = 1000 + i;
       PAR_MAP[cid] = c.pars;
     });
+    const players = loadPlayers().concat(loadCustomPlayers().map((p, i) => [9000+i, p.name, p.gender, +p.hcp, p.join || '2026-01-01', p.active ? 1 : 0]));
+    const PLAYER_NAME_EXT = {}; players.forEach(p => PLAYER_NAME_EXT[p[0]] = p[1]);
+    const ACTIVE_EXT = players.filter(p => p[5]);
     return {
-      players: PLAYERS, active: ACTIVE,
+      players, active: ACTIVE_EXT,
       courses: COURSES.concat(extra.courses.map((c, i) => [1000+i, c.name, c.loc, c.holes])),
       tournaments: TOURNAMENTS.concat(extra.tournaments.map((t, i) => [1000+i, t.name, +t.lvl, +t.course, +t.holes, t.date])),
       scorecards: genScorecards().concat(extra.scorecards.map(s => ({
@@ -447,10 +471,21 @@
     };
   }
 
+  const IR_HOLIDAYS = (typeof IR_HOLIDAYS_1405 !== 'undefined' && IR_HOLIDAYS_1405) ? IR_HOLIDAYS_1405 : ((typeof window.IR_HOLIDAYS_1405 !== 'undefined') ? window.IR_HOLIDAYS_1405 : []);
+  function holidaysOf(jy, jm, jd){
+    if (jy !== 1405) return [];
+    return IR_HOLIDAYS.filter(h => h[0] === jm && h[1] === jd);
+  }
+  function isHoliday(d){
+    const j = jalaliInfo(d);
+    return holidaysOf(j.yy, j.mm, j.dd).some(h => h[3] === 'holiday');
+  }
+
   window.Data = {
     fa, faNum, jalaliInfo, weekOf, dayFmt, dateFrom, TODAY, SEASON_START,
     PLAYERS, PLAYER_NAME, ACTIVE, COURSES, COURSE_PARS, COURSE_NAME, TOURNAMENTS,
     PTS_RULE, RESULT_LABEL, MONTHS_FA, RANK_DEF, RANK_TEXT, rankOf, FORM_META, GOLD_ELITE,
-    parsOf, compute, loadState,
+    parsOf, compute, loadState, loadPlayers, loadCustomPlayers,
+    IR_HOLIDAYS, holidaysOf, isHoliday,
   };
 })();

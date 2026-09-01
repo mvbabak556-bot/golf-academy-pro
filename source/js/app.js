@@ -128,6 +128,7 @@
     battle: { t:'میدان نبرد', i:'⚔️' }, academy: { t:'پنل آکادمی', i:'🏫' },
     acourses: { t:'طراح زمین', i:'🛠️' }, atournaments: { t:'طراح مسابقه', i:'🛠️' },
     ascorecards: { t:'ثبت نتایج', i:'🛠️' },
+    mgmt: { t:'پلن مدیریت', i:'⚙️' }, settings: { t:'تنظیمات نمایش', i:'🛠️' },
   };
   let currentPage = 'cmd';
   let playerSel = 8, matchSel = 11, courseSel = 1, coursePlayerSel = 8;
@@ -177,7 +178,9 @@
             <h1 style="font-size:26px;font-weight:900" class="gold-text">آکادمی گلف ۱۴۰۵ — فرماندهی</h1>
             <div style="color:var(--muted);font-size:12.5px;margin-top:4px">فصل قهرمانی ۱۴۰۵ • ${D.fa(A.MATCHES_HELD)} مسابقه برگزار شده • ${D.fa(A.LB.length)} بازیکن فعال</div>
           </div>
-          <div style="margin-right:auto;display:flex;gap:10px;flex-wrap:wrap">
+          <div style="margin-right:auto;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <button class="btn sm" onclick="APP.go('mgmt')" style="box-shadow:0 0 16px rgba(212,175,55,.25)">⚙️ پلن مدیریت</button>
+            <button class="btn sm ghost" onclick="APP.go('settings')">🛠️ تنظیمات نمایش</button>
             <span class="chip gold">⏳ مسابقه بعدی: ${esc(A.NEXT_T ? A.NEXT_T[1] : '—')} — ${D.fa(A.COUNTDOWN)} روز</span>
             <span class="chip green">🔴 فصل در جریان است</span>
           </div>
@@ -224,8 +227,15 @@
     </div>
     <div class="grid cols-2" style="margin-top:18px">
       <div class="glass tilt">
-        <div class="card-head"><span class="ic">📈</span><h3>امتیاز ماهانه فصل</h3><span class="tag">Monthly</span></div>
-        <div class="chart-box short"><canvas id="ch-cmd-line"></canvas></div>
+        <div class="card-head"><span class="ic">📈</span><h3>امتیاز ماهانه فصل</h3><span class="tag">Monthly</span>
+          <span style="margin-right:auto;display:flex;gap:6px;align-items:center">
+            <select class="sel" id="cm-month" style="width:auto;padding:5px 10px;font-size:12px">
+              ${['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'].map((m,i)=>`<option value="${i}">${m}</option>`).join('')}
+            </select>
+            <button class="btn sm ghost" id="cm-apply" style="padding:5px 12px">نمایش</button>
+          </span>
+        </div>
+        <div class="chart-box short" id="cm-chart"><canvas id="ch-cmd-line"></canvas></div>
       </div>
       <div class="glass">
         <div class="card-head"><span class="ic">🏁</span><h3>رقابت زنده — ده نفر برتر</h3><span class="tag">Live</span></div>
@@ -252,7 +262,8 @@
       { ic:'⭐', lbl:'قهرمان ماه', val: 0, sub: A.champM ? `${A.champM} — ${esc(A.champName)}` : '—', col:'var(--teal)', fmt:'fa' },
       { ic:'🎖️', lbl:'میانگین هندیکپ', val: A.AVG_HCP, sub:'کل اعضا', col:'var(--red)', fmt:'num1' },
     ];
-    statsEl.innerHTML = cards.map((c,i) => `
+    if (!MGMT.getSettings().chCmd){ statsEl.innerHTML = '<div class="glass" style="grid-column:span 4;padding:14px;text-align:center;color:var(--muted)">نمودارهای فرماندهی غیرفعال شده‌اند — از «تنظیمات نمایش» فعال کنید</div>'; }
+    else statsEl.innerHTML = cards.map((c,i) => `
       <div class="glass tilt stat">
         <span class="accent-bar" style="background:linear-gradient(90deg,${c.col},transparent)"></span>
         <div style="display:flex;justify-content:space-between;align-items:center">
@@ -263,14 +274,46 @@
         <div class="lbl">${c.lbl} — <span style="color:var(--dim)">${c.sub}</span></div>
       </div>`).join('');
     setTimeout(() => {
-      Charts.line($('#ch-cmd-line'), [A.MONTHLY_TOT], A.MONTHS_SEASON, { color:'#E9C766', fill:true, points:true, fmt:v=>D.faNum(v,0) });
+      if (MGMT.getSettings().chMonthly){
+        drawMonthlyChart();
+      } else {
+        const c = $('#cm-chart');
+        if (c) c.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:12.5px">نمودار ماهانه غیرفعال است — از تنظیمات نمایش فعال کنید</div>';
+      }
       A.MONTHLY_TOT.forEach((v,i) => Charts.spark($(`#sp-1`), A.MONTHLY_TOT.slice(0,i+1), '#1EBB8A'));
+      const apply = $('#cm-apply');
+      if (apply){
+        apply.addEventListener('click', () => drawMonthlyChart());
+      }
     }, 60);
+  }
+
+  function drawMonthlyChart(){
+    const cv = $('#ch-cmd-line');
+    if (!cv) return;
+    const mi = +($('#cm-month') ? $('#cm-month').value : 0);
+    const m = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'][mi];
+    const A2 = A;
+    // دادهٔ همان ماه از MONTH_PTS
+    const mp = A2.MONTH_PTS[m] || {};
+    const arr = Object.entries(mp).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    const hasData = arr.length > 0;
+    if (!hasData){
+      cv.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:12.5px">برای ماه ' + m + ' هنوز امتیازی ثبت نشده است.</div>';
+      return;
+    }
+    const labels = arr.map(([pid,v]) => (A2.LB.find(r=>r.pid===+pid)||{}).name || '—');
+    const vals = arr.map(([pid,v]) => v);
+    Charts.barsV(cv, labels, vals, { color:'#E9C766', fmt:v=>D.faNum(v,0), title:'امتیاز ' + m });
   }
 
   /* ═══════════ صفحه: رقابت فصل ═══════════ */
   function pageRace(){
     const v = $('#view');
+    if (!MGMT.getSettings().chRace){
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🏁 نمودار رقابت فصل غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      return;
+    }
     const gold = A.LB.filter(r => r.rank <= 3).length;
     const play = A.LB.filter(r => r.rank > 3 && r.rank <= 8).length;
     const dev = A.LB.length - gold - play;
@@ -343,7 +386,11 @@
 
   /* ═══════════ صفحه: مرکز بازیکن ═══════════ */
   function pagePlayer(){
-    const v = $('#view');
+
+  if (!MGMT.getSettings().chPlayer){
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🏌️ نمودارهای مرکز بازیکن غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      return;
+    }    const v = $('#view');
     const p = A.LB.find(r => r.pid === playerSel) || A.LB[0];
     const cards = A.CARDS[playerSel] || [];
     const sk = A.SKILLS[playerSel] || {scoring:0,birdie:0,consistency:0,practice:0,experience:0};
@@ -452,7 +499,11 @@
 
   /* ═══════════ صفحه: فرماندهی مسابقه ═══════════ */
   function pageMatch(){
-    const v = $('#view');
+
+  if (!MGMT.getSettings().chMatch){
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🥇 فرماندهی مسابقه غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      return;
+    }    const v = $('#view');
     const t = S.tournaments.find(x => x[0] === matchSel) || S.tournaments[0];
     const cards = S.scorecards.filter(c => c.tour === matchSel).map(c => {
       const pars = D.parsOf(t[3]);
@@ -538,7 +589,11 @@
 
   /* ═══════════ صفحه: هوش زمین ═══════════ */
   function pageCourse(){
-    const v = $('#view');
+
+  if (!MGMT.getSettings().chCourse){
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🗺️ نمودار هوش زمین غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      return;
+    }    const v = $('#view');
     const crs = S.courses.find(c => c[0] === courseSel) || S.courses[0];
     const pars = D.parsOf(crs[0]);
     const holes = crs[3];
@@ -614,7 +669,11 @@
 
   /* ═══════════ صفحه: رکوردها ═══════════ */
   function pageRecords(){
-    const v = $('#view');
+
+  if (!MGMT.getSettings().chRecords){
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🎖️ رکوردها غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      return;
+    }    const v = $('#view');
     const bestPrac = A.LB.reduce((a,b) => b.prac > a.prac ? b : a);
     const bestCourse = A.LB.reduce((a,b) => b.course > a.course ? b : a);
     const mostWin = A.LB.reduce((a,b) => b.win > a.win ? b : a);
@@ -678,18 +737,31 @@
   /* ═══════════ صفحه: تقویم ═══════════ */
   function pageCal(){
     const v = $('#view');
+    // ── جمع‌آوری رویدادها: مسابقات + کلاس‌ها + اردوها + سفارشی + تعطیلات ──
     const events = [];
     S.tournaments.forEach(t => {
       events.push({ d: D.dateFrom(t[5]), name: t[1], type: `مسابقه سطح ${D.fa(t[2])}`, col: t[2]===1?'gold':t[2]===2?'green':'blue', extra: `${esc(D.COURSE_NAME[t[3]])} • ${D.fa(t[4])} حفره` });
     });
-    [['کلاس مقدماتی گلف'],['کلاس پوتینگ'],['کلاس شورت گیم'],['کارگاه ذهنی'],['کلاس چوبهای بلند'],['کلاس قوانین و آداب']].forEach(([n],i) => {
+    [['کلاس مقدماتی گلف'],['کلاس پوتینگ'],['کلاس شورت گیم'],['کارگاه ذهنی'],['کلاس چوب‌های بلند'],['کلاس قوانین و آداب']].forEach(([n],i) => {
       events.push({ d: new Date(D.TODAY.getTime() + (7 + i*10)*86400000), name: n, type: 'کلاس آموزشی', col: 'purple', extra: '' });
     });
-    [[10,16,'اردوی آمادهسازی جام بزرگ'],[11,2,'اردوی فنی پایان فصل']].forEach(([m,d2,n]) => {
+    [[10,16,'اردوی آماده‌سازی جام بزرگ'],[11,2,'اردوی فنی پایان فصل']].forEach(([m,d2,n]) => {
       events.push({ d: new Date(Date.UTC(2026, m-1, d2)), name: n, type: 'اردو', col: 'orange', extra: '' });
+    });
+    // رویدادهای سفارشی مدیر
+    (MGMT.customEvents()||[]).forEach(e => {
+      events.push({ d: D.dateFrom(e.date), name: e.name, type: e.type, col: 'blue', extra: 'رویداد سفارشی' });
+    });
+    // تعطیلات رسمی ۱۴۰۵
+    D.IR_HOLIDAYS.forEach(h => {
+      const d = new Date(Date.UTC(2026, h[0]-1, h[1]));
+      events.push({ d, name: h[2], type: h[3]==='holiday' ? 'تعطیل رسمی' : 'مناسبت', col: h[3]==='holiday' ? 'red' : 'blue', extra: 'تقویم ایران' });
     });
     events.sort((a,b) => a.d - b.d);
     const next = events.find(e => e.d >= D.TODAY);
+    const holidaysCount = D.IR_HOLIDAYS.filter(h=>h[3]==='holiday').length;
+    const pastCount = events.filter(e => e.d < D.TODAY).length;
+    const showCal = MGMT.getSettings().chCal;
     v.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
       <img src="assets/ball_3d.png" class="floaty fast glow-img green" style="width:74px;height:74px;border-radius:14px;object-fit:cover" alt="">
@@ -702,12 +774,28 @@
         <div style="font-size:11px;color:var(--muted)">روز تا شروع</div>
       </div>
       <div style="text-align:center;padding:0 18px">
+        <div style="font-size:11px;color:var(--muted)">تعطیلات رسمی</div>
+        <div style="font-size:16px;font-weight:800" class="gold-text">${D.fa(holidaysCount)}</div>
+      </div>
+      <div style="text-align:center">
         <div style="font-size:11px;color:var(--muted)">فصل</div>
         <div style="font-size:16px;font-weight:800">۱۴۰۵</div>
       </div>
+      <button class="btn sm ghost" onclick="APP.go('mgmt')" style="margin-right:auto">⚙️ مدیریت تقویم</button>
+    </div>
+    ${showCal ? `
+    <div class="grid cols-3" style="margin-bottom:18px">
+      <div class="glass" style="grid-column:span 2">
+        <div class="card-head"><span class="ic">🇮🇷</span><h3>تقویم ماه — ${D.fa(jalNow().dd)} ${jalNow().monthFa}</h3><span class="tag">تعطیلات ★</span></div>
+        <div id="cal-grid" style="margin-top:10px"></div>
+      </div>
+      <div class="glass">
+        <div class="card-head"><span class="ic">🗓️</span><h3>تعطیلات و مناسبت‌های ماه</h3><span class="tag">time.ir</span></div>
+        <div id="cal-side" style="margin-top:10px"></div>
+      </div>
     </div>
     <div class="glass">
-      <div class="card-head"><span class="ic">📅</span><h3>تقویم رویدادها</h3><span class="tag">${D.fa(events.filter(e=>e.d>=D.TODAY).length)} رویداد باقیمانده</span></div>
+      <div class="card-head"><span class="ic">📅</span><h3>تقویم رویدادها</h3><span class="tag">${D.fa(events.length)} رویداد (${D.fa(pastCount)} برگزار شده)</span></div>
       <div class="timeline">
         ${events.map(e => {
           const j = D.jalaliInfo(e.d);
@@ -724,12 +812,64 @@
           </div>`;
         }).join('')}
       </div>
-    </div>`;
+    </div>` : `<div class="glass" style="padding:22px;text-align:center;color:var(--muted)">تقویم غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`}`;
+    if (showCal){
+      renderCalMonth();
+      renderCalSide();
+    }
+    function jalNow(){
+      return D.jalaliInfo(D.TODAY);
+    }
+    function renderCalMonth(){
+      const jn = jalNow();
+      const grid = $('#cal-grid'); if (!grid) return;
+      // ساختن شبکه ۶ ستونه هفته
+      const first = new Date(Date.UTC(2026, jn.mm-1, 1));
+      const jFirst = D.jalaliInfo(first);
+      const dow = first.getUTCDay(); // 0=یکشنبه ... 6=شنبه
+      const daysInMonth = [31,31,31,31,31,31,30,30,30,30,30,29][jn.mm-1];
+      const wdNames = ['ش','ی','د','س','چ','پ','ج'];
+      let html = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;direction:rtl">
+        ${wdNames.map(w=>`<div style="font-size:11px;color:var(--muted);padding:4px">${w}</div>`).join('')}`;
+      for (let i=0; i<dow; i++) html += '<div></div>';
+      for (let d=1; d<=daysInMonth; d++){
+        const holis = D.holidaysOf(jn.yy, jn.mm, d);
+        const isHol = holis.some(h=>h[3]==='holiday');
+        const isEv = holis.length>0;
+        const isToday = d === jn.dd;
+        const ev = events.filter(e => D.dateFrom(e.d).getUTCFullYear()===2026 && D.jalaliInfo(e.d).mm===jn.mm && D.jalaliInfo(e.d).dd===d);
+        const tip = holis.concat(ev.map(e=>({name:e.name, type:e.type==='تعطیل رسمی'?'holiday':'event', 3:e.type==='تعطیل رسمی'?'holiday':'event', 4:e.type==='تعطیل رسمی'?'holiday':'event'}))).map(h=>h.name).slice(0,3).join(' • ');
+        html += `<div class="cal-cell ${isHol?'holiday':''} ${isEv&&!isHol?'event':''} ${isToday?'today':''}">
+          <div class="cal-box" style="padding:8px 4px;border-radius:10px;border:1px solid ${isHol?'rgba(255,80,80,.3)':isToday?'rgba(212,175,55,.5)':'rgba(255,255,255,.06)'};background:${isHol?'rgba(255,80,80,.08)':isToday?'rgba(212,175,55,.08)':'transparent'};min-height:40px">
+            <div class="cal-num" style="font-weight:800;font-size:13px">${D.fa(d)}</div>
+            ${ev.length ? `<div style="font-size:8.5px;color:var(--green-l);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-top:2px">${esc(ev[0].name)}</div>`:''}
+          </div>
+          ${tip ? `<div class="holi-tip">${esc(tip)}</div>` : ''}
+        </div>`;
+      }
+      html += '</div>';
+      grid.innerHTML = html;
+    }
+    function renderCalSide(){
+      const jn = jalNow();
+      const side = $('#cal-side'); if (!side) return;
+      const list = D.IR_HOLIDAYS.filter(h => h[0] === jn.mm);
+      const customs = (MGMT.customEvents()||[]).filter(e => D.jalaliInfo(D.dateFrom(e.date)).mm === jn.mm);
+      const parts = [
+        ...list.map(h => `<div class="h-item"><span class="h-day">${D.fa(h[1])}</span><span style="flex:1">${esc(h[2])}</span><span class="chip ${h[3]==='holiday'?'red':'blue'}">${h[3]==='holiday'?'تعطیل':'مناسبت'}</span></div>`),
+        ...customs.map(e => `<div class="h-item"><span class="h-day">${D.fa(D.jalaliInfo(D.dateFrom(e.date)).dd)}</span><span style="flex:1"><b>${esc(e.name)}</b></span><span class="chip blue">سفارشی</span></div>`),
+      ];
+      side.innerHTML = parts.length ? `<div class="holi-list">${parts.join('')}</div>` : '<div style="color:var(--muted);font-size:12px;padding:6px">رویدادی در این ماه نیست.</div>';
+    }
   }
 
   /* ═══════════ صفحه: نمایش تلویزیونی ═══════════ */
   function pageTv(){
-    const v = $('#view');
+
+  if (!MGMT.getSettings().chTv){
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">📺 گرافیک نمایش تلویزیونی غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      return;
+    }    const v = $('#view');
     const next = A.NEXT_T;
     v.innerHTML = `
     <div class="tv-wrap">
@@ -779,7 +919,11 @@
 
   /* ═══════════ صفحه: میدان نبرد ═══════════ */
   function pageBattle(){
-    const v = $('#view');
+
+  if (!MGMT.getSettings().chBattle){
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">⚔️ میدان نبرد غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      return;
+    }    const v = $('#view');
     const teams = [
       ['🦅','عقابهای طلایی', [1,2,3,4], '#D4AF37'],
       ['🐆','یوزهای سبز', [5,6,7,8], '#1EBB8A'],
@@ -1210,6 +1354,7 @@
     course: pageCourse, records: pageRecords, cal: pageCal, tv: pageTv,
     battle: pageBattle, academy: pageAcademy,
     acourses: pageACourses, atournaments: pageATours, ascorecards: pageAScorecards,
+    mgmt: () => MGMT.pageMgmt(), settings: () => MGMT.pageSettings(),
   };
 
   /* ═══════════ بارگذاری مجدد ═══════════ */
@@ -1279,6 +1424,7 @@
     if (sess && USERS[sess]){
       enterApp(sess);
     }
-
   });
+
+  window.APP = { go, reloadData, recompute, state: () => ({ S, A }), toast };
 })();

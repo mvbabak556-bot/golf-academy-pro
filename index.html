@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>آکادمی گلف ۱۴۰۵ — داشبورد PRO</title>
 
-<style>/* ═══════════════════════════════ GolfAcademy PRO — Style ═══════════════════════════════ */
+    <style>/* ═══════════════════════════════ GolfAcademy PRO — Style ═══════════════════════════════ */
 :root{
   --bg:#0B0F14; --bg2:#101722; --panel:#131C29; --panel2:#18202D;
   --green:#007A5A; --green-l:#1EBB8A; --green-r:rgba(0,122,90,.25);
@@ -444,6 +444,94 @@ canvas.glow-canvas{filter:drop-shadow(0 0 6px rgba(212,175,55,.25))}
   font-family:Consolas,monospace;
 }
 </style>
+    <style>
+/* ═══════════════ پنل مدیریت جامع + تنظیمات نمایش ═══════════════ */
+
+/* ── تبهای پنل مدیریت ── */
+.mgmt-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.mgmt-tab{
+  padding:9px 16px;border-radius:12px;cursor:pointer;font-size:12.5px;font-weight:700;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);color:var(--muted);
+  transition:.2s;display:flex;gap:7px;align-items:center;
+}
+.mgmt-tab:hover{border-color:rgba(212,175,55,.35);color:var(--gold-l)}
+.mgmt-tab.on{background:linear-gradient(135deg,rgba(212,175,55,.16),rgba(0,122,90,.12));border-color:rgba(212,175,55,.5);color:var(--gold-l);box-shadow:0 0 18px rgba(212,175,55,.12)}
+
+/* ── کنترلهای کمکی ── */
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toolbar .lbl{font-size:12px;color:var(--muted);font-weight:600}
+.sel,.input,.input-sm{
+  background:rgba(8,14,22,.75);border:1px solid rgba(255,255,255,.1);color:var(--text);
+  border-radius:10px;padding:8px 12px;font-size:13px;font-family:inherit;outline:none;transition:.2s;
+}
+.sel:focus,.input:focus{border-color:rgba(30,187,138,.6);box-shadow:0 0 0 3px rgba(30,187,138,.12)}
+.sel option{background:#101722}
+.input-sm{width:64px;padding:6px 8px;text-align:center}
+.input:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── کارت تنظیمات نمایش ── */
+.set-row{
+  display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;
+  background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);margin-bottom:8px;transition:.2s;
+}
+.set-row:hover{border-color:rgba(30,187,138,.3)}
+.set-row.off{opacity:.5}
+.set-row .info{flex:1}
+.set-row .info b{font-size:13px}
+.set-row .info small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.switch{position:relative;width:44px;height:24px;flex-shrink:0;cursor:pointer}
+.switch input{opacity:0;width:0;height:0}
+.switch .trk{
+  position:absolute;inset:0;background:rgba(255,255,255,.12);border-radius:20px;transition:.25s;border:1px solid rgba(255,255,255,.08);
+}
+.switch .trk::after{
+  content:'';position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;
+  background:#F8FAFC;transition:.25s;
+}
+.switch input:checked + .trk{background:linear-gradient(135deg,#1EBB8A,#007A5A);border-color:rgba(30,187,138,.5)}
+.switch input:checked + .trk::after{transform:translateX(-20px);background:#fff}
+
+/* ── ردیف آیتم با اکشنها ── */
+.row-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.btn.sm.ghost{border-color:rgba(255,255,255,.12);color:var(--muted)}
+.btn.sm.ghost:hover{border-color:rgba(212,175,55,.5);color:var(--gold-l)}
+.btn.sm.danger{border-color:rgba(231,76,60,.35);color:#E74C3C;background:rgba(231,76,60,.08)}
+.btn.sm.danger:hover{background:rgba(231,76,60,.2);border-color:rgba(231,76,60,.7)}
+.btn.sm.green-ghost{border-color:rgba(30,187,138,.4);color:#1EBB8A;background:rgba(30,187,138,.07)}
+.btn.sm.green-ghost:hover{background:rgba(30,187,138,.18)}
+
+/* ── فرم ویرایش (فیلدها) ── */
+.edit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.edit-grid label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px}
+
+/* ── تقویم: خانه تعطیل ── */
+.cal-cell{position:relative}
+.cal-cell.holiday .cal-num{color:#ff7b72;font-weight:800}
+.cal-cell.holiday::after{
+  content:'★';position:absolute;top:2px;left:6px;font-size:10px;color:#ffd76e;opacity:.9;
+}
+.cal-cell.event .cal-num{color:#f1c40f}
+.cal-cell.event::after{
+  content:'•';position:absolute;top:1px;left:8px;font-size:12px;color:#e8c05a;
+}
+.cal-cell.today .cal-box{border-color:var(--gold-l);box-shadow:0 0 14px rgba(212,175,55,.25);background:rgba(212,175,55,.08)}
+.cal-cell .holi-tip{position:absolute;bottom:100%;right:50%;transform:translateX(50%);white-space:nowrap;z-index:30;display:none;background:#0d1520;border:1px solid rgba(212,175,55,.35);border-radius:8px;padding:6px 10px;font-size:10.5px;color:var(--gold-l);box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.cal-cell:hover .holi-tip{display:block}
+
+/* ── نمودار تقویم / لیست ── */
+.holi-list{display:flex;flex-direction:column;gap:6px}
+.holi-list .h-item{display:flex;gap:10px;align-items:center;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);font-size:12px}
+.holi-list .h-day{min-width:64px;font-weight:800;color:var(--gold-l)}
+.holi-list .h-tag{margin-right:auto}
+
+/* ── افزودن رویداد سفارشی ── */
+.ev-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;align-items:end}
+
+/* ── آمار جدولها ── */
+.tbl .num{font-variant-numeric:tabular-nums}
+.muted-sm{color:var(--muted);font-size:11.5px}
+.badge-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:5px;vertical-align:middle}
+</style>
 </head>
 <body>
 <div class="bg-mesh"></div>
@@ -497,17 +585,19 @@ canvas.glow-canvas{filter:drop-shadow(0 0 6px rgba(212,175,55,.25))}
     <div class="nav-item" data-page="battle"><span class="ico">⚔️</span>میدان نبرد</div>
     <div class="nav-item" data-page="academy"><span class="ico">🏫</span>پنل آکادمی</div>
 
-    <div class="nav-group">ابزار طراح</div>
-    <div class="nav-item" data-page="acourses"><span class="ico">🛠️</span>طراح زمین</div>
-    <div class="nav-item" data-page="atournaments"><span class="ico">🏆</span>طراح مسابقه</div>
-    <div class="nav-item" data-page="ascorecards"><span class="ico">⛳</span>ثبت نتایج</div>
+    <div class="nav-group">مدیریت</div>
+    <div class="nav-item" data-page="mgmt"><span class="ico">⚙️</span>پلن مدیریت</div>
+    <div class="nav-item" data-page="settings"><span class="ico">🛠️</span>تنظیمات نمایش</div>
 
     <div class="side-foot">
       <div class="user">
         <div><b id="user-label">مدیر</b></div>
         <div style="font-size:10.5px">@<span id="user-name">admin</span></div>
       </div>
-      <button class="btn ghost sm" id="logout-btn" style="width:auto">خروج ↺</button>
+      <div style="display:flex;gap:6px;width:100%">
+        <button class="btn sm" onclick="APP.go('mgmt')" style="flex:1;padding:7px 8px;font-size:11.5px">⚙️ پلن مدیریت</button>
+        <button class="btn ghost sm" id="logout-btn" style="flex:1;padding:7px 8px;font-size:11.5px">خروج ↺</button>
+      </div>
     </div>
   </aside>
 
@@ -565,6 +655,797 @@ canvas.glow-canvas{filter:drop-shadow(0 0 6px rgba(212,175,55,.25))}
 </div>
 <button id="back-world" class="btn ghost sm" title="بازگشت به دنیای سه‌بعدی">🌍 جهان</button>
 
+    <script>/* ═══════════════════════════════════════════════════════════════════
+   تقویم رسمی ایران ۱۴۰۵ — استخراجشده از time.ir (تقویم سالانه)
+   ساختار: [ماه(1-12), روز, نام, نوع]
+   نوع: 'holiday' تعطیل رسمی | 'event' مناسبت
+   ═══════════════════════════════════════════════════════════════════ */
+const IR_HOLIDAYS_1405 = [
+  // ── فروردین ──
+  [1,1,'جشن نوروز / جشن سال نو','holiday'],
+  [1,1,'عید سعید فطر','holiday'],
+  [1,2,'عید نوروز','holiday'],
+  [1,2,'تعطیل به مناسبت عید سعید فطر','holiday'],
+  [1,3,'عید نوروز','holiday'],
+  [1,4,'عید نوروز','holiday'],
+  [1,12,'روز جمهوری اسلامی ایران','holiday'],
+  [1,13,'جشن سیزده به در','holiday'],
+  [1,6,'روز امید، روز شادباش‌نویسی','event'],
+  [1,6,'زادروز اَشو زرتشت','event'],
+  [1,10,'جشن آبانگاه','event'],
+  [1,17,'جشن سروشگان','event'],
+  [1,19,'جشن فروردینگان','event'],
+  [1,25,'شهادت امام جعفر صادق (ع)','event'],
+  [1,29,'روز ارتش جمهوری اسلامی ایران','event'],
+  [1,30,'ولادت حضرت معصومه (س)، روز دختران','event'],
+  // ── اردیبهشت ──
+  [2,1,'روز بزرگداشت سعدی','event'],
+  [2,9,'ولادت امام رضا (ع)','event'],
+  [2,9,'روز ملی روانشناس و مشاور','event'],
+  [2,10,'روز ملی خلیج فارس','event'],
+  [2,12,'روز معلم','event'],
+  [2,22,'زادروز مریم میرزاخانی، روز جهانی زن در ریاضیات','event'],
+  [2,22,'روز جهانی پرستار','event'],
+  [2,25,'روز بزرگداشت فردوسی','event'],
+  [2,27,'شهادت امام محمد تقی (ع)','event'],
+  [2,28,'روز بزرگداشت حکیم عمر خیام','event'],
+  // ── خرداد ──
+  [3,3,'فتح خرمشهر، روز مقاومت، ایثار و پیروزی','event'],
+  [3,5,'روز عرفه','event'],
+  [3,6,'عید سعید قربان','holiday'],
+  [3,14,'رحلت حضرت امام خمینی','holiday'],
+  [3,14,'عید سعید غدیر خم','holiday'],
+  [3,15,'قیام ۱۵ خرداد','event'],
+  [3,15,'روز جهانی محیط زیست','event'],
+  [3,16,'ولادت امام موسی کاظم (ع)','event'],
+  // ── تیر ──
+  [4,3,'تاسوعای حسینی','holiday'],
+  [4,4,'عاشورای حسینی','holiday'],
+  [4,7,'انفجار دفتر حزب جمهوری اسلامی؛ روز قوه قضاییه','event'],
+  [4,13,'جشن تیرگان','event'],
+  [4,14,'روز قلم','event'],
+  [4,22,'زادروز محمد خوارزمی، روز ملی فناوری اطلاعات','event'],
+  [4,25,'روز بهزیستی و تأمین اجتماعی','event'],
+  // ── مرداد ──
+  [5,13,'اربعین حسینی','holiday'],
+  [5,17,'روز خبرنگار','event'],
+  [5,21,'رحلت رسول اکرم؛ شهادت امام حسن مجتبی (ع)','holiday'],
+  [5,22,'شهادت امام رضا (ع)','holiday'],
+  [5,23,'هجرت پیامبر اکرم (ص) از مکه به مدینه','event'],
+  [5,30,'شهادت امام حسن عسکری (ع)','event'],
+  // ── شهریور ──
+  [6,1,'روز بزرگداشت ابوعلی سینا و روز پزشک','event'],
+  [6,3,'میلاد رسول اکرم به روایت اهل سنت','event'],
+  [6,4,'زادروز کوروش بزرگ','event'],
+  [6,5,'روز بزرگداشت محمد بن زکریای رازی و روز داروساز','event'],
+  [6,8,'میلاد رسول اکرم و امام جعفر صادق (ع)','holiday'],
+  [6,8,'انفجار در دفتر نخست‌وزیری جمهوری اسلامی ایران، روز مبارزه با تروریسم','event'],
+  [6,12,'سالروز شهادت رئیس‌علی دلواری','event'],
+  [6,13,'روز بزرگداشت ابوریحان بیرونی','event'],
+  [6,21,'روز سینما','event'],
+  [6,22,'روز گرامیداشت برنامه‌نویسان','event'],
+  [6,27,'روز شعر و ادب پارسی، روز بزرگداشت استاد شهریار','event'],
+  [6,29,'ولادت امام حسن عسکری (ع)','event'],
+  [6,30,'روز جهانی صلح','event'],
+  [6,31,'آغاز هفته دفاع مقدس','event'],
+  // ── مهر ──
+  [7,1,'آغاز حمله مغول به ایران (۵۹۸ خورشیدی)','event'],
+  [7,4,'روز گرامیداشت سربازان وطن','event'],
+  [7,5,'روز جهانی جهانگردی','event'],
+  [7,7,'روز آتش‌نشانی و ایمنی','event'],
+  [7,8,'روز بزرگداشت مولوی','event'],
+  [7,10,'جشن مهرگان','event'],
+  [7,13,'روز جهانی معلم','event'],
+  [7,14,'روز دامپزشکی','event'],
+  [7,16,'روز ملی کودک','event'],
+  [7,20,'روز بزرگداشت حافظ','event'],
+  [7,24,'ولادت حضرت زینب (س) و روز پرستار','event'],
+  [7,26,'روز تربیت بدنی و ورزش','event'],
+  [7,29,'روز ملی کوهنورد','event'],
+  // ── آبان ──
+  [8,1,'روز آمار و برنامه‌ریزی','event'],
+  [8,1,'روز بزرگداشت ابوالفضل بیهقی','event'],
+  [8,10,'جشن آبانگان','event'],
+  [8,15,'جشن میانه پاییز','event'],
+  [8,18,'روز ملی کیفیت','event'],
+  [8,22,'شهادت حضرت فاطمه زهرا (س)','holiday'],
+  [8,24,'روز کتاب و کتاب‌خوانی','event'],
+  [8,29,'روز جهانی کودک','event'],
+  // ── آذر ──
+  [9,5,'روز بسیج مستضعفان','event'],
+  [9,7,'روز نیروی دریایی ارتش','event'],
+  [9,9,'جشن آذرگان','event'],
+  [9,9,'ولادت حضرت فاطمه زهرا (س) و روز مادر','event'],
+  [9,10,'روز جهانی ایدز','event'],
+  [9,12,'روز جهانی معلولان','event'],
+  [9,20,'ولادت امام محمد باقر (ع)','event'],
+  [9,25,'روز پژوهش و فناوری','event'],
+  [9,29,'ولادت امام محمد تقی (ع)','event'],
+  [9,30,'جشن شب یلدا، شب چله','event'],
+  // ── دی ──
+  [10,1,'جشن خرم‌روز، نخستین جشن دیگان','event'],
+  [10,2,'ولادت امام علی (ع) و روز پدر','event'],
+  [10,4,'جشن کریسمس','event'],
+  [10,5,'زمین‌لرزه بم','event'],
+  [10,13,'شهادت سردار حاج قاسم سلیمانی','event'],
+  [10,14,'شهادت امام موسی کاظم (ع)','event'],
+  [10,16,'مبعث رسول اکرم (ص)','holiday'],
+  [10,22,'ولادت سالار شهیدان امام حسین (ع) و روز پاسدار','event'],
+  [10,23,'ولادت حضرت ابوالفضل العباس (ع) و روز جانباز','event'],
+  [10,24,'ولادت امام زین‌العابدین (ع)','event'],
+  [10,30,'ولادت حضرت علی اکبر (ع) و روز جوان','event'],
+  // ── بهمن ──
+  [11,1,'زادروز فردوسی','event'],
+  [11,4,'ولادت حضرت قائم (عج) و جشن نیمه شعبان','holiday'],
+  [11,10,'جشن سده','event'],
+  [11,12,'بازگشت امام خمینی (ره) به ایران','event'],
+  [11,19,'روز نیروی هوایی','event'],
+  [11,22,'پیروزی انقلاب اسلامی','holiday'],
+  [11,25,'جشن ولنتاین','event'],
+  [11,29,'جشن سپندارمذگان و روز عشق','event'],
+  // ── اسفند ──
+  [12,3,'ولادت امام حسن مجتبی (ع)','event'],
+  [12,5,'روز بزرگداشت خواجه نصیرالدین طوسی و روز مهندس','event'],
+  [12,6,'شب قدر (۱۸ رمضان)','event'],
+  [12,7,'ضربت خوردن حضرت علی (ع)','event'],
+  [12,9,'شهادت حضرت علی (ع)','event'],
+  [12,10,'شب قدر (۲۲ رمضان)','event'],
+  [12,15,'روز درختکاری','event'],
+  [12,17,'روز جهانی زنان','event'],
+  [12,19,'عید سعید فطر','holiday'],
+  [12,20,'تعطیل به مناسبت عید سعید فطر','holiday'],
+  [12,29,'روز ملی شدن صنعت نفت ایران','event'],
+];
+window.IR_HOLIDAYS_1405 = IR_HOLIDAYS_1405;
+</script>
+    <script>/* ═══════════════════════════════════════════════════════════════════
+   GolfAcademy PRO — پنل مدیریت جامع + تنظیمات نمایش
+   CRUD کامل: بازیکن، زمین، مسابقه، نتایج، رویداد تقویم، نمایش نمودارها
+   ═══════════════════════════════════════════════════════════════════ */
+(function(){
+  const W = window;
+  const D = window.Data;
+  const $ = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+
+  /* ── تنظیمات نمایش نمودارها (localStorage) ── */
+  const DEFAULTS = {
+    chCmd: true, chMonthly: true, chRace: true, chRaceBars: true,
+    chPlayer: true, chPlayerRadar: true, chMatch: true, chCourse: true,
+    chRecords: true, chCal: true, chTv: true, chBattle: true,
+  };
+  function getSettings(){
+    try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem('ga_ui') || '{}')); }
+    catch(e){ return Object.assign({}, DEFAULTS); }
+  }
+  function saveSettings(s){
+    try { localStorage.setItem('ga_ui', JSON.stringify(s)); } catch(e){}
+    if (W.MGMT) W.MGMT.reloadUI();
+  }
+
+  /* ── رویدادهای سفارشی تقویم ── */
+  function customEvents(){
+    try { return JSON.parse(localStorage.getItem('ga_events') || '[]'); } catch(e){ return []; }
+  }
+  function saveEvents(a){ try { localStorage.setItem('ga_events', JSON.stringify(a)); } catch(e){} }
+
+  /* ── بازیکنان سفارشی (مدیر اضافه میکند) ── */
+  function customPlayers(){
+    try { return JSON.parse(localStorage.getItem('ga_custom_players') || '[]'); } catch(e){ return []; }
+  }
+  function saveCustomPlayers(a){ try { localStorage.setItem('ga_custom_players', JSON.stringify(a)); } catch(e){} }
+
+  /* ── ویرایش بازیکنان پایه ── */
+  function playerEdits(){
+    try { return JSON.parse(localStorage.getItem('ga_players') || '{}'); } catch(e){ return {}; }
+  }
+  function savePlayerEdits(e){ try { localStorage.setItem('ga_players', JSON.stringify(e)); } catch(e){} }
+
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function gstate(){
+    return (window.APP && window.APP.state) ? window.APP.state() : { S:null, A:null };
+  }
+
+  /* ═══════════════ صفحه: تنظیمات نمایش ═══════════════ */
+  function pageSettings(){
+    const v = $('#view');
+    const s = getSettings();
+    const groups = [
+      { t:'داشبورد و فرماندهی', items:[
+        ['chCmd','🏠 کارتهای آمار فرماندهی','نمایش ۸ کارت کلیدی در صفحهٔ فرماندهی'],
+        ['chMonthly','📈 نمودار امتیاز ماهانه','نمودار خطی امتیاز ماهها + انتخاب ماه'],
+      ]},
+      { t:'صفحات تحلیلی', items:[
+        ['chRace','🏁 نمودار رقابت فصل','بارها و خطوط رقابت در صفحهٔ رقابت فصل'],
+        ['chPlayer','🏌️ نمودارهای مرکز بازیکن','رادار مهارت + دونات فرم'],
+        ['chMatch','🥇 نمودار فرماندهی مسابقه','تحلیل مسابقه و امتیازات'],
+        ['chCourse','🗺️ نمودار هوش زمین','سختی حفرهها و کارنامه بازیکن'],
+        ['chRecords','🎖️ نمودار رکوردها','آمار رکوردها و بهترینها'],
+        ['chTv','📺 گرافیک نمایش تلویزیونی','گرافیک پخش و نمایشگرها'],
+        ['chBattle','⚔️ نمودار میدان نبرد','مقایسه دو تیم'],
+      ]},
+      { t:'تقویم', items:[
+        ['chCal','📅 تقویم و تعطیلات','نمایش تقویم + تعطیلات رسمی ایران ۱۴۰۵'],
+      ]},
+    ];
+    v.innerHTML = `
+    <div class="glass gold-border" style="margin-bottom:18px">
+      <div class="card-head"><span class="ic">🛠️</span><h3>تنظیمات نمایش — هر چیزی را فعال/غیرفعال کنید</h3><span class="tag">UI Controls</span></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn sm" id="st-all-on">همه فعال</button>
+        <button class="btn sm ghost" id="st-all-off">همه غیرفعال</button>
+        <span style="color:var(--muted);font-size:11.5px;align-self:center">تغییرات فوراً در همهٔ صفحات اعمال میشود</span>
+      </div>
+    </div>
+    ${groups.map(g => `
+      <div class="glass" style="margin-bottom:16px">
+        <div class="card-head"><span class="ic">⚙️</span><h3>${g.t}</h3><span class="tag">${g.items.filter(i=>s[i[0]]).length}/${g.items.length} فعال</span></div>
+        <div style="margin-top:10px">
+        ${g.items.map(([k, name, desc]) => `
+          <div class="set-row ${s[k] ? '' : 'off'}" data-k="${k}">
+            <span style="font-size:20px">${name.split(' ')[0]}</span>
+            <div class="info"><b>${name.replace(/^[^ ]+ /,'')}</b><small>${desc}</small></div>
+            <label class="switch"><input type="checkbox" data-set="${k}" ${s[k]?'checked':''}><span class="trk"></span></label>
+          </div>`).join('')}
+        </div>
+      </div>`).join('')}`;
+    $$('[data-set]').forEach(inp => inp.addEventListener('change', () => {
+      const k = inp.dataset.set;
+      s[k] = inp.checked;
+      saveSettings(s);
+      APP.toast('تنظیم نمایش ذخیره شد ✓', 'green');
+    }));
+    $('#st-all-on').addEventListener('click', () => { Object.keys(DEFAULTS).forEach(k => s[k]=true); saveSettings(s); APP.go('settings'); APP.toast('همهٔ نمودارها فعال شدند ✓', 'green'); });
+    $('#st-all-off').addEventListener('click', () => { Object.keys(DEFAULTS).forEach(k => s[k]=false); saveSettings(s); APP.go('settings'); APP.toast('همهٔ نمودارها غیرفعال شدند', 'orange'); });
+  }
+
+  /* ═══════════════ صفحه: پلن مدیریت (تبها) ═══════════════ */
+  let mgmtTab = 'players';
+  function pageMgmt(){
+    const v = $('#view');
+    const tabs = [
+      ['players','👥','بازیکنان'], ['courses','🗺️','زمینها'], ['tournaments','🏆','مسابقات'],
+      ['results','⛳','نتایج'], ['calendar','📅','تقویم'],
+    ];
+    v.innerHTML = `
+    <div class="glass gold-border" style="margin-bottom:18px">
+      <div class="card-head"><span class="ic">⚙️</span><h3>پلن مدیریت — ساخت، ویرایش، حذف</h3><span class="tag">Admin PRO</span></div>
+      <div class="mgmt-tabs">
+        ${tabs.map(([id,ic,n]) => `<div class="mgmt-tab ${mgmtTab===id?'on':''}" data-tab="${id}">${ic} ${n}</div>`).join('')}
+      </div>
+    </div>
+    <div id="mgmt-body"></div>`;
+    $$('.mgmt-tab').forEach(t => t.addEventListener('click', () => { mgmtTab = t.dataset.tab; APP.go('mgmt'); }));
+    renderMgmtTab();
+  }
+
+  function renderMgmtTab(){
+    const body = $('#mgmt-body'); if (!body) return;
+    if (mgmtTab === 'players') mgmtPlayers(body);
+    else if (mgmtTab === 'courses') mgmtCourses(body);
+    else if (mgmtTab === 'tournaments') mgmtTournaments(body);
+    else if (mgmtTab === 'results') mgmtResults(body);
+    else if (mgmtTab === 'calendar') mgmtCalendar(body);
+  }
+
+  /* ── تب بازیکنان ── */
+  function mgmtPlayers(body){
+    const edits = playerEdits();
+    const S = gstate().S, A = gstate().A;
+    const players = S.players; // includes custom + edits applied
+    body.innerHTML = `
+    <div class="glass gold-border" style="margin-bottom:16px">
+      <div class="card-head"><span class="ic">➕</span><h3>ثبت بازیکن جدید</h3><span class="tag">Custom</span></div>
+      <div class="edit-grid" style="margin-top:10px">
+        <div><label>نام و نام خانوادگی</label><input class="input" id="np-name" style="width:100%" placeholder="نام بازیکن"></div>
+        <div><label>جنسیت</label><select class="sel" id="np-gender" style="width:100%"><option>مرد</option><option>زن</option></select></div>
+        <div><label>هندیکپ</label><input class="input" type="number" id="np-hcp" value="10" min="0" max="36" style="width:100%"></div>
+        <div><label>تاریخ عضویت</label><input class="input" id="np-join" type="date" value="${new Date().toISOString().slice(0,10)}" style="width:100%;direction:ltr"></div>
+      </div>
+      <button class="btn sm" id="np-add" style="margin-top:12px">+ ثبت بازیکن</button>
+    </div>
+    <div class="glass">
+      <div class="card-head"><span class="ic">👥</span><h3>بازیکنان آکادمی</h3><span class="tag">${D.fa(players.length)} نفر</span></div>
+      <div class="toolbar" style="margin:10px 0">
+        <input class="input" id="pl-search" placeholder="🔍 جستجو در نام..." style="width:220px">
+        <select class="sel" id="pl-filter"><option value="">همه</option><option value="active">فعال</option><option value="inactive">غیرفعال</option></select>
+      </div>
+      <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>#</th><th>بازیکن</th><th>هندیکپ</th><th>وضعیت</th><th>رنک</th><th>عملیات</th></tr></thead><tbody id="pl-rows"></tbody></table></div>
+    </div>`;
+
+    function renderRows(){
+      const q = ($('#pl-search').value || '').trim();
+      const f = $('#pl-filter').value;
+      const rows = players.filter(p => {
+        if (f === 'active' && !p[5]) return false;
+        if (f === 'inactive' && p[5]) return false;
+        if (q && !p[1].includes(q)) return false;
+        return true;
+      });
+      $('#pl-rows').innerHTML = rows.map((p,i) => {
+        const rankRow = A.LB.find(r => r.pid === p[0]);
+        const rank = rankRow ? rankRow.color : 'White';
+        const col = D.RANK_DEF.find(r=>r[0]===rank)[3];
+        const isCustom = p[0] >= 9000;
+        const ed = edits[p[0]];
+        return `<tr data-pid="${p[0]}" ${p[5]?'':'style="opacity:.55"'}>
+          <td class="num">${D.fa(p[0])}</td>
+          <td><b>${esc(p[1])}</b> ${isCustom?'<span class="chip purple">جدید</span>':(ed?'<span class="chip blue">ویرایش</span>':'')}</td>
+          <td class="num">${D.fa(p[3])}</td>
+          <td><span class="chip ${p[5]?'green':'dim'}">${p[5]?'فعال':'غیرفعال'}</span></td>
+          <td><span class="rank-pill" style="background:${col}22;color:${col};border:1px solid ${col}55">${D.RANK_TEXT[rank]}</span></td>
+          <td><div class="row-actions">
+            <button class="btn sm ghost" data-act="edit" data-p="${p[0]}">✏️ ویرایش</button>
+            ${p[5] ? `<button class="btn sm ghost" data-act="deact" data-p="${p[0]}">⛔ غیرفعال</button>` : `<button class="btn sm green-ghost" data-act="act" data-p="${p[0]}">✔ فعال</button>`}
+            ${isCustom ? `<button class="btn sm danger" data-act="del" data-p="${p[0]}">🗑 حذف</button>` : ''}
+          </div></td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted)">بازیکنی یافت نشد</td></tr>';
+    }
+    renderRows();
+    $('#pl-search').addEventListener('input', renderRows);
+    $('#pl-filter').addEventListener('change', renderRows);
+
+    $('#np-add').addEventListener('click', () => {
+      const name = $('#np-name').value.trim();
+      if (!name){ APP.toast('نام بازیکن را وارد کنید', 'red'); return; }
+      const lst = customPlayers();
+      const id = 9000 + (lst.length ? Math.max(...lst.map(p=>p.id)) - 9000 + 1 : 0);
+      lst.push({ id, name, gender: $('#np-gender').value, hcp: +$('#np-hcp').value || 10, join: $('#np-join').value, active: true });
+      saveCustomPlayers(lst);
+      APP.reloadData(); APP.go('mgmt');
+      APP.toast('بازیکن «' + name + '» ثبت شد ✓', 'green');
+    });
+
+    body.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => {
+      const pid = +b.dataset.p, act = b.dataset.act;
+      const p = S.players.find(x => x[0] === pid);
+      if (act === 'deact' || act === 'act'){
+        if (p[0] >= 9000){
+          const lst = customPlayers();
+          const c = lst.find(x => x.id === p[0] - 9000);
+          if (c) c.active = act === 'act';
+          saveCustomPlayers(lst);
+        } else {
+          edits[p[0]] = edits[p[0]] || {};
+          edits[p[0]].active = act === 'act';
+          savePlayerEdits(edits);
+        }
+        APP.reloadData(); APP.go('mgmt');
+        APP.toast(act === 'deact' ? 'بازیکن غیرفعال شد ⛔' : 'بازیکن فعال شد ✓', act === 'deact' ? 'orange' : 'green');
+      }
+      if (act === 'del'){
+        const lst = customPlayers().filter(x => x.id !== p[0] - 9000);
+        saveCustomPlayers(lst);
+        APP.reloadData(); APP.go('mgmt');
+        APP.toast('بازیکن حذف شد 🗑', 'orange');
+      }
+      if (act === 'edit'){
+        editPlayerModal(pid);
+      }
+    }));
+  }
+
+  function editPlayerModal(pid){
+    const p = S.players.find(x => x[0] === pid);
+    const S = gstate().S, A = gstate().A;
+    if (!p) return;
+    const edits = playerEdits();
+    const ed = edits[pid] || {};
+    const isCustom = pid >= 9000;
+    const cur = {
+      name: isCustom ? customPlayers().find(x=>x.id===pid-9000)?.name : (ed.name || p[1]),
+      gender: isCustom ? customPlayers().find(x=>x.id===pid-9000)?.gender : (ed.gender || p[2]),
+      hcp: ed.hcp !== undefined ? ed.hcp : p[3],
+    };
+    // modal overlay
+    let m = $('#modal-edit');
+    if (!m){
+      m = document.createElement('div');
+      m.id = 'modal-edit';
+      m.style.cssText = 'position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(4,8,14,.7);backdrop-filter:blur(6px)';
+      document.body.appendChild(m);
+      m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
+    }
+    m.innerHTML = `
+    <div class="glass gold-border" style="width:min(520px,92vw);padding:22px">
+      <div class="card-head"><span class="ic">✏️</span><h3>ویرایش بازیکن — ${esc(cur.name)}</h3><span class="tag">${isCustom?'جدید':'پایه'}</span></div>
+      <div class="edit-grid" style="margin-top:12px">
+        <div style="grid-column:span 2"><label>نام و نام خانوادگی</label><input class="input" id="ep-name" style="width:100%" value="${esc(cur.name)}"></div>
+        <div><label>جنسیت</label><select class="sel" id="ep-gender" style="width:100%"><option ${cur.gender==='مرد'?'selected':''}>مرد</option><option ${cur.gender==='زن'?'selected':''}>زن</option></select></div>
+        <div><label>هندیکپ</label><input class="input" id="ep-hcp" type="number" min="0" max="36" value="${esc(cur.hcp)}" style="width:100%"></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end">
+        <button class="btn sm ghost" id="ep-cancel">انصراف</button>
+        <button class="btn sm" id="ep-save">💾 ذخیره تغییرات</button>
+      </div>
+    </div>`;
+    m.style.display = 'flex';
+    $('#ep-cancel').addEventListener('click', () => m.style.display = 'none');
+    $('#ep-save').addEventListener('click', () => {
+      const name = $('#ep-name').value.trim();
+      if (!name){ APP.toast('نام نمیتواند خالی باشد', 'red'); return; }
+      const hcp = Math.max(0, Math.min(36, +$('#ep-hcp').value || 10));
+      const gender = $('#ep-gender').value;
+      if (isCustom){
+        const lst = customPlayers();
+        const c = lst.find(x => x.id === pid - 9000);
+        if (c){ c.name = name; c.hcp = hcp; c.gender = gender; }
+        saveCustomPlayers(lst);
+      } else {
+        edits[pid] = Object.assign({}, edits[pid], { name, hcp, gender });
+        savePlayerEdits(edits);
+      }
+      APP.reloadData(); APP.go('mgmt');
+      APP.toast('مشخصات بازیکن ذخیره شد ✓', 'green');
+    });
+  }
+
+  /* ── تب زمینها ── */
+  function mgmtCourses(body){
+    body.innerHTML = `
+    const S = gstate().S;
+    <div class="glass gold-border" style="margin-bottom:16px">
+      <div class="card-head"><span class="ic">➕</span><h3>طراح زمین — ثبت زمین جدید</h3><span class="tag">3 / 9 / 18</span></div>
+      <div class="grid cols-4" style="margin-top:10px">
+        <div><label style="font-size:11px;color:var(--muted)">نام زمین</label><input class="input" id="mc-name" style="width:100%;margin-top:5px" placeholder="زمین جدید"></div>
+        <div><label style="font-size:11px;color:var(--muted)">محل</label><input class="input" id="mc-loc" style="width:100%;margin-top:5px" value="ریاض"></div>
+        <div><label style="font-size:11px;color:var(--muted)">تعداد میدان</label>
+          <select class="sel" id="mc-holes" style="width:100%;margin-top:5px"><option>3</option><option>9</option><option selected>18</option></select></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn sm" id="mc-add">+ ثبت زمین</button></div>
+      </div>
+      <div id="mc-pars" style="margin-top:14px;display:flex;gap:7px;flex-wrap:wrap"></div>
+    </div>
+    <div class="glass">
+      <div class="card-head"><span class="ic">🗺️</span><h3>زمینهای آکادمی</h3><span class="tag">${D.fa(S.courses.length)} زمین</span></div>
+      <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>#</th><th>نام</th><th>محل</th><th>میدان</th><th>پار کل</th><th>عملیات</th></tr></thead><tbody id="mc-rows"></tbody></table></div>
+    </div>`;
+    const baseCourses = D.COURSES.map((c,i) => ({ id:c[0], name:c[1], loc:c[2], holes:c[3], pars:D.COURSE_PARS[c[0]], base:true }));
+    const extra = extraCourses();
+    const rows = baseCourses.concat(extra.map((c,i) => ({ id:1000+i, name:c.name, loc:c.loc, holes:c.holes, pars:c.pars, base:false, idx:i })));
+    $('#mc-rows').innerHTML = rows.map((r,i) => `<tr>
+      <td class="num">${D.fa(r.id)}</td><td><b>${esc(r.name)}</b> ${r.base?'<span class="chip dim">پایه</span>':'<span class="chip purple">سفارشی</span>'}</td>
+      <td>${esc(r.loc)}</td><td class="num">${D.fa(r.holes)}</td>
+      <td class="num" style="color:var(--gold-l)">${D.fa(r.pars.reduce((a,b)=>a+b,0))}</td>
+      <td><div class="row-actions">
+        <button class="btn sm ghost" data-act="editc" data-idx="${i}">✏️ ویرایش</button>
+        ${r.base ? '' : `<button class="btn sm danger" data-act="delc" data-idx="${r.idx}">🗑 حذف</button>`}
+      </div></td></tr>`).join('');
+    let parVals = [];
+    function drawPars(){
+      const n = +$('#mc-holes').value;
+      if (parVals.length !== n) parVals = Array.from({length:n}, () => 4);
+      $('#mc-pars').innerHTML = parVals.map((p,i) => `
+        <div style="text-align:center">
+          <div style="font-size:10px;color:var(--muted)">ح${D.fa(i+1)}</div>
+          <input class="input" type="number" min="3" max="6" value="${p}" data-i="${i}" style="width:58px;text-align:center;direction:ltr">
+        </div>`).join('');
+      $$('#mc-pars input').forEach(inp => inp.addEventListener('change', () => { parVals[+inp.dataset.i] = Math.max(3, Math.min(6, +inp.value || 4)); }));
+    }
+    drawPars();
+    $('#mc-holes').addEventListener('change', drawPars);
+    $('#mc-add').addEventListener('click', () => {
+      const name = $('#mc-name').value.trim();
+      if (!name){ APP.toast('نام زمین را وارد کنید', 'red'); return; }
+      const holes = +$('#mc-holes').value;
+      const pars = parVals.slice(0, holes);
+      extra.push({ name, loc: $('#mc-loc').value.trim() || 'ریاض', holes, pars });
+      saveCourses(extra); APP.reloadData(); APP.go('mgmt'); mgmtTab = 'courses'; APP.toast('زمین «' + name + '» ثبت شد ✓', 'green');
+    });
+    body.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => {
+      const act = b.dataset.act, idx = +b.dataset.idx;
+      if (act === 'delc'){
+        const lst = extraCourses(); lst.splice(idx,1); saveCourses(lst); APP.reloadData(); APP.go('mgmt'); mgmtTab='courses'; APP.toast('زمین حذف شد 🗑','orange');
+      }
+      if (act === 'editc') editCourseModal(rows[idx]);
+    }));
+  }
+
+  function editCourseModal(r){
+    let m = $('#modal-edit');
+    if (!m){
+      m = document.createElement('div');
+      m.id = 'modal-edit';
+      m.style.cssText = 'position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(4,8,14,.7);backdrop-filter:blur(6px)';
+      document.body.appendChild(m);
+      m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
+    }
+    m.innerHTML = `
+    <div class="glass gold-border" style="width:min(600px,94vw);padding:22px;max-height:90vh;overflow:auto">
+      <div class="card-head"><span class="ic">✏️</span><h3>ویرایش زمین — ${esc(r.name)}</h3><span class="tag">${r.base?'پایه':'سفارشی'}</span></div>
+      <div class="edit-grid" style="margin-top:12px">
+        <div><label>نام</label><input class="input" id="ec-name" style="width:100%" value="${esc(r.name)}"></div>
+        <div><label>محل</label><input class="input" id="ec-loc" style="width:100%" value="${esc(r.loc)}"></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:7px;flex-wrap:wrap" id="ec-pars">
+        ${r.pars.map((p,i) => `
+          <div style="text-align:center">
+            <div style="font-size:10px;color:var(--muted)">ح${D.fa(i+1)}</div>
+            <input class="input" type="number" min="3" max="6" value="${p}" data-i="${i}" style="width:58px;text-align:center;direction:ltr">
+          </div>`).join('')}
+      </div>
+      <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end">
+        <button class="btn sm ghost" id="ec-cancel">انصراف</button>
+        <button class="btn sm" id="ec-save">💾 ذخیره</button>
+      </div>
+    </div>`;
+    m.style.display = 'flex';
+    $('#ec-cancel').addEventListener('click', () => m.style.display = 'none');
+    $('#ec-save').addEventListener('click', () => {
+      const name = $('#ec-name').value.trim();
+      if (!name){ APP.toast('نام زمین را وارد کنید','red'); return; }
+      const pars = $$('#ec-pars input').map(inp => Math.max(3, Math.min(6, +inp.value || 4)));
+      if (r.base){
+        // برای زمین پایه: نسخهٔ سفارشی جایگزین در PAR_MAP ذخیره میشود
+        let overrides = {};
+        try { overrides = JSON.parse(localStorage.getItem('ga_course_override') || '{}'); } catch(e){}
+        overrides[r.id] = { name, loc, pars };
+        localStorage.setItem('ga_course_override', JSON.stringify(overrides));
+        // به PAR_MAP اضافه کن
+        if (window.Data) D.PAR_MAP && (D.PAR_MAP[r.id] = pars);
+      } else {
+        const lst = extraCourses();
+        const c = lst[r.idx];
+        if (c){ c.name = name; c.loc = $('#ec-loc').value.trim(); c.pars = pars; }
+        saveCourses(lst);
+      }
+      APP.reloadData(); APP.go('mgmt'); mgmtTab='courses';
+      APP.toast('زمین ذخیره شد ✓', 'green');
+    });
+  }
+
+  /* ── تب مسابقات ── */
+  function mgmtTournaments(body){
+    body.innerHTML = `
+    const S = gstate().S;
+    <div class="glass gold-border" style="margin-bottom:16px">
+      <div class="card-head"><span class="ic">➕</span><h3>طراح مسابقه — ثبت مسابقه جدید</h3><span class="tag">زمین + حفره + سطح</span></div>
+      <div class="grid cols-6" style="margin-top:10px">
+        <div style="grid-column:span 2"><label style="font-size:11px;color:var(--muted)">نام مسابقه</label><input class="input" id="mt-name" style="width:100%;margin-top:5px" placeholder="جام جدید"></div>
+        <div><label style="font-size:11px;color:var(--muted)">سطح</label><select class="sel" id="mt-lvl" style="width:100%;margin-top:5px"><option value="1">سطح ۱</option><option value="2" selected>سطح ۲</option><option value="3">سطح ۳</option></select></div>
+        <div><label style="font-size:11px;color:var(--muted)">زمین</label><select class="sel" id="mt-crs" style="width:100%;margin-top:5px">${S.courses.map(c=>`<option value="${c[0]}">${esc(c[1])}</option>`).join('')}</select></div>
+        <div><label style="font-size:11px;color:var(--muted)">حفره</label><select class="sel" id="mt-holes" style="width:100%;margin-top:5px"><option>9</option><option selected>18</option></select></div>
+        <div><label style="font-size:11px;color:var(--muted)">تاریخ</label><input class="input" id="mt-date" type="date" value="2026-09-25" style="width:100%;margin-top:5px;direction:ltr"></div>
+      </div>
+      <button class="btn sm" id="mt-add" style="margin-top:14px">+ ثبت مسابقه</button>
+    </div>
+    <div class="glass">
+      <div class="card-head"><span class="ic">📅</span><h3>مسابقات فصل</h3><span class="tag">${D.fa(S.tournaments.length)} رویداد</span></div>
+      <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>#</th><th>نام</th><th>سطح</th><th>زمین</th><th>تاریخ</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody id="mt-rows"></tbody></table></div>
+    </div>`;
+    const base = D.TOURNAMENTS.map((t,i) => ({ t, base:true }));
+    const extra = extraTours().map((t,i) => ({ t: [1000+i, t.name, +t.lvl, +t.course, +t.holes, t.date], base:false, idx:i }));
+    const rows = base.concat(extra);
+    $('#mt-rows').innerHTML = rows.map(({t, base, idx}) => {
+      const past = D.dateFrom(t[5]) < D.TODAY;
+      const j = D.jalaliInfo(D.dateFrom(t[5]));
+      return `<tr>
+        <td class="num">${D.fa(t[0])}</td><td><b>${esc(t[1])}</b> ${base?'<span class="chip dim">پایه</span>':'<span class="chip purple">سفارشی</span>'}</td>
+        <td><span class="chip ${t[2]===1?'gold':t[2]===2?'green':'blue'}">سطح ${D.fa(t[2])}</span></td>
+        <td style="color:var(--muted)">${esc(D.COURSE_NAME[t[3]]||'—')}</td>
+        <td class="ltr" style="color:var(--muted);font-size:11.5px">${D.fa(j.dd)} ${j.monthFa}</td>
+        <td><span class="chip ${past?'dim':'green'}">${past?'برگزار شده':'آینده'}</span></td>
+        <td><div class="row-actions">
+          <button class="btn sm ghost" data-act="editt" data-idx="${idx}">✏️</button>
+          ${base ? '' : `<button class="btn sm danger" data-act="delt" data-idx="${idx}">🗑</button>`}
+        </div></td></tr>`;
+    }).join('');
+    $('#mt-add').addEventListener('click', () => {
+      const name = $('#mt-name').value.trim();
+      const date = $('#mt-date').value;
+      if (!name || !date){ APP.toast('نام و تاریخ را وارد کنید', 'red'); return; }
+      extra.push({ name, lvl: +$('#mt-lvl').value, course: +$('#mt-crs').value, holes: +$('#mt-holes').value, date });
+      saveTours(extra); APP.reloadData(); APP.go('mgmt'); mgmtTab='tournaments';
+      APP.toast('مسابقه «' + name + '» ثبت شد ✓', 'green');
+    });
+    body.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => {
+      const act = b.dataset.act, idx = +b.dataset.idx;
+      if (act === 'delt'){
+        const lst = extraTours(); lst.splice(idx,1); saveTours(lst); APP.reloadData(); APP.go('mgmt'); mgmtTab='tournaments'; APP.toast('مسابقه حذف شد 🗑','orange');
+      }
+      if (act === 'editt'){
+        const { t, base, idx } = rows.find((r,i) => i === idx);
+        editTourModal(t, base, idx);
+      }
+    }));
+  }
+
+  function editTourModal(t, base, idx){
+    const S = gstate().S;
+    let m = $('#modal-edit');
+    if (!m){
+      m = document.createElement('div');
+      m.id = 'modal-edit';
+      m.style.cssText = 'position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(4,8,14,.7);backdrop-filter:blur(6px)';
+      document.body.appendChild(m);
+      m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
+    }
+    m.innerHTML = `
+    <div class="glass gold-border" style="width:min(560px,94vw);padding:22px">
+      <div class="card-head"><span class="ic">✏️</span><h3>ویرایش مسابقه — ${esc(t[1])}</h3><span class="tag">${base?'پایه':'سفارشی'}</span></div>
+      <div class="edit-grid" style="margin-top:12px">
+        <div><label>نام</label><input class="input" id="et-name" style="width:100%" value="${esc(t[1])}"></div>
+        <div><label>تاریخ</label><input class="input" id="et-date" type="date" value="${t[5]}" style="width:100%;direction:ltr"></div>
+        <div><label>سطح</label><select class="sel" id="et-lvl" style="width:100%"><option value="1" ${t[2]===1?'selected':''}>سطح ۱</option><option value="2" ${t[2]===2?'selected':''}>سطح ۲</option><option value="3" ${t[2]===3?'selected':''}>سطح ۳</option></select></div>
+        <div><label>زمین</label><select class="sel" id="et-crs" style="width:100%">${S.courses.map(c=>`<option value="${c[0]}" ${c[0]===t[3]?'selected':''}>${esc(c[1])}</option>`).join('')}</select></div>
+        <div><label>حفره</label><select class="sel" id="et-holes" style="width:100%"><option ${t[4]===9?'selected':''}>9</option><option ${t[4]===18?'selected':''}>18</option></select></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end">
+        <button class="btn sm ghost" id="et-cancel">انصراف</button>
+        <button class="btn sm" id="et-save">💾 ذخیره</button>
+      </div>
+    </div>`;
+    m.style.display = 'flex';
+    $('#et-cancel').addEventListener('click', () => m.style.display = 'none');
+    $('#et-save').addEventListener('click', () => {
+      const name = $('#et-name').value.trim();
+      if (!name){ APP.toast('نام مسابقه را وارد کنید','red'); return; }
+      const data = { name, date: $('#et-date').value, lvl: +$('#et-lvl').value, course: +$('#et-crs').value, holes: +$('#et-holes').value };
+      if (base){
+        let ov = {};
+        try { ov = JSON.parse(localStorage.getItem('ga_tour_override') || '{}'); } catch(e){}
+        ov[t[0]] = data;
+        localStorage.setItem('ga_tour_override', JSON.stringify(ov));
+      } else {
+        const lst = extraTours();
+        if (lst[idx]) Object.assign(lst[idx], data);
+        saveTours(lst);
+      }
+      APP.reloadData(); APP.go('mgmt'); mgmtTab='tournaments';
+      APP.toast('مسابقه ذخیره شد ✓', 'green');
+    });
+  }
+
+  /* ── تب نتایج ── */
+  function mgmtResults(body){
+    const pastTours = S.tournaments.filter(t => D.dateFrom(t[5]) < D.TODAY);
+    const S = gstate().S;
+    body.innerHTML = `
+    <div class="glass gold-border" style="margin-bottom:16px">
+      <div class="card-head"><span class="ic">⛳</span><h3>ثبت نتیجه — ضربات هر میدان</h3><span class="tag">امتیاز و رتبه خودکار</span></div>
+      <div class="toolbar" style="margin-top:10px">
+        <span class="lbl">مسابقه:</span>
+        <select class="sel" id="mr-tour">${pastTours.map(t=>`<option value="${t[0]}">${esc(t[1])}</option>`).join('')}</select>
+        <span class="lbl">بازیکن:</span>
+        <select class="sel" id="mr-pl">${S.players.filter(p=>p[5]).map(p=>`<option value="${p[0]}">${esc(p[1])}</option>`).join('')}</select>
+      </div>
+      <div id="mr-holes" style="display:flex;gap:7px;flex-wrap:wrap;margin:14px 0"></div>
+      <button class="btn sm" id="mr-add">+ ثبت کارت امتیاز</button>
+    </div>
+    <div class="glass">
+      <div class="card-head"><span class="ic">📋</span><h3>کارتهای ثبتشده</h3><span class="tag">${D.fa(extraCards().length)} کارت</span></div>
+      <div id="mr-list"></div>
+    </div>`;
+    let holeVals = [];
+    function drawHoles(){
+      const t = S.tournaments.find(x => x[0] === +$('#mr-tour').value);
+      const n = t ? t[4] : 9;
+      const pars = t ? D.parsOf(t[3]) : [];
+      holeVals = Array.from({length:n}, () => '');
+      $('#mr-holes').innerHTML = Array.from({length:n}, (_,i) => `
+        <div style="text-align:center">
+          <div style="font-size:10px;color:var(--muted)">ح${D.fa(i+1)} <small style="color:var(--gold-l)">پ${D.fa(pars[i])}</small></div>
+          <input class="input" type="number" min="1" max="12" data-i="${i}" style="width:52px;text-align:center;direction:ltr" placeholder="—">
+        </div>`).join('');
+      $$('#mr-holes input').forEach(inp => inp.addEventListener('input', () => { holeVals[+inp.dataset.i] = +inp.value || null; }));
+    }
+    drawHoles();
+    $('#mr-tour').addEventListener('change', drawHoles);
+    $('#mr-add').addEventListener('click', () => {
+      const tour = +$('#mr-tour').value, pid = +$('#mr-pl').value;
+      const t = S.tournaments.find(x => x[0] === tour);
+      const strokes = {};
+      let ok = 0;
+      for (let h = 1; h <= t[4]; h++){
+        const val = holeVals[h-1];
+        if (val !== null && val > 0){ strokes[h] = val; ok++; }
+      }
+      if (ok < t[4]){ APP.toast('همهٔ میدانها را پر کنید', 'red'); return; }
+      const lst = extraCards();
+      lst.push({ tour, pid, strokes });
+      saveCards(lst); APP.reloadData(); APP.go('mgmt'); mgmtTab='results';
+      APP.toast('کارت ثبت شد — رتبه و امتیاز خودکار محاسبه شد ✓', 'green');
+    });
+    const lst = extraCards();
+    $('#mr-list').innerHTML = lst.length ? `<table class="tbl"><thead><tr><th>مسابقه</th><th>بازیکن</th><th>ضربات</th><th>عملیات</th></tr></thead><tbody>
+      ${lst.map((c,i) => {
+        const t = S.tournaments.find(x=>x[0]===c.tour);
+        const total = Object.values(c.strokes).reduce((a,b)=>a+b,0);
+        return `<tr><td>${esc(t?t[1]:'—')}</td><td><b>${esc(D.PLAYER_NAME[c.pid]||'—')}</b></td>
+        <td class="num" style="color:var(--gold-l)">${D.fa(total)}</td>
+        <td><div class="row-actions"><button class="btn sm ghost" data-act="editr" data-i="${i}">✏️</button><button class="btn sm danger" data-act="delr" data-i="${i}">🗑</button></div></td></tr>`;
+      }).join('')}</tbody></table>` : '<div style="color:var(--muted);font-size:12.5px;padding:8px">هنوز کارتی ثبت نشده است.</div>';
+    body.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => {
+      const i = +b.dataset.i, act = b.dataset.act;
+      if (act === 'delr'){ const a = extraCards(); a.splice(i,1); saveCards(a); APP.reloadData(); APP.go('mgmt'); mgmtTab='results'; APP.toast('کارت حذف شد 🗑','orange'); }
+      if (act === 'editr'){
+        const c = lst[i];
+        $('#mr-tour').value = String(c.tour);
+        $('#mr-pl').value = String(c.pid);
+        drawHoles();
+        $$('#mr-holes input').forEach(inp => {
+          const h = +inp.dataset.i + 1;
+          inp.value = c.strokes[h] || '';
+          holeVals[+inp.dataset.i] = c.strokes[h] || null;
+        });
+        const a = extraCards(); a.splice(i,1); saveCards(a);
+        APP.toast('کارت برای ویرایش باز شد — دوباره ثبت کنید', 'gold');
+      }
+    }));
+  }
+
+  /* ── تب تقویم ── */
+  function mgmtCalendar(body){
+    body.innerHTML = `
+    const S = gstate().S;
+    <div class="glass gold-border" style="margin-bottom:16px">
+      <div class="card-head"><span class="ic">➕</span><h3>افزودن رویداد به تقویم</h3><span class="tag">Custom Event</span></div>
+      <div class="ev-form" style="margin-top:10px">
+        <div><label style="font-size:11px;color:var(--muted)">نام رویداد</label><input class="input" id="me-name" style="width:100%" placeholder="مثلاً: اردوی هفتگی"></div>
+        <div><label style="font-size:11px;color:var(--muted)">تاریخ</label><input class="input" id="me-date" type="date" style="width:100%;direction:ltr"></div>
+        <div><label style="font-size:11px;color:var(--muted)">نوع</label><select class="sel" id="me-type" style="width:100%">
+          <option value="مسابقه">🏆 مسابقه</option><option value="تمرین">🏌️ تمرین</option><option value="کلاس">📚 کلاس</option><option value="اردو">⛺ اردو</option><option value="دیگر">📌 دیگر</option>
+        </select></div>
+        <button class="btn sm" id="me-add" style="align-self:end">+ افزودن</button>
+      </div>
+    </div>
+    <div class="glass">
+      <div class="card-head"><span class="ic">🗓️</span><h3>رویدادهای سفارشی تقویم</h3><span class="tag">${D.fa(customEvents().length)} رویداد</span></div>
+      <div id="me-list" style="margin-top:8px"></div>
+    </div>
+    <div class="glass" style="margin-top:16px">
+      <div class="card-head"><span class="ic">🇮🇷</span><h3>تعطیلات رسمی و مناسبتهای ایران ۱۴۰۵ (منبع: time.ir)</h3><span class="tag">${D.fa(D.IR_HOLIDAYS.filter(h=>h[3]==='holiday').length)} تعطیل</span></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:10px">
+        ${['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'].map((m,mi) => {
+          const list = D.IR_HOLIDAYS.filter(h => h[0] === mi+1);
+          if (!list.length) return '';
+          return `<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px">
+            <b style="color:var(--gold-l);font-size:13px">${m}</b>
+            <div class="holi-list" style="margin-top:8px">${list.map(h => `
+              <div class="h-item"><span class="h-day">${D.fa(h[1])}</span><span style="flex:1">${esc(h[2])}</span><span class="chip ${h[3]==='holiday'?'red':'blue'}">${h[3]==='holiday'?'تعطیل':'مناسبت'}</span></div>`).join('')}
+            </div></div>`;
+        }).join('')}
+      </div>
+    </div>`;
+    $('#me-add').addEventListener('click', () => {
+      const name = $('#me-name').value.trim();
+      const date = $('#me-date').value;
+      if (!name || !date){ APP.toast('نام و تاریخ رویداد را وارد کنید', 'red'); return; }
+      const lst = customEvents();
+      lst.push({ name, date, type: $('#me-type').value });
+      saveEvents(lst); APP.go('mgmt'); mgmtTab='calendar';
+      APP.toast('رویداد «' + name + '» به تقویم اضافه شد ✓', 'green');
+    });
+    const lst = customEvents();
+    $('#me-list').innerHTML = lst.length ? `<div class="holi-list">
+      ${lst.map((e,i) => {
+        const j = D.jalaliInfo(D.dateFrom(e.date));
+        return `<div class="h-item"><span class="h-day">${D.fa(j.dd)} ${j.monthFa}</span>
+          <span style="flex:1"><b>${esc(e.name)}</b> <span class="chip blue">${esc(e.type)}</span></span>
+          <button class="btn sm danger" data-delme="${i}">🗑</button></div>`;
+      }).join('')}</div>` : '<div style="color:var(--muted);font-size:12.5px;padding:8px">رویداد سفارشی ثبت نشده است.</div>';
+    $$('#me-list [data-delme]').forEach(b => b.addEventListener('click', () => {
+      const a = customEvents(); a.splice(+b.dataset.delme,1); saveEvents(a); APP.go('mgmt'); mgmtTab='calendar'; APP.toast('رویداد حذف شد 🗑','orange');
+    }));
+  }
+
+  /* ═══════════════ ابزارهای مشترک (پلن مدیریت) ═══════════════ */
+  function extraCourses(){ try{ return JSON.parse(localStorage.getItem('ga_courses')||'[]'); }catch(e){ return []; } }
+  function extraTours(){ try{ return JSON.parse(localStorage.getItem('ga_tournaments')||'[]'); }catch(e){ return []; } }
+  function extraCards(){ try{ return JSON.parse(localStorage.getItem('ga_scorecards')||'[]'); }catch(e){ return []; } }
+  function saveCourses(a){ try{ localStorage.setItem('ga_courses', JSON.stringify(a)); }catch(e){} }
+  function saveTours(a){ try{ localStorage.setItem('ga_tournaments', JSON.stringify(a)); }catch(e){} }
+  function saveCards(a){ try{ localStorage.setItem('ga_scorecards', JSON.stringify(a)); }catch(e){} }
+
+  /* ═══════════════ API ═══════════════ */
+  window.MGMT = {
+    pageSettings, pageMgmt, renderMgmtTab, customEvents, saveEvents,
+    customPlayers, saveCustomPlayers, playerEdits, savePlayerEdits,
+    getSettings, saveSettings, DEFAULTS,
+    reloadUI(){ if (window.APP) window.APP.recompute(); },
+  };
+})();
+</script>
 <script>/* ═══════════════ GolfAcademy PRO — World3D 2040 (custom software 3D engine) ═══════════════
    آکادمی را از بیرون می‌بینید؛ هر بخش، صحنه سه‌بعدی مخصوص خودش را دارد:
    آواتارهای سه‌بعدی بازیکنان، سکوی قهرمانی، تابلوهای مسابقات، رادار مهارت،
@@ -1629,6 +2510,26 @@ canvas.glow-canvas{filter:drop-shadow(0 0 6px rgba(212,175,55,.25))}
     return acts;
   }
 
+  /* ── ذخیره تنظیمات مدیر (بازیکن فعال/غیرفعال + نمایش نمودارها) ── */
+  function loadPlayers(){
+    // بازیکنان پایه + تغییرات مدیر (فعال/غیرفعال، ویرایش مشخصات)
+    let edits = {};
+    try { edits = JSON.parse(localStorage.getItem('ga_players') || '{}'); } catch(e){}
+    return PLAYERS.map(p => {
+      const e = edits[p[0]];
+      if (!e) return p;
+      const np = p.slice();
+      if (e.active !== undefined) np[5] = e.active ? 1 : 0;
+      if (e.name) np[1] = e.name;
+      if (e.hcp !== undefined) np[3] = +e.hcp;
+      if (e.gender) np[2] = e.gender;
+      return np;
+    });
+  }
+  function loadCustomPlayers(){
+    try { return JSON.parse(localStorage.getItem('ga_custom_players') || '[]'); } catch(e){ return []; }
+  }
+
   /* ── رتبه و رنگ ── */
   const GOLD_ELITE = 120;
   const RANK_DEF = [
@@ -1645,8 +2546,8 @@ canvas.glow-canvas{filter:drop-shadow(0 0 6px rgba(212,175,55,.25))}
 
   /* ── محاسبه کامل ── */
   function compute(state){
-    const { scorecards, activities, tournaments } = state;
-    const PTS = {}; PLAYERS.forEach(p => PTS[p[0]] = 0);
+    const { scorecards, activities, tournaments, players } = state;
+    const PTS = {}; players.forEach(p => PTS[p[0]] = 0);
     const MONTH_PTS = {}; const CARDS = {};
     let TOTAL_BIRDIES = 0;
     const info = {};
@@ -1685,7 +2586,7 @@ canvas.glow-canvas{filter:drop-shadow(0 0 6px rgba(212,175,55,.25))}
       });
     });
     const ST = {};
-    PLAYERS.forEach(p => ST[p[0]] = { win:0, second:0, third:0, matches:0, practices:0, courses:0, points:0, attend:0 });
+    players.forEach(p => ST[p[0]] = { win:0, second:0, third:0, matches:0, practices:0, courses:0, points:0, attend:0 });
     activities.forEach(a => {
       const s = ST[a.pid];
       if (!s) return;
@@ -1716,7 +2617,7 @@ canvas.glow-canvas{filter:drop-shadow(0 0 6px rgba(212,175,55,.25))}
       }
       const holesPlayed = cards.reduce((a,c)=>a+Object.keys(c.strokes).length,0);
       const scoringAvg = cards.length ? Math.round(total / holesPlayed * 18 * 10) / 10 : 0;
-      const p = PLAYERS.find(x => x[0] === +pid) || PLAYERS[0];
+      const p = players.find(x => x[0] === +pid) || players[0];
       return {
         pid: +pid, name: PLAYER_NAME[pid], hcp: p[3], gender: p[2],
         pts: PTS[pid], color: rankOf(PTS[pid])[0], colorHex: rankOf(PTS[pid])[3],
@@ -1843,7 +2744,8 @@ canvas.glow-canvas{filter:drop-shadow(0 0 6px rgba(212,175,55,.25))}
     const TOT_PTS = Object.values(PTS).reduce((a,b)=>a+b,0);
     const MATCHES_HELD = scorecards.length ? [...new Set(scorecards.map(c=>c.tour))].length : 0;
     const GOLD_COUNT = Object.values(PTS).filter(v => v >= GOLD_ELITE).length;
-    const AVG_HCP = Math.round(ACTIVE.reduce((a,p)=>a+p[3],0)/ACTIVE.length*10)/10;
+    const activePlayers = players.filter(p => p[5]);
+    const AVG_HCP = activePlayers.length ? Math.round(activePlayers.reduce((a,p)=>a+p[3],0)/activePlayers.length*10)/10 : 0;
     const future = tournaments.filter(t => dateFrom(t[5]) >= TODAY).sort((a,b) => dateFrom(a[5]) - dateFrom(b[5]));
     const NEXT_T = future[0] || null;
     const COUNTDOWN = NEXT_T ? Math.ceil((dateFrom(NEXT_T[5]) - TODAY)/86400000) : 0;
@@ -1872,8 +2774,11 @@ canvas.glow-canvas{filter:drop-shadow(0 0 6px rgba(212,175,55,.25))}
       const cid = 1000 + i;
       PAR_MAP[cid] = c.pars;
     });
+    const players = loadPlayers().concat(loadCustomPlayers().map((p, i) => [9000+i, p.name, p.gender, +p.hcp, p.join || '2026-01-01', p.active ? 1 : 0]));
+    const PLAYER_NAME_EXT = {}; players.forEach(p => PLAYER_NAME_EXT[p[0]] = p[1]);
+    const ACTIVE_EXT = players.filter(p => p[5]);
     return {
-      players: PLAYERS, active: ACTIVE,
+      players, active: ACTIVE_EXT,
       courses: COURSES.concat(extra.courses.map((c, i) => [1000+i, c.name, c.loc, c.holes])),
       tournaments: TOURNAMENTS.concat(extra.tournaments.map((t, i) => [1000+i, t.name, +t.lvl, +t.course, +t.holes, t.date])),
       scorecards: genScorecards().concat(extra.scorecards.map(s => ({
@@ -1885,11 +2790,22 @@ canvas.glow-canvas{filter:drop-shadow(0 0 6px rgba(212,175,55,.25))}
     };
   }
 
+  const IR_HOLIDAYS = (typeof IR_HOLIDAYS_1405 !== 'undefined' && IR_HOLIDAYS_1405) ? IR_HOLIDAYS_1405 : ((typeof window.IR_HOLIDAYS_1405 !== 'undefined') ? window.IR_HOLIDAYS_1405 : []);
+  function holidaysOf(jy, jm, jd){
+    if (jy !== 1405) return [];
+    return IR_HOLIDAYS.filter(h => h[0] === jm && h[1] === jd);
+  }
+  function isHoliday(d){
+    const j = jalaliInfo(d);
+    return holidaysOf(j.yy, j.mm, j.dd).some(h => h[3] === 'holiday');
+  }
+
   window.Data = {
     fa, faNum, jalaliInfo, weekOf, dayFmt, dateFrom, TODAY, SEASON_START,
     PLAYERS, PLAYER_NAME, ACTIVE, COURSES, COURSE_PARS, COURSE_NAME, TOURNAMENTS,
     PTS_RULE, RESULT_LABEL, MONTHS_FA, RANK_DEF, RANK_TEXT, rankOf, FORM_META, GOLD_ELITE,
-    parsOf, compute, loadState,
+    parsOf, compute, loadState, loadPlayers, loadCustomPlayers,
+    IR_HOLIDAYS, holidaysOf, isHoliday,
   };
 })();
 </script>
@@ -2354,6 +3270,7 @@ const Charts = (() => {
     battle: { t:'میدان نبرد', i:'⚔️' }, academy: { t:'پنل آکادمی', i:'🏫' },
     acourses: { t:'طراح زمین', i:'🛠️' }, atournaments: { t:'طراح مسابقه', i:'🛠️' },
     ascorecards: { t:'ثبت نتایج', i:'🛠️' },
+    mgmt: { t:'پلن مدیریت', i:'⚙️' }, settings: { t:'تنظیمات نمایش', i:'🛠️' },
   };
   let currentPage = 'cmd';
   let playerSel = 8, matchSel = 11, courseSel = 1, coursePlayerSel = 8;
@@ -2403,7 +3320,9 @@ const Charts = (() => {
             <h1 style="font-size:26px;font-weight:900" class="gold-text">آکادمی گلف ۱۴۰۵ — فرماندهی</h1>
             <div style="color:var(--muted);font-size:12.5px;margin-top:4px">فصل قهرمانی ۱۴۰۵ • ${D.fa(A.MATCHES_HELD)} مسابقه برگزار شده • ${D.fa(A.LB.length)} بازیکن فعال</div>
           </div>
-          <div style="margin-right:auto;display:flex;gap:10px;flex-wrap:wrap">
+          <div style="margin-right:auto;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <button class="btn sm" onclick="APP.go('mgmt')" style="box-shadow:0 0 16px rgba(212,175,55,.25)">⚙️ پلن مدیریت</button>
+            <button class="btn sm ghost" onclick="APP.go('settings')">🛠️ تنظیمات نمایش</button>
             <span class="chip gold">⏳ مسابقه بعدی: ${esc(A.NEXT_T ? A.NEXT_T[1] : '—')} — ${D.fa(A.COUNTDOWN)} روز</span>
             <span class="chip green">🔴 فصل در جریان است</span>
           </div>
@@ -2450,8 +3369,15 @@ const Charts = (() => {
     </div>
     <div class="grid cols-2" style="margin-top:18px">
       <div class="glass tilt">
-        <div class="card-head"><span class="ic">📈</span><h3>امتیاز ماهانه فصل</h3><span class="tag">Monthly</span></div>
-        <div class="chart-box short"><canvas id="ch-cmd-line"></canvas></div>
+        <div class="card-head"><span class="ic">📈</span><h3>امتیاز ماهانه فصل</h3><span class="tag">Monthly</span>
+          <span style="margin-right:auto;display:flex;gap:6px;align-items:center">
+            <select class="sel" id="cm-month" style="width:auto;padding:5px 10px;font-size:12px">
+              ${['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'].map((m,i)=>`<option value="${i}">${m}</option>`).join('')}
+            </select>
+            <button class="btn sm ghost" id="cm-apply" style="padding:5px 12px">نمایش</button>
+          </span>
+        </div>
+        <div class="chart-box short" id="cm-chart"><canvas id="ch-cmd-line"></canvas></div>
       </div>
       <div class="glass">
         <div class="card-head"><span class="ic">🏁</span><h3>رقابت زنده — ده نفر برتر</h3><span class="tag">Live</span></div>
@@ -2478,7 +3404,8 @@ const Charts = (() => {
       { ic:'⭐', lbl:'قهرمان ماه', val: 0, sub: A.champM ? `${A.champM} — ${esc(A.champName)}` : '—', col:'var(--teal)', fmt:'fa' },
       { ic:'🎖️', lbl:'میانگین هندیکپ', val: A.AVG_HCP, sub:'کل اعضا', col:'var(--red)', fmt:'num1' },
     ];
-    statsEl.innerHTML = cards.map((c,i) => `
+    if (!MGMT.getSettings().chCmd){ statsEl.innerHTML = '<div class="glass" style="grid-column:span 4;padding:14px;text-align:center;color:var(--muted)">نمودارهای فرماندهی غیرفعال شده‌اند — از «تنظیمات نمایش» فعال کنید</div>'; }
+    else statsEl.innerHTML = cards.map((c,i) => `
       <div class="glass tilt stat">
         <span class="accent-bar" style="background:linear-gradient(90deg,${c.col},transparent)"></span>
         <div style="display:flex;justify-content:space-between;align-items:center">
@@ -2489,14 +3416,46 @@ const Charts = (() => {
         <div class="lbl">${c.lbl} — <span style="color:var(--dim)">${c.sub}</span></div>
       </div>`).join('');
     setTimeout(() => {
-      Charts.line($('#ch-cmd-line'), [A.MONTHLY_TOT], A.MONTHS_SEASON, { color:'#E9C766', fill:true, points:true, fmt:v=>D.faNum(v,0) });
+      if (MGMT.getSettings().chMonthly){
+        drawMonthlyChart();
+      } else {
+        const c = $('#cm-chart');
+        if (c) c.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:12.5px">نمودار ماهانه غیرفعال است — از تنظیمات نمایش فعال کنید</div>';
+      }
       A.MONTHLY_TOT.forEach((v,i) => Charts.spark($(`#sp-1`), A.MONTHLY_TOT.slice(0,i+1), '#1EBB8A'));
+      const apply = $('#cm-apply');
+      if (apply){
+        apply.addEventListener('click', () => drawMonthlyChart());
+      }
     }, 60);
+  }
+
+  function drawMonthlyChart(){
+    const cv = $('#ch-cmd-line');
+    if (!cv) return;
+    const mi = +($('#cm-month') ? $('#cm-month').value : 0);
+    const m = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'][mi];
+    const A2 = A;
+    // دادهٔ همان ماه از MONTH_PTS
+    const mp = A2.MONTH_PTS[m] || {};
+    const arr = Object.entries(mp).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    const hasData = arr.length > 0;
+    if (!hasData){
+      cv.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:12.5px">برای ماه ' + m + ' هنوز امتیازی ثبت نشده است.</div>';
+      return;
+    }
+    const labels = arr.map(([pid,v]) => (A2.LB.find(r=>r.pid===+pid)||{}).name || '—');
+    const vals = arr.map(([pid,v]) => v);
+    Charts.barsV(cv, labels, vals, { color:'#E9C766', fmt:v=>D.faNum(v,0), title:'امتیاز ' + m });
   }
 
   /* ═══════════ صفحه: رقابت فصل ═══════════ */
   function pageRace(){
     const v = $('#view');
+    if (!MGMT.getSettings().chRace){
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🏁 نمودار رقابت فصل غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      return;
+    }
     const gold = A.LB.filter(r => r.rank <= 3).length;
     const play = A.LB.filter(r => r.rank > 3 && r.rank <= 8).length;
     const dev = A.LB.length - gold - play;
@@ -2569,7 +3528,11 @@ const Charts = (() => {
 
   /* ═══════════ صفحه: مرکز بازیکن ═══════════ */
   function pagePlayer(){
-    const v = $('#view');
+
+  if (!MGMT.getSettings().chPlayer){
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🏌️ نمودارهای مرکز بازیکن غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      return;
+    }    const v = $('#view');
     const p = A.LB.find(r => r.pid === playerSel) || A.LB[0];
     const cards = A.CARDS[playerSel] || [];
     const sk = A.SKILLS[playerSel] || {scoring:0,birdie:0,consistency:0,practice:0,experience:0};
@@ -2678,7 +3641,11 @@ const Charts = (() => {
 
   /* ═══════════ صفحه: فرماندهی مسابقه ═══════════ */
   function pageMatch(){
-    const v = $('#view');
+
+  if (!MGMT.getSettings().chMatch){
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🥇 فرماندهی مسابقه غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      return;
+    }    const v = $('#view');
     const t = S.tournaments.find(x => x[0] === matchSel) || S.tournaments[0];
     const cards = S.scorecards.filter(c => c.tour === matchSel).map(c => {
       const pars = D.parsOf(t[3]);
@@ -2764,7 +3731,11 @@ const Charts = (() => {
 
   /* ═══════════ صفحه: هوش زمین ═══════════ */
   function pageCourse(){
-    const v = $('#view');
+
+  if (!MGMT.getSettings().chCourse){
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🗺️ نمودار هوش زمین غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      return;
+    }    const v = $('#view');
     const crs = S.courses.find(c => c[0] === courseSel) || S.courses[0];
     const pars = D.parsOf(crs[0]);
     const holes = crs[3];
@@ -2840,7 +3811,11 @@ const Charts = (() => {
 
   /* ═══════════ صفحه: رکوردها ═══════════ */
   function pageRecords(){
-    const v = $('#view');
+
+  if (!MGMT.getSettings().chRecords){
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🎖️ رکوردها غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      return;
+    }    const v = $('#view');
     const bestPrac = A.LB.reduce((a,b) => b.prac > a.prac ? b : a);
     const bestCourse = A.LB.reduce((a,b) => b.course > a.course ? b : a);
     const mostWin = A.LB.reduce((a,b) => b.win > a.win ? b : a);
@@ -2904,18 +3879,31 @@ const Charts = (() => {
   /* ═══════════ صفحه: تقویم ═══════════ */
   function pageCal(){
     const v = $('#view');
+    // ── جمع‌آوری رویدادها: مسابقات + کلاس‌ها + اردوها + سفارشی + تعطیلات ──
     const events = [];
     S.tournaments.forEach(t => {
       events.push({ d: D.dateFrom(t[5]), name: t[1], type: `مسابقه سطح ${D.fa(t[2])}`, col: t[2]===1?'gold':t[2]===2?'green':'blue', extra: `${esc(D.COURSE_NAME[t[3]])} • ${D.fa(t[4])} حفره` });
     });
-    [['کلاس مقدماتی گلف'],['کلاس پوتینگ'],['کلاس شورت گیم'],['کارگاه ذهنی'],['کلاس چوبهای بلند'],['کلاس قوانین و آداب']].forEach(([n],i) => {
+    [['کلاس مقدماتی گلف'],['کلاس پوتینگ'],['کلاس شورت گیم'],['کارگاه ذهنی'],['کلاس چوب‌های بلند'],['کلاس قوانین و آداب']].forEach(([n],i) => {
       events.push({ d: new Date(D.TODAY.getTime() + (7 + i*10)*86400000), name: n, type: 'کلاس آموزشی', col: 'purple', extra: '' });
     });
-    [[10,16,'اردوی آمادهسازی جام بزرگ'],[11,2,'اردوی فنی پایان فصل']].forEach(([m,d2,n]) => {
+    [[10,16,'اردوی آماده‌سازی جام بزرگ'],[11,2,'اردوی فنی پایان فصل']].forEach(([m,d2,n]) => {
       events.push({ d: new Date(Date.UTC(2026, m-1, d2)), name: n, type: 'اردو', col: 'orange', extra: '' });
+    });
+    // رویدادهای سفارشی مدیر
+    (MGMT.customEvents()||[]).forEach(e => {
+      events.push({ d: D.dateFrom(e.date), name: e.name, type: e.type, col: 'blue', extra: 'رویداد سفارشی' });
+    });
+    // تعطیلات رسمی ۱۴۰۵
+    D.IR_HOLIDAYS.forEach(h => {
+      const d = new Date(Date.UTC(2026, h[0]-1, h[1]));
+      events.push({ d, name: h[2], type: h[3]==='holiday' ? 'تعطیل رسمی' : 'مناسبت', col: h[3]==='holiday' ? 'red' : 'blue', extra: 'تقویم ایران' });
     });
     events.sort((a,b) => a.d - b.d);
     const next = events.find(e => e.d >= D.TODAY);
+    const holidaysCount = D.IR_HOLIDAYS.filter(h=>h[3]==='holiday').length;
+    const pastCount = events.filter(e => e.d < D.TODAY).length;
+    const showCal = MGMT.getSettings().chCal;
     v.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
       <img src="data:image/jpeg;base64,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" class="floaty fast glow-img green" style="width:74px;height:74px;border-radius:14px;object-fit:cover" alt="">
@@ -2928,12 +3916,28 @@ const Charts = (() => {
         <div style="font-size:11px;color:var(--muted)">روز تا شروع</div>
       </div>
       <div style="text-align:center;padding:0 18px">
+        <div style="font-size:11px;color:var(--muted)">تعطیلات رسمی</div>
+        <div style="font-size:16px;font-weight:800" class="gold-text">${D.fa(holidaysCount)}</div>
+      </div>
+      <div style="text-align:center">
         <div style="font-size:11px;color:var(--muted)">فصل</div>
         <div style="font-size:16px;font-weight:800">۱۴۰۵</div>
       </div>
+      <button class="btn sm ghost" onclick="APP.go('mgmt')" style="margin-right:auto">⚙️ مدیریت تقویم</button>
+    </div>
+    ${showCal ? `
+    <div class="grid cols-3" style="margin-bottom:18px">
+      <div class="glass" style="grid-column:span 2">
+        <div class="card-head"><span class="ic">🇮🇷</span><h3>تقویم ماه — ${D.fa(jalNow().dd)} ${jalNow().monthFa}</h3><span class="tag">تعطیلات ★</span></div>
+        <div id="cal-grid" style="margin-top:10px"></div>
+      </div>
+      <div class="glass">
+        <div class="card-head"><span class="ic">🗓️</span><h3>تعطیلات و مناسبت‌های ماه</h3><span class="tag">time.ir</span></div>
+        <div id="cal-side" style="margin-top:10px"></div>
+      </div>
     </div>
     <div class="glass">
-      <div class="card-head"><span class="ic">📅</span><h3>تقویم رویدادها</h3><span class="tag">${D.fa(events.filter(e=>e.d>=D.TODAY).length)} رویداد باقیمانده</span></div>
+      <div class="card-head"><span class="ic">📅</span><h3>تقویم رویدادها</h3><span class="tag">${D.fa(events.length)} رویداد (${D.fa(pastCount)} برگزار شده)</span></div>
       <div class="timeline">
         ${events.map(e => {
           const j = D.jalaliInfo(e.d);
@@ -2950,12 +3954,64 @@ const Charts = (() => {
           </div>`;
         }).join('')}
       </div>
-    </div>`;
+    </div>` : `<div class="glass" style="padding:22px;text-align:center;color:var(--muted)">تقویم غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`}`;
+    if (showCal){
+      renderCalMonth();
+      renderCalSide();
+    }
+    function jalNow(){
+      return D.jalaliInfo(D.TODAY);
+    }
+    function renderCalMonth(){
+      const jn = jalNow();
+      const grid = $('#cal-grid'); if (!grid) return;
+      // ساختن شبکه ۶ ستونه هفته
+      const first = new Date(Date.UTC(2026, jn.mm-1, 1));
+      const jFirst = D.jalaliInfo(first);
+      const dow = first.getUTCDay(); // 0=یکشنبه ... 6=شنبه
+      const daysInMonth = [31,31,31,31,31,31,30,30,30,30,30,29][jn.mm-1];
+      const wdNames = ['ش','ی','د','س','چ','پ','ج'];
+      let html = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;direction:rtl">
+        ${wdNames.map(w=>`<div style="font-size:11px;color:var(--muted);padding:4px">${w}</div>`).join('')}`;
+      for (let i=0; i<dow; i++) html += '<div></div>';
+      for (let d=1; d<=daysInMonth; d++){
+        const holis = D.holidaysOf(jn.yy, jn.mm, d);
+        const isHol = holis.some(h=>h[3]==='holiday');
+        const isEv = holis.length>0;
+        const isToday = d === jn.dd;
+        const ev = events.filter(e => D.dateFrom(e.d).getUTCFullYear()===2026 && D.jalaliInfo(e.d).mm===jn.mm && D.jalaliInfo(e.d).dd===d);
+        const tip = holis.concat(ev.map(e=>({name:e.name, type:e.type==='تعطیل رسمی'?'holiday':'event', 3:e.type==='تعطیل رسمی'?'holiday':'event', 4:e.type==='تعطیل رسمی'?'holiday':'event'}))).map(h=>h.name).slice(0,3).join(' • ');
+        html += `<div class="cal-cell ${isHol?'holiday':''} ${isEv&&!isHol?'event':''} ${isToday?'today':''}">
+          <div class="cal-box" style="padding:8px 4px;border-radius:10px;border:1px solid ${isHol?'rgba(255,80,80,.3)':isToday?'rgba(212,175,55,.5)':'rgba(255,255,255,.06)'};background:${isHol?'rgba(255,80,80,.08)':isToday?'rgba(212,175,55,.08)':'transparent'};min-height:40px">
+            <div class="cal-num" style="font-weight:800;font-size:13px">${D.fa(d)}</div>
+            ${ev.length ? `<div style="font-size:8.5px;color:var(--green-l);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-top:2px">${esc(ev[0].name)}</div>`:''}
+          </div>
+          ${tip ? `<div class="holi-tip">${esc(tip)}</div>` : ''}
+        </div>`;
+      }
+      html += '</div>';
+      grid.innerHTML = html;
+    }
+    function renderCalSide(){
+      const jn = jalNow();
+      const side = $('#cal-side'); if (!side) return;
+      const list = D.IR_HOLIDAYS.filter(h => h[0] === jn.mm);
+      const customs = (MGMT.customEvents()||[]).filter(e => D.jalaliInfo(D.dateFrom(e.date)).mm === jn.mm);
+      const parts = [
+        ...list.map(h => `<div class="h-item"><span class="h-day">${D.fa(h[1])}</span><span style="flex:1">${esc(h[2])}</span><span class="chip ${h[3]==='holiday'?'red':'blue'}">${h[3]==='holiday'?'تعطیل':'مناسبت'}</span></div>`),
+        ...customs.map(e => `<div class="h-item"><span class="h-day">${D.fa(D.jalaliInfo(D.dateFrom(e.date)).dd)}</span><span style="flex:1"><b>${esc(e.name)}</b></span><span class="chip blue">سفارشی</span></div>`),
+      ];
+      side.innerHTML = parts.length ? `<div class="holi-list">${parts.join('')}</div>` : '<div style="color:var(--muted);font-size:12px;padding:6px">رویدادی در این ماه نیست.</div>';
+    }
   }
 
   /* ═══════════ صفحه: نمایش تلویزیونی ═══════════ */
   function pageTv(){
-    const v = $('#view');
+
+  if (!MGMT.getSettings().chTv){
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">📺 گرافیک نمایش تلویزیونی غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      return;
+    }    const v = $('#view');
     const next = A.NEXT_T;
     v.innerHTML = `
     <div class="tv-wrap">
@@ -3005,7 +4061,11 @@ const Charts = (() => {
 
   /* ═══════════ صفحه: میدان نبرد ═══════════ */
   function pageBattle(){
-    const v = $('#view');
+
+  if (!MGMT.getSettings().chBattle){
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">⚔️ میدان نبرد غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      return;
+    }    const v = $('#view');
     const teams = [
       ['🦅','عقابهای طلایی', [1,2,3,4], '#D4AF37'],
       ['🐆','یوزهای سبز', [5,6,7,8], '#1EBB8A'],
@@ -3436,6 +4496,7 @@ const Charts = (() => {
     course: pageCourse, records: pageRecords, cal: pageCal, tv: pageTv,
     battle: pageBattle, academy: pageAcademy,
     acourses: pageACourses, atournaments: pageATours, ascorecards: pageAScorecards,
+    mgmt: () => MGMT.pageMgmt(), settings: () => MGMT.pageSettings(),
   };
 
   /* ═══════════ بارگذاری مجدد ═══════════ */
@@ -3505,8 +4566,9 @@ const Charts = (() => {
     if (sess && USERS[sess]){
       enterApp(sess);
     }
-
   });
+
+  window.APP = { go, reloadData, recompute, state: () => ({ S, A }), toast };
 })();
 </script>
 </body>

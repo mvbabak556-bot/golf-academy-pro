@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>آکادمی گلف ۱۴۰۵ — داشبورد PRO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/mgmt.css">
 </head>
 <body>
 <div class="bg-mesh"></div>
@@ -59,17 +60,19 @@
     <div class="nav-item" data-page="battle"><span class="ico">⚔️</span>میدان نبرد</div>
     <div class="nav-item" data-page="academy"><span class="ico">🏫</span>پنل آکادمی</div>
 
-    <div class="nav-group">ابزار طراح</div>
-    <div class="nav-item" data-page="acourses"><span class="ico">🛠️</span>طراح زمین</div>
-    <div class="nav-item" data-page="atournaments"><span class="ico">🏆</span>طراح مسابقه</div>
-    <div class="nav-item" data-page="ascorecards"><span class="ico">⛳</span>ثبت نتایج</div>
+    <div class="nav-group">مدیریت</div>
+    <div class="nav-item" data-page="mgmt"><span class="ico">⚙️</span>پلن مدیریت</div>
+    <div class="nav-item" data-page="settings"><span class="ico">🛠️</span>تنظیمات نمایش</div>
 
     <div class="side-foot">
       <div class="user">
         <div><b id="user-label">مدیر</b></div>
         <div style="font-size:10.5px">@<span id="user-name">admin</span></div>
       </div>
-      <button class="btn ghost sm" id="logout-btn" style="width:auto">خروج ↺</button>
+      <div style="display:flex;gap:6px;width:100%">
+        <button class="btn sm" onclick="APP.go('mgmt')" style="flex:1;padding:7px 8px;font-size:11.5px">⚙️ پلن مدیریت</button>
+        <button class="btn ghost sm" id="logout-btn" style="flex:1;padding:7px 8px;font-size:11.5px">خروج ↺</button>
+      </div>
     </div>
   </aside>
 
@@ -127,6 +130,8 @@
 </div>
 <button id="back-world" class="btn ghost sm" title="بازگشت به دنیای سه‌بعدی">🌍 جهان</button>
 
+    <script src="js/holidays.js"></script>
+    <script src="js/mgmt.js"></script>
 <script src="js/world3d.js"></script>
 <script src="js/data.js"></script>
 <script src="js/charts.js"></script>
