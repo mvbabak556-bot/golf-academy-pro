@@ -46,7 +46,7 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   await page.click('.mgmt-tab:has-text("رنک و آواتار")'); await page.waitForTimeout(1200);
   await page.screenshot({ path:SHOT_DIR + '/v6_mgmt_honor.png', fullPage:true });
   console.log('rank chips:', await page.locator('[data-hlv]').count(), 'preview:', await page.locator('#hr-prev').count());
-  await page.click('.mgmt-tab:has-text("فروشگاه اوتار")'); await page.waitForTimeout(900);
+  await page.click('.mgmt-tab[data-tab="shop"]'); await page.waitForTimeout(900);
   await page.screenshot({ path:SHOT_DIR + '/v6_mgmt_shop.png', fullPage:true });
   console.log('shop rows:', await page.locator('[data-isave]').count());
   console.log('ERRORS:', errors.filter(e=>!/arcTo/.test(e)).slice(0,6).join(' | ') || 'none');

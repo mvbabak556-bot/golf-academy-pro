@@ -13,6 +13,7 @@
 'use strict';
 
 var esc = function(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+var L = function(id, fallback){ return window.UI_LABELS ? UI_LABELS.t(id, fallback) : fallback; };
 var D = window.Data || {};
 
 /* ─────────── CSS ─────────── */
@@ -214,11 +215,11 @@ root.innerHTML =
     '<div id="l3d-bg"></div>' +
     '<div id="l3d-rays"></div>' +
     '<canvas id="l3d-dust"></canvas>' +
-    '<div id="l3d-reception"><span class="ring"></span><span class="lb">🛎️ رسپشن</span></div>' +
+    '<div id="l3d-reception"><span class="ring"></span><span class="lb">🛎️ ' + esc(L('landing.reception','رسپشن')) + '</span></div>' +
     '<div id="l3d-dock"></div>' +
   '</div>' +
   '<div id="l3d-panel"><button id="l3d-pclose" title="بستن">✕</button><div id="l3d-pbody"></div></div>' +
-  '<button id="l3d-enter">👤 ورود اعضا</button>';
+  '<button id="l3d-enter">👤 ' + esc(L('landing.enter','ورود اعضا')) + '</button>';
 document.body.appendChild(root);
 
 var $ = function(s){ return root.querySelector(s); };
@@ -470,15 +471,15 @@ function resetParallax(){ tRotY = 0; tRotX = 0; }
 
 /* ─────────── منوی پایین — فقط ۴ آیکن ─────────── */
 var DOCK = [
-  ['contact','📞','تماس با ما'],
-  ['info','ℹ️','اطلاعات'],
-  ['cal','📅','تقویم آکادمی'],
-  ['rec','🏆','رکوردداران']
+  ['contact','📞','landing.contact','تماس با ما'],
+  ['info','ℹ️','landing.info','اطلاعات'],
+  ['cal','📅','landing.calendar','تقویم آکادمی'],
+  ['rec','🏆','landing.records','رکوردداران']
 ];
 function renderDock(){
   var h = '';
   DOCK.forEach(function(it){
-    h += '<div class="di" data-sec="' + it[0] + '"><span class="ic">' + it[1] + '</span><span class="tx">' + it[2] + '</span></div>';
+    h += '<div class="di" data-sec="' + it[0] + '"><span class="ic">' + it[1] + '</span><span class="tx">' + esc(L(it[2],it[3])) + '</span></div>';
   });
   dock.innerHTML = h;
   dock.querySelectorAll('.di').forEach(function(d){
@@ -539,11 +540,15 @@ function wirePanel(){
 /* ─────────── محتوا ─────────── */
 function panelReception(){
   panelNav = panelNav || 'intro';
-  var navs = [ ['intro','🏛️ معرفی'], ['signup','📝 ثبت‌نام'], ['courses','🎓 دوره‌ها'], ['tuition','💰 شهریه'], ['rules','📜 قوانین'], ['contact','📞 تماس'] ];
+  var navs = [
+    ['intro','🏛️ ' + L('landing.intro','معرفی')], ['signup','📝 ' + L('landing.signup','ثبت‌نام')],
+    ['courses','🎓 ' + L('landing.courses','دوره‌ها')], ['tuition','💰 ' + L('landing.tuition','شهریه')],
+    ['rules','📜 ' + L('landing.rules','قوانین')], ['contact','📞 ' + L('landing.contact','تماس با ما')]
+  ];
   var navHtml = '<div class="l3d-nav">' + navs.map(function(n){
-    return '<button data-nav="' + n[0] + '" class="' + (panelNav === n[0] ? 'on' : '') + '">' + n[1] + '</button>';
+    return '<button data-nav="' + n[0] + '" class="' + (panelNav === n[0] ? 'on' : '') + '">' + esc(n[1]) + '</button>';
   }).join('') + '</div>';
-  return '<div class="hd"><span class="ic">🛎️</span><h3>رسپشن آکادمی گلف ۱۴۰۵</h3><span class="tg">GolfAcademy.sa</span></div>' + navHtml + receptionTab(panelNav);
+  return '<div class="hd"><span class="ic">🛎️</span><h3>' + esc(L('landing.reception','رسپشن')) + ' آکادمی گلف ۱۴۰۵</h3><span class="tg">GolfAcademy.sa</span></div>' + navHtml + receptionTab(panelNav);
 }
 function receptionTab(tab){
   if (tab === 'intro'){
@@ -552,7 +557,7 @@ function receptionTab(tab){
     return '<div class="sub"><b>به آکادمی گلف ۱۴۰۵ خوش آمدید.</b><br>' + esc(introTxt).replace(/\n/g, '<br>') + '<br><br>گلف ورزش دقت و آرامش است — ثبت‌نام در هر فصل از همین رسپشن انجام می‌شود.</div>';
   }
   if (tab === 'signup'){
-    return '<div class="sub">ثبت‌نام اعضای جدید — فرم در پنل مدیریت «بازیکنان» تکمیل می‌شود.<br>برای ثبت‌نام حضوری به رسپشن آکادمی مراجعه کنید یا با شمارهٔ تماس هماهنگ کنید.</div>' +
+    return '<div class="sub">ثبت‌نام اعضای جدید — فرم در ' + esc(L('nav.mgmt','پنل مدیریت')) + ' «' + esc(L('admin.players','بازیکنان')) + '» تکمیل می‌شود.<br>برای ثبت‌نام حضوری به ' + esc(L('landing.reception','رسپشن')) + ' آکادمی مراجعه کنید یا با شمارهٔ تماس هماهنگ کنید.</div>' +
       '<div class="golfrule">همهٔ اعضا باید لباس رسمی گلف (پیراهن سفید با لوگوی آکادمی) داشته باشند.</div>';
   }
   if (tab === 'courses'){
@@ -592,11 +597,14 @@ function receptionTab(tab){
 }
 function panelInfo(){
   panelNav = panelNav || 'intro';
-  var navs = [ ['intro','🏛️ معرفی'], ['courses','🎓 دوره‌ها'], ['tuition','💰 شهریه'], ['rules','📜 قوانین'] ];
+  var navs = [
+    ['intro','🏛️ ' + L('landing.intro','معرفی')], ['courses','🎓 ' + L('landing.courses','دوره‌ها')],
+    ['tuition','💰 ' + L('landing.tuition','شهریه')], ['rules','📜 ' + L('landing.rules','قوانین')]
+  ];
   var navHtml = '<div class="l3d-nav">' + navs.map(function(n){
-    return '<button data-nav="' + n[0] + '" class="' + (panelNav === n[0] ? 'on' : '') + '">' + n[1] + '</button>';
+    return '<button data-nav="' + n[0] + '" class="' + (panelNav === n[0] ? 'on' : '') + '">' + esc(n[1]) + '</button>';
   }).join('') + '</div>';
-  return '<div class="hd"><span class="ic">ℹ️</span><h3>اطلاعات آکادمی</h3><span class="tg">GolfAcademy.sa</span></div>' + navHtml + infoTab(panelNav);
+  return '<div class="hd"><span class="ic">ℹ️</span><h3>' + esc(L('landing.info','اطلاعات')) + ' آکادمی</h3><span class="tg">GolfAcademy.sa</span></div>' + navHtml + infoTab(panelNav);
 }
 function infoTab(tab){
   if (tab === 'intro'){
@@ -614,7 +622,7 @@ function infoTab(tab){
   return '';
 }
 function panelCal(){
-  var h = '<div class="hd"><span class="ic">📅</span><h3>تقویم آکادمی — فصل ۱۴۰۵</h3><span class="tg">مسابقات · کلاس‌ها · اردوها · تمرین</span></div>';
+  var h = '<div class="hd"><span class="ic">📅</span><h3>' + esc(L('landing.calendar','تقویم آکادمی')) + ' — فصل ۱۴۰۵</h3><span class="tg">مسابقات · کلاس‌ها · اردوها · تمرین</span></div>';
   var monthNames = D.MONTHS_FA || ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
   var mh = '<div class="l3d-months">';
   for (var i=0;i<12;i++) mh += '<button data-m="' + i + '" class="' + (monthSel === i ? 'on' : '') + '">' + monthNames[i] + '</button>';
@@ -647,7 +655,7 @@ function panelCal(){
 }
 function panelRecords(){
   var A = liveState();
-  var h = '<div class="hd"><span class="ic">🏆</span><h3>رکوردداران فصل ۱۴۰۵</h3><span class="tg">تالار افتخارات</span></div>';
+  var h = '<div class="hd"><span class="ic">🏆</span><h3>' + esc(L('landing.records','رکوردداران')) + ' فصل ۱۴۰۵</h3><span class="tg">تالار افتخارات</span></div>';
   var cups = [ ['🏆','جام قهرمانی فصل'], ['🥇','مدال طلا'], ['🥈','مدال نقره'], ['🥉','مدال برنز'] ];
   h += '<div class="l3d-tro">' + cups.map(function(c,i){
     return '<div class="cup" data-c="' + i + '"><div class="em">' + c[0] + '</div><div class="cn">' + c[1] + '</div></div>';
@@ -672,7 +680,7 @@ function panelRecords(){
 }
 function panelContact(){
   var c = siteInfo().contact;
-  var h = '<div class="hd"><span class="ic">📞</span><h3>ارتباط با آکادمی</h3><span class="tg">' + esc(c.website) + '</span></div>';
+  var h = '<div class="hd"><span class="ic">📞</span><h3>' + esc(L('landing.contact','تماس با ما')) + '</h3><span class="tg">' + esc(c.website) + '</span></div>';
   h += '<div class="sub">' +
     '<div class="row"><span>📞 تلفن</span><b>' + esc(c.phone) + '</b></div>' +
     '<div class="row"><span>✉️ ایمیل</span><b style="direction:ltr">' + esc(c.email) + '</b></div>' +
@@ -726,6 +734,21 @@ try {
 renderDock();
 playIntro();
 
+function refreshLabels(){
+  var lb = $('#l3d-reception .lb'); if (lb) lb.innerHTML = '🛎️ ' + esc(L('landing.reception','رسپشن'));
+  var en = $('#l3d-enter'); if (en) en.innerHTML = '👤 ' + esc(L('landing.enter','ورود اعضا'));
+  renderDock();
+  if (STATE.panel){
+    var sec = STATE.panel, html = '';
+    if (sec === 'reception') html = panelReception();
+    else if (sec === 'info') html = panelInfo();
+    else if (sec === 'cal') html = panelCal();
+    else if (sec === 'rec') html = panelRecords();
+    else if (sec === 'contact') html = panelContact();
+    if (html){ pbody.innerHTML = html; wirePanel(); }
+  }
+}
+
 /* ─────────── API تست ─────────── */
 window.__L3D = {
   state: function(){ return { mode: STATE.mode, panel: STATE.panel, introDone: STATE.introDone }; },
@@ -739,6 +762,7 @@ window.__L3D = {
     return hs ? 'reception' : null;
   },
   skipIntro: function(){ finishIntro(); },
+  refreshLabels: function(){ refreshLabels(); },
   close: function(){ closePanel(); }
 };
 })();

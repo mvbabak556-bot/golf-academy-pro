@@ -53,7 +53,7 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   await login('admin', 'golf1405');
   ok(!(await page.locator('#login').isVisible()), 'ورود مدیر اصلی انجام شد');
   ok((await page.locator('.nav-item[data-page="world"]').count()) === 0, 'آیتم «دنیای سه‌بعدی» در منو نیست');
-  ok((await page.locator('.nav-item[data-page="users"]').count()) === 1 && await page.locator('.nav-item[data-page="users"]').isVisible(), 'آیتم «یوزها» برای مدیر اصلی دیده می‌شود');
+  ok((await page.locator('.nav-item[data-page="users"]').count()) === 1 && await page.locator('.nav-item[data-page="users"]').isVisible(), 'آیتم «یوزرها» برای مدیر اصلی دیده می‌شود');
 
   // 2) تب یوزها: اعضا با یوزر/پسورد
   await page.click('.nav-item[data-page="users"]');
@@ -89,9 +89,9 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   ok(await page.locator('.nav-item[data-page="memberzone"]').isVisible(), 'آیتم «بخش اعضا» برای عضو دیده می‌شود');
   ok(!(await page.locator('#side-mgmt-btn').isVisible()), 'دکمهٔ «پلن مدیریت» برای عضو مخفی است');
   const mzTxt = await page.locator('#view').innerText();
-  ok(/بخش ویژهٔ اعضا/.test(mzTxt), 'صفحهٔ بخش ویژهٔ اعضا باز شد');
+  ok(/بخش اعضا/.test(mzTxt), 'صفحهٔ بخش اعضا باز شد');
   ok(/خانهٔ من|دریافت سکه|راهنمای سکه|ساخت اوتار/.test(mzTxt), 'بخش اعضا کامل است: خانه/سکه/راهنما/اوتار');
-  ok(!/پلن مدیریت|یوزها/.test(mzTxt), 'عضو هیچ ابزار مدیریتی نمی‌بیند');
+  ok(!/پنل مدیریت|پلن مدیریت|یوزرها|یوزها/.test(mzTxt), 'عضو هیچ ابزار مدیریتی نمی‌بیند');
   const mzTabs = await page.locator('[data-mtab]').count();
   ok(mzTabs >= 4, 'بخش اعضا ۴ تب دارد (' + mzTabs + ')');
   await shot('users_member_zone.png');

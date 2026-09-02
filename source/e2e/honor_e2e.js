@@ -95,7 +95,7 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   await shot('mgmt_honor_members.png');
 
   // 6) مدیریت فروشگاه: ویرایش قیمت + افزودن + حذف
-  await page.click('.mgmt-tab:has-text("فروشگاه اوتار")'); await page.waitForTimeout(1000);
+  await page.click('.mgmt-tab[data-tab="shop"]'); await page.waitForTimeout(1000);
   const rows = await page.locator('[data-isave]').count();
   ok(rows >= 20, 'کاتالوگ پولوشرت برندهای جهانی در پنل مدیریت فهرست شد (' + rows + ' آیتم)');
   await page.fill('[data-ir="sh_qu"] [data-f="price"]', '5');

@@ -10,6 +10,7 @@
   const $ = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => [...r.querySelectorAll(s)];
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const L = (id, fallback) => window.UI_LABELS ? UI_LABELS.t(id, fallback) : fallback;
   function gstate(){
     if (!D) D = window.Data;
     return (window.APP && window.APP.state) ? window.APP.state() : { S:null, A:null };
@@ -175,36 +176,36 @@
     const v = $('#view');
     const s = getSettings();
     const groups = [
-      { t:'داشبورد و فرماندهی', items:[
-        ['chCmd','🏠 کارت‌های آمار فرماندهی','نمایش ۸ کارت کلیدی در صفحهٔ فرماندهی'],
+      { t:L('group.dashboard','داشبورد') + ' و ' + L('nav.cmd','فرماندهی'), items:[
+        ['chCmd','🏠 کارت‌های آمار ' + L('nav.cmd','فرماندهی'),'نمایش ۸ کارت کلیدی در صفحهٔ ' + L('nav.cmd','فرماندهی')],
         ['chMonthly','📈 نمودار امتیاز ماهانه','نمودار خطی امتیاز ماه‌ها + انتخاب ماه'],
       ]},
-      { t:'صفحات تحلیلی', items:[
-        ['chRace','🏁 نمودار رقابت فصل','بارها و خطوط رقابت در صفحهٔ رقابت فصل'],
-        ['chPlayer','🏌️ نمودارهای مرکز بازیکن','رادار مهارت + دونات فرم'],
-        ['chMatch','🥇 نمودار فرماندهی مسابقه','تحلیل مسابقه و امتیازات'],
-        ['chCourse','🗺️ نمودار هوش زمین','سختی حفره‌ها و کارنامه بازیکن'],
-        ['chRecords','🎖️ نمودار رکوردها','آمار رکوردها و بهترین‌ها'],
-        ['chTv','📺 گرافیک نمایش تلویزیونی','گرافیک پخش و نمایشگرها'],
-        ['chBattle','⚔️ نمودار میدان نبرد','مقایسه دو تیم'],
+      { t:L('settings.group.analytics','صفحات تحلیلی'), items:[
+        ['chRace','🏁 نمودار ' + L('nav.race','رقابت فصل'),'بارها و خطوط رقابت در صفحهٔ ' + L('nav.race','رقابت فصل')],
+        ['chPlayer','🏌️ نمودارهای ' + L('nav.player','مرکز بازیکن'),'رادار مهارت + دونات فرم'],
+        ['chMatch','🥇 نمودار ' + L('nav.match','فرماندهی مسابقه'),'تحلیل مسابقه و امتیازات'],
+        ['chCourse','🗺️ نمودار ' + L('nav.course','هوش زمین'),'سختی حفره‌ها و کارنامه بازیکن'],
+        ['chRecords','🎖️ نمودار ' + L('nav.records','رکوردها'),'آمار رکوردها و بهترین‌ها'],
+        ['chTv','📺 گرافیک ' + L('nav.tv','نمایش تلویزیونی'),'گرافیک پخش و نمایشگرها'],
+        ['chBattle','⚔️ نمودار ' + L('nav.battle','میدان نبرد'),'مقایسه دو تیم'],
       ]},
-      { t:'تقویم', items:[
-        ['chCal','📅 تقویم و تعطیلات','نمایش تقویم + تعطیلات رسمی ایران ۱۴۰۵'],
+      { t:L('settings.group.calendar','تقویم'), items:[
+        ['chCal','📅 ' + L('nav.cal','تقویم فصل') + ' و تعطیلات','نمایش تقویم + تعطیلات رسمی ایران ۱۴۰۵'],
       ]},
-      { t:'بخش اعضا — نمایش برای اعضا (فقط مدیر)', items:[
-        ['memCmd','🎯 فرماندهی','وقتی فعال باشد، اعضا صفحهٔ فرماندهی (نمایشی) را می‌بینند'],
-        ['memRace','🏁 رقابت فصل','نمایش جدول رقابت فصل برای اعضا'],
-        ['memPlayer','🏌️ مرکز بازیکن','نمایش پروفایل/تحلیل بازیکن برای اعضا'],
-        ['memMatch','🥇 فرماندهی مسابقه','نمایش نتایج مسابقات برای اعضا'],
-        ['memCourse','🗺️ هوش زمین','نمایش اطلاعات زمین‌ها برای اعضا'],
-        ['memRecords','🎖️ رکوردها','نمایش رکوردها و تالار افتخارات برای اعضا'],
-        ['memCal','📅 تقویم فصل','نمایش تقویم و رویدادها برای اعضا'],
-        ['memTv','📺 نمایش تلویزیونی','نمایش گرافیک تلویزیونی برای اعضا'],
+      { t:L('settings.group.members','بخش اعضا — نمایش برای اعضا') + ' (فقط مدیر)', items:[
+        ['memCmd','🎯 ' + L('nav.cmd','فرماندهی'),'وقتی فعال باشد، اعضا صفحهٔ ' + L('nav.cmd','فرماندهی') + ' را می‌بینند'],
+        ['memRace','🏁 ' + L('nav.race','رقابت فصل'),'نمایش جدول ' + L('nav.race','رقابت فصل') + ' برای اعضا'],
+        ['memPlayer','🏌️ ' + L('nav.player','مرکز بازیکن'),'نمایش پروفایل/تحلیل بازیکن برای اعضا'],
+        ['memMatch','🥇 ' + L('nav.match','فرماندهی مسابقه'),'نمایش نتایج مسابقات برای اعضا'],
+        ['memCourse','🗺️ ' + L('nav.course','هوش زمین'),'نمایش اطلاعات زمین‌ها برای اعضا'],
+        ['memRecords','🎖️ ' + L('nav.records','رکوردها'),'نمایش رکوردها و تالار افتخارات برای اعضا'],
+        ['memCal','📅 ' + L('nav.cal','تقویم فصل'),'نمایش تقویم و رویدادها برای اعضا'],
+        ['memTv','📺 ' + L('nav.tv','نمایش تلویزیونی'),'نمایش گرافیک تلویزیونی برای اعضا'],
       ]},
     ];
     v.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:18px">
-      <div class="card-head"><span class="ic">🛠️</span><h3>تنظیمات نمایش — هر چیزی را فعال/غیرفعال کنید</h3><span class="tag">UI Controls</span></div>
+      <div class="card-head"><span class="ic">🛠️</span><h3>${esc(L('nav.settings','تنظیمات نمایش'))} — هر چیزی را فعال/غیرفعال کنید</h3><span class="tag">UI Controls</span></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
         <button class="btn sm" id="st-all-on">همه فعال</button>
         <button class="btn sm ghost" id="st-all-off">همه غیرفعال</button>
@@ -217,8 +218,8 @@
         <div style="margin-top:10px">
         ${g.items.map(([k, name, desc]) => `
           <div class="set-row ${s[k] ? '' : 'off'}" data-k="${k}">
-            <span style="font-size:20px">${name.split(' ')[0]}</span>
-            <div class="info"><b>${name.replace(/^[^ ]+ /,'')}</b><small>${desc}</small></div>
+            <span style="font-size:20px">${esc(name.split(' ')[0])}</span>
+            <div class="info"><b>${esc(name.replace(/^[^ ]+ /,''))}</b><small>${esc(desc)}</small></div>
             <label class="switch"><input type="checkbox" data-set="${k}" ${s[k]?'checked':''}><span class="trk"></span></label>
           </div>`).join('')}
         </div>
@@ -238,19 +239,20 @@
   function pageMgmt(){
     const v = $('#view');
     const tabs = [
-      ['players','👥','بازیکنان'], ['courses','🗺️','زمین‌ها'], ['tournaments','🏆','مسابقات'],
-      ['programs','🎓','دوره‌ها'], ['results','⛳','نتایج'], ['calendar','📅','تقویم'],
-      ['contact','📞','تماس با ما'], ['info','ℹ️','اطلاعات'], ['users','🔐','یوزها'],
-      ['coins','🪙','درخواست سکه'], ['honor','🏅','رنک و آواتار'], ['shop','🛍️','فروشگاه اوتار'],
+      ['players','👥',L('admin.players','بازیکنان')], ['courses','🗺️',L('admin.courses','زمین‌ها')], ['tournaments','🏆',L('admin.tournaments','مسابقات')],
+      ['programs','🎓',L('admin.programs','دوره‌ها')], ['results','⛳',L('admin.results','نتایج')], ['calendar','📅',L('admin.calendar','تقویم')],
+      ['contact','📞',L('admin.contact','تماس با ما')], ['info','ℹ️',L('admin.info','اطلاعات')], ['users','🔐',L('admin.users','یوزرها')],
+      ['coins','🪙',L('admin.coins','درخواست سکه')], ['honor','🏅',L('admin.honor','رنک و آواتار')], ['shop','🛍️',L('admin.shop','فروشگاه آواتار')],
+      ['labels','✏️',L('admin.labels','ویرایش آیتم‌ها')],
     ];
     v.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:18px">
-      <div class="card-head"><span class="ic">⚙️</span><h3>پلن مدیریت — ساخت، ویرایش، حذف</h3><span class="tag">Admin PRO</span>
+      <div class="card-head"><span class="ic">⚙️</span><h3>${esc(L('nav.mgmt','پنل مدیریت'))} — ساخت، ویرایش، حذف</h3><span class="tag">Admin PRO</span>
         <button class="btn sm ghost" id="mgmt-reseed" title="حذف همهٔ داده و بارگذاری دوبارهٔ دادهٔ استاندارد فصل ۱۴۰۵ (بازیکنان، مسابقات، تمرین‌ها، دوره‌ها)">♻️ بازنشانی دادهٔ فصل ۱۴۰۵</button>
       </div>
       <div class="mgmt-tabs">
         ${tabs.map(([id,ic,n]) => { const pn = (id === 'coins' && window.AV) ? AV.pendingReqs().length : 0;
-          return `<div class="mgmt-tab ${mgmtTab===id?'on':''}" data-tab="${id}">${ic} ${n}${pn ? ` <b style="color:#ffcf6b">(${D.fa(pn)})</b>` : ''}</div>`; }).join('')}
+          return `<div class="mgmt-tab ${mgmtTab===id?'on':''}" data-tab="${id}">${ic} ${esc(n)}${pn ? ` <b style="color:#ffcf6b">(${D.fa(pn)})</b>` : ''}</div>`; }).join('')}
       </div>
     </div>
     <div id="mgmt-body"></div>`;
@@ -278,6 +280,119 @@
     else if (mgmtTab === 'contact') mgmtContact(body);
     else if (mgmtTab === 'info') mgmtInfo(body);
     else if (mgmtTab === 'users') mgmtUsers(body);
+    else if (mgmtTab === 'labels') mgmtLabels(body);
+  }
+
+  /* ═══════════════ ویرایش مرکزی نام همهٔ آیتم‌ها و تب‌ها ═══════════════ */
+  function mgmtLabels(body){
+    const api = window.UI_LABELS;
+    if (!api){
+      body.innerHTML = '<div class="glass" style="color:#ff8f82">سامانهٔ نام‌ها بارگذاری نشده است.</div>';
+      return;
+    }
+    const defs = api.defs();
+    const customCount = defs.filter(d => d.custom).length;
+    const groups = [];
+    defs.forEach(d => {
+      let g = groups.find(x => x.name === d.group);
+      if (!g){ g = { name:d.group, rows:[] }; groups.push(g); }
+      g.rows.push(d);
+    });
+    const link = api.shareLink();
+    body.innerHTML = `
+      <div class="glass gold-border label-hero">
+        <div class="card-head"><span class="ic">✏️</span><h3>${esc(L('admin.labels','ویرایش آیتم‌ها'))}</h3><span class="tag">${D.fa(defs.length)} نام قابل ویرایش</span></div>
+        <div class="label-help">
+          نام هر تب یا آیتم را یک‌بار تغییر دهید تا در منوی اصلی، عنوان صفحه، پنل اعضا، موبایل، تنظیمات و فروشگاه همان نام نمایش داده شود.
+          نمونه: «${esc(L('nav.cmd','فرماندهی'))}» را به «داشبورد» تغییر دهید.
+        </div>
+        <div class="label-toolbar">
+          <input class="input" id="lbl-search" placeholder="🔎 جست‌وجوی نام یا گروه…" autocomplete="off">
+          <button class="btn sm" id="lbl-save">💾 ذخیره و اعمال همه‌جا</button>
+          <button class="btn sm ghost" id="lbl-reset-all">♻️ بازنشانی همه نام‌ها</button>
+          <span class="label-count">${D.fa(customCount)} نام تغییرکرده</span>
+        </div>
+      </div>
+
+      <div id="label-groups">
+        ${groups.map(g => `
+          <section class="glass label-group" data-label-group="${esc(g.name)}">
+            <div class="card-head"><span class="ic">🗂️</span><h3>${esc(g.name)}</h3><span class="tag">${D.fa(g.rows.length)} آیتم</span></div>
+            <div class="label-list">
+              ${g.rows.map(d => `
+                <div class="label-row ${d.custom?'changed':''}" data-label-row data-search="${esc((d.group+' '+d.def+' '+d.value).toLowerCase())}">
+                  <div class="label-meta"><span class="label-icon">${d.icon}</span><span><b>${esc(d.def)}</b><small>${esc(d.id)}</small></span></div>
+                  <input class="input label-input" data-label-input="${esc(d.id)}" data-default="${esc(d.def)}" value="${esc(d.value)}" maxlength="80" aria-label="نام جدید ${esc(d.def)}">
+                  <button class="btn sm ghost label-reset" data-label-reset="${esc(d.id)}" title="بازگشت به نام پیش‌فرض">↺ پیش‌فرض</button>
+                </div>`).join('')}
+            </div>
+          </section>`).join('')}
+      </div>
+
+      <div class="glass gold-border label-sync">
+        <div class="card-head"><span class="ic">📱</span><h3>اعمال همین نام‌ها روی گوشی و دستگاه دیگر</h3><span class="tag">همگام‌سازی</span></div>
+        <div class="label-help">بعد از ذخیره، این لینک را روی گوشی باز کنید یا کد را اسکن کنید؛ نام‌ها در مرورگر گوشی ذخیره و بلافاصله روی نسخهٔ موبایل اعمال می‌شوند.</div>
+        <div class="label-sync-grid">
+          <div>
+            <label>لینک همگام‌سازی موبایل</label>
+            <div class="label-link-row"><input class="input" id="lbl-link" value="${esc(link)}" readonly><button class="btn sm" id="lbl-copy">📋 کپی لینک</button></div>
+            <label style="margin-top:12px;display:block">ورود لینک یا کد دریافت‌شده</label>
+            <div class="label-link-row"><textarea class="input" id="lbl-import" rows="2" placeholder="لینک یا کد همگام‌سازی را اینجا قرار دهید"></textarea><button class="btn sm ghost" id="lbl-import-btn">📥 اعمال کد</button></div>
+          </div>
+          <div class="label-qr" id="lbl-qr"><span>در حال ساخت QR…</span></div>
+        </div>
+      </div>`;
+
+    const inputs = $$('[data-label-input]', body);
+    inputs.forEach(inp => inp.addEventListener('input', () => {
+      const row = inp.closest('[data-label-row]');
+      if (row) row.classList.toggle('changed', inp.value.trim() !== inp.dataset.default);
+    }));
+    $$('[data-label-reset]', body).forEach(btn => btn.addEventListener('click', () => {
+      const inp = body.querySelector(`[data-label-input="${btn.dataset.labelReset}"]`);
+      if (inp){ inp.value = inp.dataset.default; inp.dispatchEvent(new Event('input')); }
+    }));
+    $('#lbl-search', body).addEventListener('input', e => {
+      const q = e.target.value.trim().toLowerCase();
+      $$('[data-label-row]', body).forEach(r => { r.style.display = !q || (r.dataset.search || '').includes(q) ? '' : 'none'; });
+      $$('[data-label-group]', body).forEach(g => {
+        g.style.display = $$('[data-label-row]', g).some(r => r.style.display !== 'none') ? '' : 'none';
+      });
+    });
+    $('#lbl-save', body).addEventListener('click', () => {
+      const values = {};
+      inputs.forEach(inp => { values[inp.dataset.labelInput] = inp.value; });
+      api.setMany(values);
+      APP.toast('نام‌ها ذخیره شد و در همهٔ بخش‌های سایت اعمال شد ✓', 'green');
+    });
+    $('#lbl-reset-all', body).addEventListener('click', () => {
+      if (!confirm('همهٔ نام‌های سفارشی به حالت پیش‌فرض برگردند؟')) return;
+      api.resetAll();
+      APP.toast('همهٔ نام‌ها به حالت پیش‌فرض برگشت', 'orange');
+    });
+    function copyText(text){
+      if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
+      const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); } catch(e){} t.remove(); return Promise.resolve();
+    }
+    $('#lbl-copy', body).addEventListener('click', () => {
+      copyText($('#lbl-link', body).value).then(() => APP.toast('لینک همگام‌سازی کپی شد ✓', 'green')).catch(() => APP.toast('لینک را دستی کپی کنید', 'orange'));
+    });
+    $('#lbl-import-btn', body).addEventListener('click', () => {
+      const code = $('#lbl-import', body).value.trim();
+      if (!code){ APP.toast('ابتدا لینک یا کد را وارد کنید', 'red'); return; }
+      if (api.importToken(code)) APP.toast('نام‌ها از کد دریافت و روی این دستگاه اعمال شد ✓', 'green');
+      else APP.toast('کد همگام‌سازی معتبر نیست', 'red');
+    });
+    setTimeout(() => {
+      const host = $('#lbl-qr', body); if (!host) return;
+      try {
+        if (typeof qrcode === 'undefined') throw new Error('qr');
+        const qr = qrcode(0, 'M'); qr.addData(link); qr.make();
+        const img = document.createElement('img'); img.src = qr.createDataURL(4, 8); img.alt = 'QR همگام‌سازی نام‌ها';
+        host.innerHTML = ''; host.appendChild(img); host.insertAdjacentHTML('beforeend','<small>برای اعمال روی موبایل اسکن کنید</small>');
+      } catch(e){ host.innerHTML = '<span>لینک را با دکمهٔ «کپی لینک» به گوشی بفرستید.</span>'; }
+    }, 30);
   }
 
   /* ───────── فرم جامع بازیکن (مشترک ساخت/ویرایش) ───────── */
@@ -1589,9 +1704,9 @@
     const c = si.contact;
     body.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:16px">
-      <div class="card-head"><span class="ic">📞</span><h3>اطلاعات تماس با ما</h3><span class="tag">نمایش در صفحهٔ اصلی</span></div>
+      <div class="card-head"><span class="ic">📞</span><h3>اطلاعات ${esc(L('admin.contact','تماس با ما'))}</h3><span class="tag">نمایش در صفحهٔ اصلی</span></div>
       <div class="sub-note" style="font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.9">
-        این اطلاعات در صفحهٔ اصلی (پنل «📞 تماس با ما») و رسپشن نمایش داده می‌شود — هر جا ویرایش کنید، همان‌جا به‌روز می‌شود.
+        این اطلاعات در صفحهٔ اصلی (پنل «📞 ${esc(L('landing.contact','تماس با ما'))}») و ${esc(L('landing.reception','رسپشن'))} نمایش داده می‌شود — هر جا ویرایش کنید، همان‌جا به‌روز می‌شود.
       </div>
       <div class="field-grid" style="margin-top:12px">
         <div><label>📞 تلفن</label><input class="input" id="ct-phone" value="${esc(c.phone)}" style="width:100%;direction:ltr"></div>
@@ -1622,9 +1737,9 @@
     const i = si.info;
     body.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:16px">
-      <div class="card-head"><span class="ic">ℹ️</span><h3>اطلاعات و معرفی آکادمی</h3><span class="tag">نمایش در صفحهٔ اصلی</span></div>
+      <div class="card-head"><span class="ic">ℹ️</span><h3>${esc(L('admin.info','اطلاعات'))} و معرفی آکادمی</h3><span class="tag">نمایش در صفحهٔ اصلی</span></div>
       <div class="sub-note" style="font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.9">
-        متن معرفی و مشخصات در پنل «ℹ️ اطلاعات» صفحهٔ اصلی نمایش داده می‌شود — بعد از ذخیره، همان لحظه به‌روز می‌شود.
+        متن معرفی و مشخصات در پنل «ℹ️ ${esc(L('landing.info','اطلاعات'))}» صفحهٔ اصلی نمایش داده می‌شود — بعد از ذخیره، همان لحظه به‌روز می‌شود.
       </div>
       <div style="margin-top:12px">
         <label>📝 متن معرفی آکادمی</label>
@@ -1651,8 +1766,8 @@
     const v = $('#view');
     v.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:18px">
-      <div class="card-head"><span class="ic">🔐</span><h3>یوزها — مدیریت دسترسی‌ها</h3><span class="tag">Admin PRO</span>
-        <button class="btn sm ghost" id="us-back" style="margin-right:auto">← پلن مدیریت</button>
+      <div class="card-head"><span class="ic">🔐</span><h3>${esc(L('nav.users','یوزرها'))} — مدیریت دسترسی‌ها</h3><span class="tag">Admin PRO</span>
+        <button class="btn sm ghost" id="us-back" style="margin-right:auto">← ${esc(L('nav.mgmt','پنل مدیریت'))}</button>
       </div>
     </div>
     <div id="mgmt-body"></div>`;
@@ -1667,7 +1782,7 @@
     if (!U || !U.isMain(window.APP.currentUser())){
       body.innerHTML = `
       <div class="glass" style="padding:34px;text-align:center;color:var(--muted)">
-        🔐 مدیریت یوزرها فقط در اختیار <b style="color:var(--gold-l)">مدیر اصلی آکادمی</b> است.<br>
+        🔐 مدیریت ${esc(L('nav.users','یوزرها'))} فقط در اختیار <b style="color:var(--gold-l)">مدیر اصلی آکادمی</b> است.<br>
         <span style="font-size:11.5px">برای دسترسی، با یوزر اصلی (admin) وارد شوید.</span>
       </div>`;
       return;
@@ -1675,7 +1790,7 @@
     let users = U.list();
     body.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:16px">
-      <div class="card-head"><span class="ic">🔐</span><h3>یوزها — دسترسی‌ها</h3><span class="tag">فقط مدیر اصلی</span></div>
+      <div class="card-head"><span class="ic">🔐</span><h3>${esc(L('admin.users','یوزرها'))} — دسترسی‌ها</h3><span class="tag">فقط مدیر اصلی</span></div>
       <div class="sub-note" style="font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.9">
         دو سطح دسترسی: <b style="color:var(--gold-l)">مدیر</b> (دسترسی کامل به پلن مدیریت و همهٔ بخش‌ها) و
         <b style="color:var(--green-l)">عضو</b> (فقط بخش ویژهٔ اعضا — بدون هیچ ابزار ویرایشی).<br>
@@ -1688,7 +1803,7 @@
       </div>
     </div>
     <div class="glass">
-      <div class="card-head"><span class="ic">👤</span><h3>لیست یوزرها</h3><span class="tag">مدیر / عضو</span></div>
+      <div class="card-head"><span class="ic">👤</span><h3>لیست ${esc(L('nav.users','یوزرها'))}</h3><span class="tag">مدیر / عضو</span></div>
       <div style="overflow-x:auto"><table class="tbl"><thead><tr>
         <th>#</th><th>نام</th><th>یوزر</th><th>رمز</th><th>نقش / دسترسی</th><th>وضعیت</th><th>عملیات</th>
       </tr></thead><tbody id="us-rows"></tbody></table></div>
@@ -1899,7 +2014,7 @@
     <div class="glass gold-border" style="margin-bottom:16px">
       <div class="card-head"><span class="ic">⏳</span><h3>درخواست‌های در انتظار تأیید</h3><span class="tag">${D.fa(pend.length)} درخواست</span></div>
       <div class="sub-note" style="font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.9">
-        هر عضو در «بخش اعضا ← دریافت سکه» درخواست می‌فرستد؛ سکه فقط بعد از تأیید شما به کیف‌پول او اضافه می‌شود. مقدار سکه را هم می‌توانید قبل از تأیید تغییر دهید.
+        هر عضو در «${esc(L('nav.memberzone','بخش اعضا'))} ← ${esc(L('member.earn','دریافت سکه'))}» درخواست می‌فرستد؛ سکه فقط بعد از تأیید شما به کیف‌پول او اضافه می‌شود. مقدار سکه را هم می‌توانید قبل از تأیید تغییر دهید.
       </div>
       <div style="margin-top:12px">
         ${pend.length ? pend.map(r => `
@@ -2183,7 +2298,7 @@
     const brands = Object.keys(AV.BRANDS);
     body.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:16px">
-      <div class="card-head"><span class="ic">🛍️</span><h3>فروشگاه آواتار — قیمت‌ها و آیتم‌ها</h3><span class="tag">${D.fa(AV.shopAll().length)} آیتم</span>
+      <div class="card-head"><span class="ic">🛍️</span><h3>${esc(L('shop.title','فروشگاه آواتار'))} — قیمت‌ها و آیتم‌ها</h3><span class="tag">${D.fa(AV.shopAll().length)} آیتم</span>
         <button class="btn sm ghost" id="sp-reset" style="margin-right:auto">↺ بازگشت به کاتالوگ پیش‌فرض</button>
       </div>
       <div class="sub-note" style="font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.9">

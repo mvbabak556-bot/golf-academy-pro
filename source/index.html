@@ -20,7 +20,7 @@
   <div class="login-card glass gold-border">
     <div class="login-logo"><img src="assets/ball_3d.webp" alt=""></div>
     <h1 class="gold-text">آکادمی گلف ۱۴۰۵</h1>
-    <div class="sub">داشبورد حرفهای فرماندهی — فقط اعضای مجاز</div>
+    <div class="sub">داشبورد حرفه‌ای <span data-ui-label="nav.cmd">فرماندهی</span> — فقط اعضای مجاز</div>
     <div class="err-msg" id="login-err"></div>
     <form id="login-form">
       <div class="field">
@@ -34,7 +34,7 @@
       </div>
       <button type="submit" class="btn">ورود به داشبورد 🏌️</button>
     </form>
-    <div class="hint">ورود مدیر: <b>admin</b> / <b>golf1405</b> — نام کاربری اعضا را مدیر در «پلن مدیریت ← یوزها» می‌سازد</div>
+    <div class="hint">ورود مدیر: <b>admin</b> / <b>golf1405</b> — نام کاربری اعضا را مدیر در «<span data-ui-label="nav.mgmt">پنل مدیریت</span> ← <span data-ui-label="nav.users">یوزرها</span>» می‌سازد</div>
   </div>
 </div>
 
@@ -45,27 +45,27 @@
       <div class="logo"><img src="assets/ball_3d.webp" alt=""></div>
       <div>
         <h2>GolfAcademy <span style="color:var(--gold-l)">PRO</span></h2>
-        <small>فصل ۱۴۰۵ • فرماندهی</small>
+        <small>فصل ۱۴۰۵ • <span data-ui-label="nav.cmd">فرماندهی</span></small>
       </div>
     </div>
 
-    <div class="nav-group">داشبورد</div>
-    <div class="nav-item" data-page="memberzone"><span class="ico">👤</span>بخش اعضا</div>
-    <div class="nav-item" data-page="cmd"><span class="ico">🎯</span>فرماندهی</div>
-    <div class="nav-item" data-page="race"><span class="ico">🏁</span>رقابت فصل</div>
-    <div class="nav-item" data-page="player"><span class="ico">🏌️</span>مرکز بازیکن</div>
-    <div class="nav-item" data-page="match"><span class="ico">🥇</span>فرماندهی مسابقه</div>
-    <div class="nav-item" data-page="course"><span class="ico">🗺️</span>هوش زمین</div>
-    <div class="nav-item" data-page="records"><span class="ico">🎖️</span>رکوردها</div>
-    <div class="nav-item" data-page="cal"><span class="ico">📅</span>تقویم فصل</div>
-    <div class="nav-item" data-page="tv"><span class="ico">📺</span>نمایش تلویزیونی</div>
-    <div class="nav-item" data-page="battle"><span class="ico">⚔️</span>میدان نبرد</div>
-    <div class="nav-item" data-page="academy"><span class="ico">🏫</span>پنل آکادمی</div>
+    <div class="nav-group" data-ui-label="group.dashboard">داشبورد</div>
+    <div class="nav-item" data-page="memberzone"><span class="ico">👤</span><span data-ui-label="nav.memberzone">بخش اعضا</span></div>
+    <div class="nav-item" data-page="cmd"><span class="ico">🎯</span><span data-ui-label="nav.cmd">فرماندهی</span></div>
+    <div class="nav-item" data-page="race"><span class="ico">🏁</span><span data-ui-label="nav.race">رقابت فصل</span></div>
+    <div class="nav-item" data-page="player"><span class="ico">🏌️</span><span data-ui-label="nav.player">مرکز بازیکن</span></div>
+    <div class="nav-item" data-page="match"><span class="ico">🥇</span><span data-ui-label="nav.match">فرماندهی مسابقه</span></div>
+    <div class="nav-item" data-page="course"><span class="ico">🗺️</span><span data-ui-label="nav.course">هوش زمین</span></div>
+    <div class="nav-item" data-page="records"><span class="ico">🎖️</span><span data-ui-label="nav.records">رکوردها</span></div>
+    <div class="nav-item" data-page="cal"><span class="ico">📅</span><span data-ui-label="nav.cal">تقویم فصل</span></div>
+    <div class="nav-item" data-page="tv"><span class="ico">📺</span><span data-ui-label="nav.tv">نمایش تلویزیونی</span></div>
+    <div class="nav-item" data-page="battle"><span class="ico">⚔️</span><span data-ui-label="nav.battle">میدان نبرد</span></div>
+    <div class="nav-item" data-page="academy"><span class="ico">🏫</span><span data-ui-label="nav.academy">پنل آکادمی</span></div>
 
-    <div class="nav-group" id="mgmt-group">مدیریت</div>
-    <div class="nav-item" data-page="mgmt"><span class="ico">⚙️</span>پلن مدیریت</div>
-    <div class="nav-item" data-page="users"><span class="ico">🔐</span>یوزها</div>
-    <div class="nav-item" data-page="settings"><span class="ico">🛠️</span>تنظیمات نمایش</div>
+    <div class="nav-group" id="mgmt-group" data-ui-label="group.management">مدیریت</div>
+    <div class="nav-item" data-page="mgmt"><span class="ico">⚙️</span><span data-ui-label="nav.mgmt">پنل مدیریت</span></div>
+    <div class="nav-item" data-page="users"><span class="ico">🔐</span><span data-ui-label="nav.users">یوزرها</span></div>
+    <div class="nav-item" data-page="settings"><span class="ico">🛠️</span><span data-ui-label="nav.settings">تنظیمات نمایش</span></div>
 
     <div class="side-foot">
       <div class="user">
@@ -73,7 +73,7 @@
         <div style="font-size:10.5px">@<span id="user-name">admin</span></div>
       </div>
       <div style="display:flex;gap:6px;width:100%">
-        <button class="btn sm" onclick="APP.go('mgmt')" id="side-mgmt-btn" style="flex:1;padding:7px 8px;font-size:11.5px">⚙️ پلن مدیریت</button>
+        <button class="btn sm" onclick="APP.go('mgmt')" id="side-mgmt-btn" style="flex:1;padding:7px 8px;font-size:11.5px">⚙️ <span data-ui-label="nav.mgmt">پنل مدیریت</span></button>
         <button class="btn ghost sm" id="logout-btn" style="flex:1;padding:7px 8px;font-size:11.5px">خروج ↺</button>
       </div>
     </div>
@@ -83,7 +83,7 @@
     <div class="topbar">
       <button class="menu-btn" id="menu-btn" title="منو">☰</button>
       <div>
-        <h1 id="top-title">🎯 فرماندهی</h1>
+        <h1 id="top-title">🎯 <span data-ui-label="nav.cmd">فرماندهی</span></h1>
         <div class="crumb" id="top-crumb">داشبورد</div>
       </div>
       <div class="hud">
@@ -98,6 +98,7 @@
 </div>
 <div id="nav-overlay"></div>
 
+    <script src="js/labels.js"></script>
     <script src="js/holidays.js"></script>
     <script src="js/data.js"></script>
     <script src="js/charts.js"></script>

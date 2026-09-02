@@ -10,41 +10,43 @@
   const $   = (s, r) => (r || document).querySelector(s);
   const $$  = (s, r) => Array.from((r || document).querySelectorAll(s));
   const toast = (m, c) => { if (window.APP && APP.toast) APP.toast(m, c); };
+  const L = (id, fallback) => window.UI_LABELS ? UI_LABELS.t(id, fallback) : fallback;
 
   /* وضعیت ویترین (در حافظه) */
   const ST = { cat:'all', brand:'', gender:'', sort:'new', q:'', rot:0, slot:'' };
 
   /* دسته‌های ویترین (ترکیبی از اسلات‌های واقعی + دسته‌های هوشمند) */
   const VIEW_CATS = [
-    { id:'all',   ic:'▦', n:'همه آیتم‌ها' },
-    { id:'men',   ic:'👔', n:'لباس مردانه' },
-    { id:'women', ic:'👗', n:'لباس زنانه' },
-    { id:'hat',   ic:'🧢', n:'کلاه و ویزور' },
-    { id:'glove', ic:'🧤', n:'دستکش' },
-    { id:'shoes', ic:'👟', n:'کفش' },
-    { id:'bag',   ic:'🎒', n:'کیف گلف' },
-    { id:'club',  ic:'🏌️', n:'چوب گلف' },
-    { id:'ball',  ic:'⛳', n:'توپ و تجهیزات' },
-    { id:'glass', ic:'🕶️', n:'عینک' },
-    { id:'watch', ic:'⌚', n:'ساعت و اکسسوری' },
-    { id:'look',  ic:'💇', n:'چهره و مو' },
-    { id:'bundle',ic:'🎁', n:'بسته‌های ویژه' },
-    { id:'new',   ic:'✨', n:'آیتم‌های جدید' },
-    { id:'sale',  ic:'🏷️', n:'تخفیف‌دار' },
-    { id:'fav',   ic:'❤️', n:'علاقه‌مندی‌ها' },
+    { id:'all',   ic:'▦', k:'shop.cat.all', n:'همه آیتم‌ها' },
+    { id:'men',   ic:'👔', k:'shop.cat.men', n:'لباس مردانه' },
+    { id:'women', ic:'👗', k:'shop.cat.women', n:'لباس زنانه' },
+    { id:'hat',   ic:'🧢', k:'shop.cat.hat', n:'کلاه و ویزور' },
+    { id:'glove', ic:'🧤', k:'shop.cat.glove', n:'دستکش' },
+    { id:'shoes', ic:'👟', k:'shop.cat.shoes', n:'کفش' },
+    { id:'bag',   ic:'🎒', k:'shop.cat.bag', n:'کیف گلف' },
+    { id:'club',  ic:'🏌️', k:'shop.cat.club', n:'چوب گلف' },
+    { id:'ball',  ic:'⛳', k:'shop.cat.ball', n:'توپ و تجهیزات' },
+    { id:'glass', ic:'🕶️', k:'shop.cat.glass', n:'عینک' },
+    { id:'watch', ic:'⌚', k:'shop.cat.watch', n:'ساعت و اکسسوری' },
+    { id:'look',  ic:'💇', k:'shop.cat.look', n:'چهره و مو' },
+    { id:'bundle',ic:'🎁', k:'shop.cat.bundle', n:'بسته‌های ویژه' },
+    { id:'new',   ic:'✨', k:'shop.cat.new', n:'آیتم‌های جدید' },
+    { id:'sale',  ic:'🏷️', k:'shop.cat.sale', n:'تخفیف‌دار' },
+    { id:'fav',   ic:'❤️', k:'shop.cat.fav', n:'علاقه‌مندی‌ها' },
   ];
   /* اسلات‌های قابل پوشیدن در نوار کناری پیش‌نمایش */
   const SLOTS = [
-    ['hat','🧢','کلاه'], ['shirt','👕','بالاتنه'], ['pants','👖','پایین‌تنه'], ['shoes','👟','کفش'],
-    ['glove','🧤','دستکش'], ['glass','🕶️','عینک'], ['bag','🎒','کیف'], ['club','🏌️','چوب'],
-    ['watch','⌚','ساعت'], ['ball','⛳','توپ'],
+    ['hat','🧢','کلاه','shop.slot.hat'], ['shirt','👕','بالاتنه','shop.slot.shirt'], ['pants','👖','پایین‌تنه','shop.slot.pants'], ['shoes','👟','کفش','shop.slot.shoes'],
+    ['glove','🧤','دستکش','shop.slot.glove'], ['glass','🕶️','عینک','shop.slot.glass'], ['bag','🎒','کیف','shop.slot.bag'], ['club','🏌️','چوب','shop.slot.club'],
+    ['watch','⌚','ساعت','shop.slot.watch'], ['ball','⛳','توپ','shop.slot.ball'],
   ];
 
   function viewCats(){
     const hidden = (AV.catsAll() || []).filter(c => c.off).map(c => c.id);
     const custom = (AV.catsAll() || []).filter(c => !c.base && !c.off)
       .map(c => ({ id:c.id, ic:c.icon || '🏷️', n:c.label || c.id }));
-    return VIEW_CATS.filter(c => !hidden.includes(c.id)).concat(custom);
+    const base = VIEW_CATS.filter(c => !hidden.includes(c.id)).map(c => Object.assign({}, c, { n:L(c.k, c.n) }));
+    return base.concat(custom);
   }
 
   /* فیلتر آیتم‌ها بر اساس وضعیت */
@@ -116,7 +118,7 @@
       <!-- ستون دسته‌بندی -->
       <aside class="as-side">
         <div class="as-side-hd">
-          <div><h4>فروشگاه اوتار</h4><small>استایل منحصر به خود را بسازید</small></div><span class="ic">🛍️</span>
+          <div><h4>${esc(L('shop.title','فروشگاه آواتار'))}</h4><small>استایل منحصر به خود را بسازید</small></div><span class="ic">🛍️</span>
         </div>
         <div class="as-cats">
           ${viewCats().map(c => `<div class="as-cat ${(!ST.slot && ST.cat === c.id) ? 'on' : ''}" data-scat="${c.id}"><span class="i">${c.ic}</span><span>${esc(c.n)}</span></div>`).join('')}
@@ -135,12 +137,12 @@
         </div>
 
         <div class="as-filters">
-          <button class="as-f ${ST.sort==='new'?'on':''}" data-sort="new">جدیدترین‌ها</button>
-          <button class="as-f ${ST.sort==='pop'?'on':''}" data-sort="pop">محبوب‌ترین</button>
-          <button class="as-f ${ST.sort==='sale'?'on':''}" data-sort="sale">تخفیف‌دار</button>
-          <button class="as-f ${ST.sort==='sold'?'on':''}" data-sort="sold">پرفروش‌ترین</button>
-          <button class="as-f ${ST.sort==='lo'?'on':''}" data-sort="lo">ارزان‌ترین</button>
-          <button class="as-f ${ST.sort==='hi'?'on':''}" data-sort="hi">گران‌ترین</button>
+          <button class="as-f ${ST.sort==='new'?'on':''}" data-sort="new">${esc(L('shop.sort.new','جدیدترین‌ها'))}</button>
+          <button class="as-f ${ST.sort==='pop'?'on':''}" data-sort="pop">${esc(L('shop.sort.pop','محبوب‌ترین'))}</button>
+          <button class="as-f ${ST.sort==='sale'?'on':''}" data-sort="sale">${esc(L('shop.sort.sale','تخفیف‌دار'))}</button>
+          <button class="as-f ${ST.sort==='sold'?'on':''}" data-sort="sold">${esc(L('shop.sort.sold','پرفروش‌ترین'))}</button>
+          <button class="as-f ${ST.sort==='lo'?'on':''}" data-sort="lo">${esc(L('shop.sort.low','ارزان‌ترین'))}</button>
+          <button class="as-f ${ST.sort==='hi'?'on':''}" data-sort="hi">${esc(L('shop.sort.high','گران‌ترین'))}</button>
           <select class="as-sel" id="as-brand">
             <option value="">همه برندها</option>
             ${brandList.map(([id, b]) => `<option value="${id}" ${ST.brand===id?'selected':''}>${esc(b.name)}</option>`).join('')}
@@ -175,10 +177,10 @@
 
       <!-- پیش‌نمایش زنده + سبد -->
       <aside class="as-prev">
-        <div class="as-prev-hd"><h4>پیش‌نمایش اوتار</h4><span class="as-coin">🪙 ${fa(coin.total)}</span></div>
+        <div class="as-prev-hd"><h4>${esc(L('shop.preview','پیش‌نمایش آواتار'))}</h4><span class="as-coin">🪙 ${fa(coin.total)}</span></div>
         <div class="as-stage">
           <div class="as-slots">
-            ${SLOTS.map(([id, ic, t]) => `<button class="as-slot ${ST.slot===id?'on':''}" data-slot="${id}" title="${t}">${ic}</button>`).join('')}
+            ${SLOTS.map(([id, ic, t, k]) => `<button class="as-slot ${ST.slot===id?'on':''}" data-slot="${id}" title="${esc(L(k,t))}">${ic}</button>`).join('')}
           </div>
           <div class="as-podium">
             <div class="as-av" id="as-av" style="transform:rotateY(${ST.rot}deg)">${AV.renderAvatarSVG(av.sel, { gender: av.gender, w: 168, h: 302 })}</div>
@@ -195,7 +197,7 @@
           </div>
         </div>
         <div class="as-cart">
-          <div class="as-cart-hd"><h4>سبد خرید</h4><span class="as-badge">${fa(cart.length)}</span></div>
+          <div class="as-cart-hd"><h4>${esc(L('shop.cart','سبد خرید'))}</h4><span class="as-badge">${fa(cart.length)}</span></div>
           <div class="as-cart-list">
             ${cart.length ? cart.map(id => {
               const it = AV.shopItem(id); if (!it) return '';
@@ -414,17 +416,20 @@
      ═══════════════════════════════════════════════════════════════ */
   let ATAB = 'items', AFILT = '';
   function renderAdmin(root){
-    const tabs = [['items','🛍️ محصولات'], ['cats','🗂️ دسته‌بندی‌ها'], ['brands','🏷️ برندها'], ['bundles','🎁 بسته‌های ویژه']];
+    const tabs = [
+      ['items','🛍️ ' + L('shop.products','محصولات')], ['cats','🗂️ ' + L('shop.categories','دسته‌بندی‌ها')],
+      ['brands','🏷️ ' + L('shop.brands','برندها')], ['bundles','🎁 ' + L('shop.bundles','بسته‌های ویژه')]
+    ];
     root.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:14px">
-      <div class="card-head"><span class="ic">🛍️</span><h3>فروشگاه اوتار — مدیریت کامل</h3>
+      <div class="card-head"><span class="ic">🛍️</span><h3>${esc(L('shop.title','فروشگاه آواتار'))} — مدیریت کامل</h3>
         <span class="tag">${fa(AV.shopAll().length)} محصول</span></div>
       <div class="sub-note" style="font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.9">
         همه‌چیز بدون برنامه‌نویسی: افزودن/ویرایش/حذف محصول، دسته، برند و بستهٔ ویژه؛ قیمت سکه‌ای و تومانی،
         قیمت قبل از تخفیف، موجودی، جنسیت، رنگ‌ها، محل نصب روی اوتار، آپلود تصویر و فعال/غیرفعال کردن.
       </div>
       <div class="asa-tabs" style="margin-top:12px">
-        ${tabs.map(([id, n]) => `<div class="asa-tab ${ATAB===id?'on':''}" data-atab="${id}">${n}</div>`).join('')}
+        ${tabs.map(([id, n]) => `<div class="asa-tab ${ATAB===id?'on':''}" data-atab="${id}">${esc(n)}</div>`).join('')}
       </div>
     </div>
     <div id="asa-body"></div>`;

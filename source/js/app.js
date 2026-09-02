@@ -4,6 +4,7 @@
   const $ = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => [...r.querySelectorAll(s)];
   const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const L = (id, fallback) => window.UI_LABELS ? UI_LABELS.t(id, fallback) : fallback;
 
   /* ذخیره‌سازی امن — در پیش‌نمایش sandbox شده، localStorage در دسترس نیست */
   const store = (() => {
@@ -185,17 +186,20 @@
   }
 
   /* ═══════════ روتر ═══════════ */
-  const PAGES = {
-    memberzone: { t:'بخش اعضا', i:'👤' },
-    cmd: { t:'فرماندهی', i:'🎯' }, race: { t:'رقابت فصل', i:'🏁' },
-    player: { t:'مرکز بازیکن', i:'🏌️' }, match: { t:'فرماندهی مسابقه', i:'🥇' },
-    course: { t:'هوش زمین', i:'🗺️' }, records: { t:'رکوردها', i:'🎖️' },
-    cal: { t:'تقویم فصل', i:'📅' }, tv: { t:'نمایش تلویزیونی', i:'📺' },
-    battle: { t:'میدان نبرد', i:'⚔️' }, academy: { t:'پنل آکادمی', i:'🏫' },
-    acourses: { t:'طراح زمین', i:'🛠️' }, atournaments: { t:'طراح مسابقه', i:'🛠️' },
-    ascorecards: { t:'ثبت نتایج', i:'🛠️' },
-    mgmt: { t:'پلن مدیریت', i:'⚙️' }, users: { t:'یوزها', i:'🔐' }, settings: { t:'تنظیمات نمایش', i:'🛠️' },
+  const PAGE_LABELS = {
+    memberzone:['nav.memberzone','بخش اعضا'], cmd:['nav.cmd','فرماندهی'], race:['nav.race','رقابت فصل'],
+    player:['nav.player','مرکز بازیکن'], match:['nav.match','فرماندهی مسابقه'], course:['nav.course','هوش زمین'],
+    records:['nav.records','رکوردها'], cal:['nav.cal','تقویم فصل'], tv:['nav.tv','نمایش تلویزیونی'],
+    battle:['nav.battle','میدان نبرد'], academy:['nav.academy','پنل آکادمی'], acourses:['nav.acourses','طراح زمین'],
+    atournaments:['nav.atournaments','طراح مسابقه'], ascorecards:['nav.ascorecards','ثبت نتایج'],
+    mgmt:['nav.mgmt','پنل مدیریت'], users:['nav.users','یوزرها'], settings:['nav.settings','تنظیمات نمایش'],
   };
+  const PAGE_ICONS = { memberzone:'👤',cmd:'🎯',race:'🏁',player:'🏌️',match:'🥇',course:'🗺️',records:'🎖️',cal:'📅',tv:'📺',battle:'⚔️',academy:'🏫',acourses:'🛠️',atournaments:'🛠️',ascorecards:'🛠️',mgmt:'⚙️',users:'🔐',settings:'🛠️' };
+  const PAGES = {};
+  function updatePageLabels(){
+    Object.keys(PAGE_LABELS).forEach(pg => { PAGES[pg] = { t:L(PAGE_LABELS[pg][0], PAGE_LABELS[pg][1]), i:PAGE_ICONS[pg] }; });
+  }
+  updatePageLabels();
   let currentPage = 'cmd';
   let playerSel = 8, matchSel = 1, courseSel = 1, coursePlayerSel = 8;
 
@@ -217,7 +221,7 @@
     nav.innerHTML = pages.map(pg => {
       const p = PAGES[pg];
       const active = pg === page;
-      const title = pg === 'memberzone' ? 'پنل اعضا' : p.t;
+      const title = p.t;
       return `<button type="button" class="member-mobile-link ${active?'active':''}" data-member-page="${pg}" aria-current="${active?'page':'false'}"><span>${p.i}</span><b>${esc(title)}</b></button>`;
     }).join('');
     nav.classList.add('ready');
@@ -249,7 +253,7 @@
     $('#view').innerHTML = '';
     const p = PAGES[page];
     $('#top-title').textContent = `${p.i} ${p.t}`;
-    $('#top-crumb').textContent = page.startsWith('a') ? 'ابزار طراح / ' + p.t : 'داشبورد / ' + p.t;
+    $('#top-crumb').textContent = page.startsWith('a') ? 'ابزار طراح / ' + p.t : L('group.dashboard','داشبورد') + ' / ' + p.t;
     RENDERERS[page]();
     // برای اعضا، دکمه‌های مدیریتی صفحات نمایشی مخفی می‌شوند
     if (rec && rec.role === 'member' && page !== 'memberzone'){
@@ -284,12 +288,12 @@
       <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(11,15,20,.92));display:flex;flex-direction:column;justify-content:flex-end;padding:26px">
         <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
           <div>
-            <h1 style="font-size:26px;font-weight:900" class="gold-text">آکادمی گلف ۱۴۰۵ — فرماندهی</h1>
+            <h1 style="font-size:26px;font-weight:900" class="gold-text">آکادمی گلف ۱۴۰۵ — ${esc(L('nav.cmd','فرماندهی'))}</h1>
             <div style="color:var(--muted);font-size:12.5px;margin-top:4px">فصل قهرمانی ۱۴۰۵ • ${D.fa(A.MATCHES_HELD)} مسابقه برگزار شده • ${D.fa(A.LB.length)} بازیکن فعال</div>
           </div>
           <div style="margin-right:auto;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-            <button class="btn sm" onclick="APP.go('mgmt')" style="box-shadow:0 0 16px rgba(212,175,55,.25)">⚙️ پلن مدیریت</button>
-            <button class="btn sm ghost" onclick="APP.go('settings')">🛠️ تنظیمات نمایش</button>
+            <button class="btn sm" onclick="APP.go('mgmt')" style="box-shadow:0 0 16px rgba(212,175,55,.25)">⚙️ ${esc(L('nav.mgmt','پنل مدیریت'))}</button>
+            <button class="btn sm ghost" onclick="APP.go('settings')">🛠️ ${esc(L('nav.settings','تنظیمات نمایش'))}</button>
             <span class="chip gold">⏳ مسابقه بعدی: ${esc(A.NEXT_T ? A.NEXT_T[1] : '—')} — ${D.fa(A.COUNTDOWN)} روز</span>
             <span class="chip green">🔴 فصل در جریان است</span>
           </div>
@@ -371,7 +375,7 @@
       { ic:'⭐', lbl:'قهرمان ماه', val: 0, sub: A.champM ? `${A.champM} — ${esc(A.champName)}` : '—', col:'var(--teal)', fmt:'fa' },
       { ic:'🎖️', lbl:'میانگین هندیکپ', val: A.AVG_HCP, sub:'کل اعضا', col:'var(--red)', fmt:'num1' },
     ];
-    if (!MGMT.getSettings().chCmd){ statsEl.innerHTML = '<div class="glass" style="grid-column:span 4;padding:14px;text-align:center;color:var(--muted)">نمودارهای فرماندهی غیرفعال شده‌اند — از «تنظیمات نمایش» فعال کنید</div>'; }
+    if (!MGMT.getSettings().chCmd){ statsEl.innerHTML = `<div class="glass" style="grid-column:span 4;padding:14px;text-align:center;color:var(--muted)">نمودارهای ${esc(L('nav.cmd','فرماندهی'))} غیرفعال شده‌اند — از «${esc(L('nav.settings','تنظیمات نمایش'))}» فعال کنید</div>`; }
     else statsEl.innerHTML = cards.map((c,i) => `
       <div class="glass tilt stat">
         <span class="accent-bar" style="background:linear-gradient(90deg,${c.col},transparent)"></span>
@@ -387,7 +391,7 @@
         drawMonthlyChart();
       } else {
         const c = $('#cm-chart');
-        if (c) c.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:12.5px">نمودار ماهانه غیرفعال است — از تنظیمات نمایش فعال کنید</div>';
+        if (c) c.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:12.5px">نمودار ماهانه غیرفعال است — از ${esc(L('nav.settings','تنظیمات نمایش'))} فعال کنید</div>`;
       }
       A.MONTHLY_TOT.forEach((v,i) => Charts.spark($(`#sp-1`), A.MONTHLY_TOT.slice(0,i+1), '#1EBB8A'));
       const apply = $('#cm-apply');
@@ -420,7 +424,7 @@
   function pageRace(){
     const v = $('#view');
     if (!MGMT.getSettings().chRace){
-      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🏁 نمودار رقابت فصل غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🏁 نمودار ${esc(L('nav.race','رقابت فصل'))} غیرفعال است — از «${esc(L('nav.settings','تنظیمات نمایش'))}» فعال کنید</div>`;
       return;
     }
     const gold = A.LB.filter(r => r.rank <= 3).length;
@@ -437,7 +441,7 @@
     </div>
     <div class="grid cols-3">
       <div class="glass tilt" style="grid-column:span 2">
-        <div class="card-head"><span class="ic">🏁</span><h3>جدول رقابت فصل ۱۴۰۵</h3><span class="tag">FedEx Cup</span></div>
+        <div class="card-head"><span class="ic">🏁</span><h3>جدول ${esc(L('nav.race','رقابت فصل'))} ۱۴۰۵</h3><span class="tag">FedEx Cup</span></div>
         <div style="overflow-x:auto"><table class="tbl" id="race-tbl"><thead><tr>
           <th>#</th><th>بازیکن</th><th>رنک</th><th>امتیاز</th><th>پیشرفت طلایی</th><th>تغییر</th><th>برد</th><th>میانگین</th><th>پرنده</th><th>فرم</th>
         </tr></thead><tbody></tbody></table></div>
@@ -497,7 +501,7 @@
   function pagePlayer(){
 
   if (!MGMT.getSettings().chPlayer){
-      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🏌️ نمودارهای مرکز بازیکن غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🏌️ نمودارهای ${esc(L('nav.player','مرکز بازیکن'))} غیرفعال است — از «${esc(L('nav.settings','تنظیمات نمایش'))}» فعال کنید</div>`;
       return;
     }    const v = $('#view');
     const p = A.LB.find(r => r.pid === playerSel) || A.LB[0];
@@ -611,7 +615,7 @@
   function pageMatch(){
 
   if (!MGMT.getSettings().chMatch){
-      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🥇 فرماندهی مسابقه غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🥇 ${esc(L('nav.match','فرماندهی مسابقه'))} غیرفعال است — از «${esc(L('nav.settings','تنظیمات نمایش'))}» فعال کنید</div>`;
       return;
     }    const v = $('#view');
     const t = S.tournaments.find(x => x[0] === matchSel) || S.tournaments[0];
@@ -704,7 +708,7 @@
   function pageCourse(){
 
   if (!MGMT.getSettings().chCourse){
-      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🗺️ نمودار هوش زمین غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🗺️ نمودار ${esc(L('nav.course','هوش زمین'))} غیرفعال است — از «${esc(L('nav.settings','تنظیمات نمایش'))}» فعال کنید</div>`;
       return;
     }    const v = $('#view');
     const crs = S.courses.find(c => c[0] === courseSel) || S.courses[0];
@@ -784,7 +788,7 @@
   function pageRecords(){
 
   if (!MGMT.getSettings().chRecords){
-      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🎖️ رکوردها غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">🎖️ ${esc(L('nav.records','رکوردها'))} غیرفعال است — از «${esc(L('nav.settings','تنظیمات نمایش'))}» فعال کنید</div>`;
       return;
     }    const v = $('#view');
     const bestPrac = A.LB.reduce((a,b) => b.prac > a.prac ? b : a);
@@ -805,7 +809,7 @@
       <img src="assets/trophy_3d.webp" class="floaty glow-img" style="width:110px;height:110px;border-radius:16px;object-fit:cover" alt="">
       <div>
         <h2 class="gold-text" style="font-size:24px;font-weight:900">تالار افتخارات ۱۴۰۵</h2>
-        <div style="color:var(--muted);font-size:12.5px;margin-top:4px">رکوردها و قهرمانان فصل — Hall of Fame</div>
+        <div style="color:var(--muted);font-size:12.5px;margin-top:4px">${esc(L('nav.records','رکوردها'))} و قهرمانان فصل — Hall of Fame</div>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding:10px 14px;border-radius:12px;border:1px solid rgba(212,175,55,.4);background:linear-gradient(90deg,rgba(212,175,55,.1),rgba(30,187,138,.06));font-size:12.5px;color:var(--text,#dfe8f2)">
@@ -926,7 +930,7 @@
         <div style="font-size:11px;color:var(--muted)">رویدادهای فصل</div>
         <div style="font-size:16px;font-weight:800" class="gold-text">${D.fa(events.length)} رویداد</div>
       </div>
-      <button class="btn sm ghost" onclick="APP.go('mgmt')">⚙️ مدیریت تقویم</button>
+        <button class="btn sm ghost" onclick="APP.go('mgmt')">⚙️ مدیریت ${esc(L('nav.cal','تقویم فصل'))}</button>
     </div>
 
     <div class="cal-main">
@@ -1079,7 +1083,7 @@
   function pageTv(){
 
   if (!MGMT.getSettings().chTv){
-      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">📺 گرافیک نمایش تلویزیونی غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">📺 گرافیک ${esc(L('nav.tv','نمایش تلویزیونی'))} غیرفعال است — از «${esc(L('nav.settings','تنظیمات نمایش'))}» فعال کنید</div>`;
       return;
     }    const v = $('#view');
     const next = A.NEXT_T;
@@ -1133,12 +1137,12 @@
   function pageBattle(){
 
   if (!MGMT.getSettings().chBattle){
-      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">⚔️ میدان نبرد غیرفعال است — از «تنظیمات نمایش» فعال کنید</div>`;
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">⚔️ ${esc(L('nav.battle','میدان نبرد'))} غیرفعال است — از «${esc(L('nav.settings','تنظیمات نمایش'))}» فعال کنید</div>`;
       return;
     }    const v = $('#view');
     const teams = [
       ['🦅','عقابهای طلایی', [1,2,3,4], '#D4AF37'],
-      ['🐆','یوزهای سبز', [5,6,7,8], '#1EBB8A'],
+      ['🐆','یوزرهای سبز', [5,6,7,8], '#1EBB8A'],
       ['🦈','کوسههای آبی', [9,10,11,12], '#2E86DE'],
       ['🐺','گرگهای شب', [13,14,15,16], '#9B59B6'],
     ].map(([ic,n,ids,c]) => ({
@@ -1152,7 +1156,7 @@
     <div class="glass gold-border" style="display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap">
       <img src="assets/flag_3d.webp" class="floaty glow-img" style="width:70px;height:70px;border-radius:14px;object-fit:cover" alt="">
       <div>
-        <h2 style="font-size:21px;font-weight:900" class="gold-text">میدان نبرد — جدال تیمها</h2>
+        <h2 style="font-size:21px;font-weight:900" class="gold-text">${esc(L('nav.battle','میدان نبرد'))} — جدال تیم‌ها</h2>
         <div style="color:var(--muted);font-size:12px;margin-top:3px">سبک لیگ جهانی LIV • ${D.fa(teams.length)} تیم × ${D.fa(teams[0].members.length)} بازیکن</div>
       </div>
       <div style="margin-right:auto" class="chip green">🔴 فصل در جریان</div>
@@ -1350,7 +1354,8 @@
     const c = coin.total;
     const hn = honorOfUser(currentUser);
     const tabs = [
-      ['home','🏠','خانهٔ من'], ['earn','🪙','دریافت سکه'], ['guide','📜','راهنمای سکه'], ['avatar','🎨','ساخت اوتار'],
+      ['home','🏠',L('member.home','خانهٔ من')], ['earn','🪙',L('member.earn','دریافت سکه')],
+      ['guide','📜',L('member.guide','راهنمای سکه')], ['avatar','🎨',L('member.avatar','ساخت آواتار')],
     ];
     v.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:16px;padding:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
@@ -1358,7 +1363,7 @@
         ${AV.renderAvatarSVG(AV.avatarOf(currentUser, genderOfUser(currentUser)).sel, { gender: AV.avatarOf(currentUser).gender, w:66, h:110 })}
       </div>
       <div style="flex:1;min-width:180px">
-        <h2 class="gold-text" style="font-size:21px;font-weight:900">👤 بخش ویژهٔ اعضا</h2>
+        <h2 class="gold-text" style="font-size:21px;font-weight:900">👤 ${esc(L('nav.memberzone','بخش اعضا'))}</h2>
         <div style="color:var(--muted);font-size:12.5px;margin-top:4px">خوش آمدید، <b style="color:var(--white)">${esc(name)}</b> — رنک شما:
           <b style="color:${hn.rank.title}">${esc(hn.rank.en)}</b> <span style="opacity:.8">(${esc(hn.rank.fa)} • Level ${D.fa(hn.lv)})</span></div>
       </div>
@@ -1367,7 +1372,7 @@
       </div>
     </div>
     <div class="mgmt-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-      ${tabs.map(t => `<div class="mgmt-tab ${memTab===t[0]?'on':''}" data-mtab="${t[0]}">${t[1]} ${t[2]}</div>`).join('')}
+      ${tabs.map(t => `<div class="mgmt-tab ${memTab===t[0]?'on':''}" data-mtab="${t[0]}">${t[1]} ${esc(t[2])}</div>`).join('')}
     </div>
     <div id="mz-body"></div>`;
     v.querySelectorAll('[data-mtab]').forEach(t => t.addEventListener('click', () => { memTab = t.dataset.mtab; pageMemberZone(); }));
@@ -1403,7 +1408,7 @@
     const s = MGMT.getSettings();
     const enabled = [];
     Object.keys(MEM_PAGE_KEY).forEach(pg => { if (s[MEM_PAGE_KEY[pg]]) enabled.push(pg); });
-    const names = { cmd:'فرماندهی', race:'رقابت فصل', player:'مرکز بازیکن', match:'فرماندهی مسابقه', course:'هوش زمین', records:'رکوردها', cal:'تقویم فصل', tv:'نمایش تلویزیونی' };
+    const names = Object.fromEntries(MEMBER_PAGE_ORDER.map(pg => [pg, PAGES[pg].t]));
     const pend = AV.reqsOf(currentUser).filter(r => r.status === 'pending').length;
     body.innerHTML = `
     <div class="grid cols-3">
@@ -1429,15 +1434,15 @@
         <div class="card-head"><span class="ic">🗂️</span><h3>بخش‌های فعال‌شده برای شما</h3><span class="tag">دسترسی‌ها</span></div>
         ${enabled.length ? `
           <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:10px">
-            ${enabled.map(pg => `<button class="btn sm ghost" data-mgo="${pg}" style="font-size:12px">${names[pg]}</button>`).join('')}
+            ${enabled.map(pg => `<button class="btn sm ghost" data-mgo="${pg}" style="font-size:12px">${esc(names[pg])}</button>`).join('')}
           </div>
           <div style="font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.9">این بخش‌ها فقط جنبهٔ نمایشی دارند؛ برای ویرایش به مدیر آکادمی مراجعه کنید.</div>
-        ` : `<div style="color:var(--muted);font-size:12.5px;padding:10px;line-height:2">هنوز بخشی برای شما فعال نشده است — <b style="color:var(--gold-l)">مدیر آکادمی</b> در «تنظیمات نمایش ← بخش اعضا» تصمیم می‌گیرد کدام بخش‌ها را ببینید.</div>`}
+        ` : `<div style="color:var(--muted);font-size:12.5px;padding:10px;line-height:2">هنوز بخشی برای شما فعال نشده است — <b style="color:var(--gold-l)">مدیر آکادمی</b> در «${esc(L('nav.settings','تنظیمات نمایش'))} ← ${esc(L('nav.memberzone','بخش اعضا'))}» تصمیم می‌گیرد کدام بخش‌ها را ببینید.</div>`}
         <div class="card-head" style="margin-top:14px"><span class="ic">🎯</span><h3>راه‌های سریع</h3></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-          <button class="btn sm" data-mtabgo="earn">🪙 دریافت سکه</button>
-          <button class="btn sm ghost" data-mtabgo="avatar">🎨 ساخت اوتار</button>
-          <button class="btn sm ghost" data-mtabgo="guide">📜 راهنمای سکه</button>
+          <button class="btn sm" data-mtabgo="earn">🪙 ${esc(L('member.earn','دریافت سکه'))}</button>
+          <button class="btn sm ghost" data-mtabgo="avatar">🎨 ${esc(L('member.avatar','ساخت آواتار'))}</button>
+          <button class="btn sm ghost" data-mtabgo="guide">📜 ${esc(L('member.guide','راهنمای سکه'))}</button>
         </div>
       </div>
     </div>`;
@@ -1475,7 +1480,7 @@
     ${c.auto ? `<div class="glass" style="margin-bottom:14px;padding:13px 16px;background:linear-gradient(135deg,rgba(30,187,138,.14),rgba(30,187,138,.04));border:1px solid rgba(30,187,138,.4);font-size:13px">🏆 سکه‌های قهرمانی شما (خودکار): <b>+${D.fa(c.auto)} 🪙</b> از ${D.fa(auto.length)} قهرمانی — با تغییر نتایج مسابقات، این عدد هم به‌روز می‌شود.</div>` : ''}
     <div class="glass" style="margin-bottom:16px">
       <div class="card-head"><span class="ic">🪙</span><h3>دریافت سکه — ارسال درخواست به مدیریت</h3><span class="tag">سکهٔ من: ${D.fa(c.total)}</span></div>
-      <div class="golfrule" style="margin:8px 0 12px;line-height:2">📝 با زدن «ارسال درخواست»، درخواست شما به <b>پنل مدیریت</b> می‌رود. سکه فقط پس از <b>تأیید مدیر</b> به کیف‌پول شما اضافه می‌شود.</div>
+      <div class="golfrule" style="margin:8px 0 12px;line-height:2">📝 با زدن «ارسال درخواست»، درخواست شما به <b>${esc(L('nav.mgmt','پنل مدیریت'))}</b> می‌رود. سکه فقط پس از <b>تأیید مدیر</b> به کیف‌پول شما اضافه می‌شود.</div>
       <div style="margin-top:10px">${rows}</div>
     </div>
     <div class="glass" style="margin-bottom:16px">
@@ -1897,6 +1902,14 @@
     $('#user-name').textContent = currentUser;
   }
 
+  function refreshLabels(){
+    updatePageLabels();
+    if (window.UI_LABELS) UI_LABELS.apply(document);
+    if (window.__L3D && __L3D.refreshLabels) __L3D.refreshLabels();
+    const app = $('#app');
+    if (app && app.classList.contains('on') && PAGES[currentPage]) go(currentPage);
+  }
+
   function enterApp(u){
     currentUser = u;
     const rec = userRec(u);
@@ -1926,7 +1939,9 @@
     $('#logout-btn').addEventListener('click', logout);
   }
 
+  window.addEventListener('ga:labels-changed', refreshLabels);
   document.addEventListener('DOMContentLoaded', () => {
+    if (window.UI_LABELS) UI_LABELS.apply(document);
     seedUsers();
     initParticles();
     initAuth();
@@ -1938,7 +1953,7 @@
   });
 
   window.APP = {
-    go, reloadData, recompute, state: () => ({ S, A }), toast,
+    go, reloadData, recompute, refreshLabels, state: () => ({ S, A }), toast,
     currentUser: () => currentUser,
     isMain: () => isMain(currentUser),
     isAdmin: () => isAdmin(currentUser),

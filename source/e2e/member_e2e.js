@@ -78,7 +78,7 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   // 4) صفحهٔ غیرفعال → بازگشت به بخش اعضا
   await page.evaluate(() => { try { window.APP.go('cal'); } catch(e){} });
   await page.waitForTimeout(900);
-  ok(/بخش ویژهٔ اعضا/.test(await page.locator('#view').innerText()), 'دسترسی به صفحهٔ غیرفعال به بخش اعضا برمی‌گردد');
+  ok(/بخش اعضا/.test(await page.locator('#view').innerText()), 'دسترسی به صفحهٔ غیرفعال به بخش اعضا برمی‌گردد');
 
   // 5) کارت رنک عضو (Honor Rank) در خانهٔ من
   await page.waitForTimeout(500);
