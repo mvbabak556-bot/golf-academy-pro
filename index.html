@@ -1030,6 +1030,119 @@ input[type=color].asa-in{padding:2px;width:38px;height:28px}
   .as-cartbtn{width:32px;height:30px}
 }
 </style>
+    <style>/* ═══════════════════════════════════════════════════════════════
+   GolfAcademy PRO — سرزمین آواتارها (Avatar Land)
+   صحنهٔ فانتزی/سه‌بعدی گلف — CSS-only، آفلاین، موبایل‌سازگار.
+   ═══════════════════════════════════════════════════════════════ */
+.al-wrap{ position:relative; overflow:hidden; border-radius:22px; border:1px solid var(--line); box-shadow:var(--shadow); padding:0 0 22px; }
+.al-scene{ position:relative; height:320px; overflow:hidden; background:
+  linear-gradient(180deg,#aee2ff 0%,#cfeffb 34%,#f6e8ce 56%,#bfe3b0 70%,#7cc98a 84%,#4f9c63 100%);
+}
+.al-scene::before{ content:''; position:absolute; inset:0;
+  background: radial-gradient(60% 40% at 78% 18%, rgba(255,244,200,.95), rgba(255,244,200,0) 60%),
+              radial-gradient(40% 30% at 22% 12%, rgba(255,255,255,.7), rgba(255,255,255,0) 60%);
+  pointer-events:none; }
+.al-scene::after{ content:'☀️'; position:absolute; top:26px; left:22px; font-size:64px; filter:drop-shadow(0 0 24px rgba(255,214,107,.9)); animation:alSun 9s ease-in-out infinite; }
+@keyframes alSun{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(6px) } }
+.al-sun-rays{ position:absolute; top:20px; left:22px; width:90px; height:90px; border-radius:50%;
+  background:radial-gradient(circle, rgba(255,236,160,.8), rgba(255,236,160,0) 70%); filter:blur(6px); animation:alSun 9s ease-in-out infinite; }
+.al-hills{ position:absolute; left:-10%; right:-10%; bottom:52px; height:150px;
+  background: radial-gradient(80% 120% at 20% 100%, #6fbf82 0%, #5aab6e 35%, rgba(90,171,110,0) 70%),
+              radial-gradient(90% 140% at 80% 100%, #82d09a 0%, #5fae72 40%, rgba(95,174,114,0) 72%);
+  filter: blur(1px); }
+.al-tree{ position:absolute; font-size:72px; filter:drop-shadow(0 8px 18px rgba(0,0,0,.3)); animation:alFloat 6s ease-in-out infinite; }
+.al-tree.t1{ left:8%; bottom:56px; font-size:86px; }
+.al-tree.t2{ left:26%; bottom:60px; font-size:64px; animation-delay:1.2s; }
+.al-tree.t3{ right:10%; bottom:58px; font-size:92px; animation-delay:.6s; }
+.al-tree.t4{ right:30%; bottom:62px; font-size:58px; animation-delay:1.8s; }
+@keyframes alFloat{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-7px) } }
+.al-tee{ position:absolute; bottom:24px; font-size:40px; filter:drop-shadow(0 6px 12px rgba(0,0,0,.25)); }
+.al-flag{ position:absolute; width:4px; background:#C62F2F; bottom:22px; height:74px; }
+.al-flag::before{ content:''; position:absolute; left:4px; top:0; border-left:26px solid #f6e27a; border-top:12px solid transparent; border-bottom:12px solid transparent; }
+.al-lake{ position:absolute; right:12%; bottom:24px; width:150px; height:46px; border-radius:50%;
+  background: radial-gradient(120% 120% at 40% 30%, #bfe6ff, #77b8e6); box-shadow:inset 0 6px 14px rgba(0,60,120,.35); animation:alLake 8s ease-in-out infinite; }
+@keyframes alLake{ 0%,100%{ transform:translateY(0) scaleX(1) } 50%{ transform:translateY(2px) scaleX(1.03) } }
+.al-path{ position:absolute; left:50%; bottom:0; width:130px; height:60px; transform:translateX(-50%);
+  background: radial-gradient(50% 60% at 50% 100%, #e8d8b0, rgba(232,216,176,0) 80%); filter:blur(1px); }
+.al-petals{ position:absolute; inset:0; pointer-events:none; }
+.al-petal{ position:absolute; top:-20px; width:12px; height:12px; border-radius:50% 50% 50% 0;
+  background: linear-gradient(135deg,#ffc9de,#ff9dc0); opacity:.85; animation:alPetal linear infinite; }
+@keyframes alPetal{ 0%{ transform:translate(0,-10px) rotate(0) } 100%{ transform:translate(40px,120vh) rotate(540deg) } }
+.al-cloud{ position:absolute; font-size:52px; opacity:.85; filter:blur(1px); animation:alCloud linear infinite; }
+@keyframes alCloud{ 0%{ transform:translateX(-20vw) } 100%{ transform:translateX(120vw) } }
+
+/* ── بنر ── */
+.al-banner{ position:relative; z-index:2; margin:-120px auto 0; width:min(920px,92%);
+  text-align:center; padding:12px 18px 18px; border-radius:22px; backdrop-filter:blur(10px);
+  background:linear-gradient(180deg,rgba(20,26,41,.86),rgba(13,18,26,.78)); border:1px solid rgba(212,175,55,.5);
+  box-shadow:0 18px 50px rgba(0,0,0,.5); }
+.al-title{ font-size:clamp(26px,5vw,44px); font-weight:900; letter-spacing:.5px;
+  background:linear-gradient(180deg,#fff3c4,#f6e27a 45%,#d4af37 75%,#b58c1c); -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter:drop-shadow(0 3px 2px rgba(0,0,0,.4)) drop-shadow(0 0 16px rgba(255,214,107,.35));
+  text-shadow:0 1px 0 #fff6,0 2px 0 rgba(0,0,0,.2); animation:alTitle 5s ease-in-out infinite; }
+@keyframes alTitle{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-2px) } }
+.al-subtitle{ margin-top:6px; color:var(--muted); font-size:13px; line-height:1.9; }
+.al-title-deco{ display:inline-flex; gap:6px; align-items:center; font-size:24px; filter:drop-shadow(0 3px 6px rgba(0,0,0,.3)); }
+
+/* ── کارت‌های افتخار ── */
+.al-hero-row{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:26px auto 0; width:min(940px,94%); }
+.al-hero{ position:relative; border-radius:24px; padding:18px; overflow:hidden; display:flex; gap:14px; align-items:center;
+  backdrop-filter:blur(8px); border:1px solid rgba(212,175,55,.45); }
+.al-hero.gold{ background:linear-gradient(160deg,rgba(60,45,8,.7),rgba(20,16,6,.82)); box-shadow:0 16px 44px rgba(212,175,55,.3); }
+.al-hero.silver{ background:linear-gradient(160deg,rgba(24,52,42,.7),rgba(10,20,16,.82)); border-color:rgba(30,187,138,.5); box-shadow:0 16px 44px rgba(30,187,138,.25); }
+.al-hero-crown{ position:absolute; top:12px; left:14px; font-size:30px; filter:drop-shadow(0 4px 8px rgba(0,0,0,.4)); animation:alBounce 3s ease-in-out infinite; }
+.al-hero-trophy{ position:absolute; top:12px; left:14px; font-size:30px; filter:drop-shadow(0 4px 8px rgba(0,0,0,.4)); animation:alBounce 3.4s ease-in-out infinite; }
+@keyframes alBounce{ 0%,100%{ transform:translateY(0) rotate(-4deg) } 50%{ transform:translateY(-6px) rotate(6deg) } }
+.al-hero-avatar{ flex:0 0 auto; width:120px; height:132px; border-radius:50% 50% 46% 46%; overflow:hidden;
+  display:flex; align-items:flex-end; justify-content:center; background:radial-gradient(120% 80% at 50% 0%, #22304a, #0f1520);
+  border:3px solid; transition:transform .3s; }
+.al-hero.gold .al-hero-avatar{ border-color:#D4AF37; box-shadow:0 0 30px -4px rgba(255,214,107,.7); }
+.al-hero.silver .al-hero-avatar{ border-color:#1EBB8A; box-shadow:0 0 30px -4px rgba(30,187,138,.6); }
+.al-hero-avatar:hover{ transform:scale(1.05); }
+.al-hero .al-hero-avatar svg{ width:100%; height:100%; }
+.al-hero-name{ font-size:17px; font-weight:900; color:var(--white); }
+.al-hero-meta{ font-size:11.5px; color:var(--muted); margin-top:3px; }
+.al-hero-stat{ display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding:7px 10px; border-radius:12px;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); font-size:12px; }
+.al-hero-stat b{ font-weight:900; font-size:14px; }
+.al-hero-tag{ display:inline-block; margin-top:9px; padding:6px 12px; border-radius:30px; font-size:11px; font-weight:900;
+  background:linear-gradient(135deg,#f6e27a,#d4af37); color:#0B0F14; letter-spacing:.3px; }
+.al-hero.silver .al-hero-tag{ background:linear-gradient(135deg,#5FE3B0,#1EBB8A); }
+.al-hero-lvl{ display:inline-flex; align-items:center; gap:4px; margin-top:6px; font-size:11px; color:var(--gold-l); }
+
+/* ── گرید آواتارها ── */
+.al-toolbar{ display:flex; gap:10px; margin:24px auto 0; width:min(940px,94%); flex-wrap:wrap; align-items:center; justify-content:center; }
+.al-toolbar .sel,.al-toolbar .input{ width:auto; font-size:12px; }
+.al-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px; margin:18px auto 0; width:min(940px,94%); }
+.al-card{ position:relative; border-radius:18px; padding:12px 12px 14px; overflow:hidden; text-align:center;
+  background:linear-gradient(180deg,rgba(30,40,60,.82),rgba(14,20,30,.9)); backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.09); box-shadow:0 10px 28px rgba(0,0,0,.4); transition:transform .25s, box-shadow .25s; }
+.al-card:hover{ transform:translateY(-5px); box-shadow:0 18px 40px rgba(0,0,0,.5); }
+.al-rank{ position:absolute; top:8px; left:8px; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-weight:900; font-size:13px; background:linear-gradient(135deg,#f6e27a,#d4af37); color:#0B0F14; box-shadow:0 4px 10px rgba(0,0,0,.35); z-index:2; }
+.al-rank.top3{ width:34px; height:34px; font-size:15px; }
+.al-avatar{ width:96px; height:104px; margin:14px auto 8px; border-radius:50% 50% 42% 42%; overflow:hidden;
+  display:flex; align-items:flex-end; justify-content:center; background:radial-gradient(120% 80% at 50% 0%,#1b2a42,#0e141f);
+  border:2px solid rgba(255,255,255,.14); }
+.al-avatar svg{ width:100%; height:100%; }
+.al-card-name{ font-weight:900; font-size:14px; color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.al-card-lvl{ font-size:10.5px; color:var(--gold-l); margin-top:2px; }
+.al-card-stat{ display:flex; justify-content:space-between; margin-top:8px; font-size:10.5px; color:var(--muted); padding:6px 8px; border-radius:10px;
+  background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); }
+.al-card-stat b{ color:var(--white); }
+.al-club{ display:inline-flex; align-items:center; gap:4px; margin-top:9px; padding:3px 9px; border-radius:20px; font-size:10px; font-weight:800; letter-spacing:.2px; }
+.al-club.eagle{ background:rgba(212,175,55,.16); color:#f6e27a; border:1px solid rgba(212,175,55,.4); }
+.al-club.birdie{ background:rgba(30,187,138,.16); color:#5FE3B0; border:1px solid rgba(30,187,138,.4); }
+.al-club.par{ background:rgba(138,147,166,.16); color:#CBD4E1; border:1px solid rgba(138,147,166,.4); }
+.al-empty{ text-align:center; color:var(--muted); padding:30px; font-size:13px; }
+
+@media (max-width:640px){
+  .al-hero-row{ grid-template-columns:1fr; }
+  .al-grid{ grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; }
+  .al-scene{ height:220px; }
+  .al-hero-avatar{ width:96px; height:108px; }
+}
+</style>
 </head>
 <body>
 <div class="bg-mesh"></div>
@@ -1082,6 +1195,7 @@ input[type=color].asa-in{padding:2px;width:38px;height:28px}
     <div class="nav-item" data-page="tv"><span class="ico">📺</span><span data-ui-label="nav.tv">نمایش تلویزیونی</span></div>
     <div class="nav-item" data-page="battle"><span class="ico">⚔️</span><span data-ui-label="nav.battle">میدان نبرد</span></div>
     <div class="nav-item" data-page="academy"><span class="ico">🏫</span><span data-ui-label="nav.academy">پنل آکادمی</span></div>
+    <div class="nav-item" data-page="avatarland"><span class="ico">🌸</span><span data-ui-label="nav.avatarland">سرزمین آواتارها</span></div>
 
     <div class="nav-group" id="mgmt-group" data-ui-label="group.management">مدیریت</div>
     <div class="nav-item" data-page="mgmt"><span class="ico">⚙️</span><span data-ui-label="nav.mgmt">پنل مدیریت</span></div>
@@ -1145,6 +1259,7 @@ input[type=color].asa-in{padding:2px;width:38px;height:28px}
     ['nav.tv','منوی اصلی','📺','نمایش تلویزیونی'],
     ['nav.battle','منوی اصلی','⚔️','میدان نبرد'],
     ['nav.academy','منوی اصلی','🏫','پنل آکادمی'],
+    ['nav.avatarland','منوی اصلی','🌸','سرزمین آواتارها'],
     ['nav.acourses','منوی اصلی','🛠️','طراح زمین'],
     ['nav.atournaments','منوی اصلی','🛠️','طراح مسابقه'],
     ['nav.ascorecards','منوی اصلی','🛠️','ثبت نتایج'],
@@ -1173,6 +1288,7 @@ input[type=color].asa-in{padding:2px;width:38px;height:28px}
     ['admin.shop','تب‌های پنل مدیریت','🛍️','فروشگاه آواتار'],
     ['admin.labels','تب‌های پنل مدیریت','✏️','ویرایش آیتم‌ها'],
     ['admin.battle','تب‌های پنل مدیریت','⚔️','نبرد میدان‌ها'],
+    ['admin.avatars','تب‌های پنل مدیریت','🌸','سرزمین آواتارها'],
 
     /* صفحهٔ ورودی و رسپشن */
     ['landing.enter','صفحهٔ ورودی و رسپشن','👤','ورود اعضا'],
@@ -5415,7 +5531,7 @@ window.__L3D = {
     /* نمایش آیتم‌ها برای اعضا — پیش‌فرض جهانی روی همهٔ دستگاه‌ها فعال است.
        مدیر همچنان می‌تواند هر بخش را در «تنظیمات نمایش» غیرفعال کند. */
     memCmd: true, memRace: true, memPlayer: true, memMatch: true,
-    memCourse: true, memRecords: true, memCal: true, memTv: true,
+    memCourse: true, memRecords: true, memCal: true, memTv: true, memAvatarLand: true,
   };
   function getSettings(){
     try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem('ga_ui') || '{}')); }
@@ -5634,7 +5750,7 @@ window.__L3D = {
       ['programs','🎓',L('admin.programs','دوره‌ها')], ['results','⛳',L('admin.results','نتایج')], ['calendar','📅',L('admin.calendar','تقویم')],
       ['contact','📞',L('admin.contact','تماس با ما')], ['info','ℹ️',L('admin.info','اطلاعات')], ['users','🔐',L('admin.users','یوزرها')],
       ['coins','🪙',L('admin.coins','درخواست سکه')], ['honor','🏅',L('admin.honor','رنک و آواتار')], ['shop','🛍️',L('admin.shop','فروشگاه آواتار')],
-      ['battle','⚔️',L('admin.battle','نبرد میدان‌ها')], ['labels','✏️',L('admin.labels','ویرایش آیتم‌ها')],
+      ['battle','⚔️',L('admin.battle','نبرد میدان‌ها')], ['avatars','🌸',L('admin.avatars','سرزمین آواتارها')], ['labels','✏️',L('admin.labels','ویرایش آیتم‌ها')],
     ];
     v.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:18px">
@@ -5672,6 +5788,7 @@ window.__L3D = {
     else if (mgmtTab === 'info') mgmtInfo(body);
     else if (mgmtTab === 'users') mgmtUsers(body);
     else if (mgmtTab === 'battle') mgmtBattle(body);
+    else if (mgmtTab === 'avatars') mgmtAvatarLand(body);
     else if (mgmtTab === 'labels') mgmtLabels(body);
   }
 
@@ -5910,6 +6027,124 @@ window.__L3D = {
 
     renderTeamList();
     renderMatchList();
+  }
+
+  /* ═══════════════ سرزمین آواتارها: قوانین مرتب‌سازی و باشگاه‌ها ═══════════════ */
+  function mgmtAvatarLand(body){
+    const KEY = 'ga_avatarland_cfg';
+    function load(){
+      const def = { sort:['spent','income','lv','join'], dir:{ spent:-1, income:-1, lv:-1, join:1 }, club:[[1,5,'par'],[6,10,'birdie'],[11,15,'eagle']], onlySpenders:true };
+      try { return Object.assign(def, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch(e){ return def; }
+    }
+    function save(c){ try { localStorage.setItem(KEY, JSON.stringify(c)); } catch(e){} }
+    function saveAndReload(c){ save(c); APP.reloadData(); APP.go('mgmt'); mgmtTab = 'avatars'; APP.toast('قوانین سرزمین آواتارها ذخیره شد ✓', 'green'); }
+    let cfg = load();
+    const DIMS = { spent:'بیشترین خرج', income:'بیشترین درآمد', lv:'سطح بالاتر', join:'عضو قدیمی‌تر' };
+    const DIM_KEYS = Object.keys(DIMS);
+    const orderSel = cur => DIM_KEYS.map(k => `<option value="${k}" ${cur===k?'selected':''}>${DIMS[k]}</option>`).join('');
+    const clubRows = cfg.club.slice();
+    body.innerHTML = `
+    <div class="glass gold-border" style="margin-bottom:16px">
+      <div class="card-head"><span class="ic">🌸</span><h3>${esc(L('admin.avatars','سرزمین آواتارها'))} — قوانین نمایش و مرتب‌سازی</h3><span class="tag">Avatar Land ⚙️</span></div>
+      <div style="font-size:11.5px;color:var(--muted);line-height:2;margin-top:6px">ترتیب نمایش کارت‌ها و کارت‌های افتخار طبق این اولویت‌ها محاسبه می‌شود (اولویت اول تا چهارم). تغییرات پس از ذخیره فوراً روی صفحهٔ اعمال می‌شود.</div>
+      <div class="form-section" style="margin-top:12px">🔀 ترتیب مرتب‌سازی (اولویت ۱ تا ۴)</div>
+      <div class="field-grid">
+        ${[0,1,2,3].map(i => `
+          <div><label>اولویت ${['اول','دوم','سوم','چهارم'][i]}</label>
+            <div style="display:flex;gap:6px;align-items:center">
+              <select class="sel" data-order-i="${i}" style="flex:1">${orderSel(cfg.sort[i])}</select>
+              <select class="sel" data-dir="${cfg.sort[i]||'spent'}" data-dir-i="${i}" style="width:82px">
+                <option value="-1" ${(cfg.dir[cfg.sort[i]]||-1)===-1?'selected':''}>نزولی</option>
+                <option value="1" ${(cfg.dir[cfg.sort[i]]||-1)===1?'selected':''}>صعودی</option>
+              </select>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="form-section" style="margin-top:12px">🏳️ باشگاه‌ها (محدودهٔ سطح)</div>
+      <div class="field-grid">
+        ${['par','birdie','eagle'].map((id,ci) => {
+          const row = clubRows.find(r => r[2] === id) || (id==='par'?[1,5,'par']:id==='birdie'?[6,10,'birdie']:[11,15,'eagle']);
+          return `<div style="display:flex;gap:6px;align-items:center">
+            <span style="flex:0 0 auto;width:92px;font-size:12px;font-weight:800" class="${id==='eagle'?'al-club eagle':id==='birdie'?'al-club birdie':'al-club par'}">${id==='eagle'?'🦅 Eagle':id==='birdie'?'🐦 Birdie':'⛳ Par'}</span>
+            <input class="input" type="number" data-club-lo="${id}" value="${row[0]}" style="width:70px" min="1" max="15">
+            <span style="color:var(--muted)">تا</span>
+            <input class="input" type="number" data-club-hi="${id}" value="${row[1]}" style="width:70px" min="1" max="15">
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
+        <label class="lbl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="al-only" ${cfg.onlySpenders?'checked':''}> فقط اعضایی که حداقل ۱ سکه خرج کرده‌اند</label>
+        <button class="btn sm" id="al-save" style="margin-right:auto">💾 ذخیره قوانین</button>
+      </div>
+    </div>
+    <div class="glass">
+      <div class="card-head"><span class="ic">👑</span><h3>پیش‌نمایش برترین‌ها</h3><span class="tag">${D.fa(avLandPreview().length)} آواتار</span></div>
+      <div id="al-prev" style="margin-top:10px"></div>
+    </div>`;
+    function avLandPreview(){
+      // reuse the same aggregation used by the member page (mirrored here to keep admin independent)
+      let out = [];
+      try {
+        const st = gstate().S || {};
+        const plist = st.players || [];
+        const users = (window.APP && APP.users && APP.users.list) ? APP.users.list().filter(u => u.role==='member' && u.active!==false) : [];
+        users.forEach(u => {
+          const pid = +u.pid; if (!pid || !window.AV) return;
+          const prow = plist.find(x => x[0]===pid);
+          const c = AV.coinOf(u.user);
+          const log = c.log || [];
+          const income = log.filter(l => (+l.amount||0) > 0 && (String(l.source||'').indexOf('req:')===0 || String(l.source||'')==='admin')).reduce((a,l)=>a+(+l.amount||0),0);
+          const spent = log.filter(l => (+l.amount||0) < 0).reduce((a,l)=>a+Math.abs(+l.amount||0),0);
+          out.push({ user:u.user, name:u.name, spent, income });
+        });
+      } catch(e){}
+      return out;
+    }
+    function clubColor(c){ return c==='eagle'?'#f6e27a':c==='birdie'?'#5FE3B0':'#CBD4E1'; }
+    function paintPreview(){
+      const box = $('#al-prev'); if (!box) return;
+      let lst = avLandPreview();
+      if ($('#al-only').checked) lst = lst.filter(m => m.spent > 0);
+      const dir = cfg.dir || { spent:-1, income:-1, lv:-1, join:1 };
+      const sort = cfg.sort || ['spent','income','lv','join'];
+      lst.sort((a,b) => {
+        for (let i=0;i<sort.length;i++){
+          const k = sort[i]; const d = (+dir[k]||0)===1?1:-1;
+          const av = (a[k]??0), bv = (b[k]??0);
+          if (av === bv) continue; return (av-bv)*d;
+        }
+        return 0;
+      });
+      box.innerHTML = lst.length ? lst.slice(0,10).map((m,i) => `
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:12px;border:1px solid var(--line-soft);background:rgba(255,255,255,.03);margin-bottom:7px">
+          <span style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;background:linear-gradient(135deg,#f6e27a,#d4af37);color:#0B0F14">${D.fa(i+1)}</span>
+          <b style="flex:1;font-size:13px">${esc(m.name)}</b>
+          <span style="font-size:11px;color:var(--muted)">💸 ${D.faNum(m.spent,0)}</span>
+          <span style="font-size:11px;color:var(--muted)">💵 ${D.faNum(m.income,0)}</span>
+        </div>`).join('') : '<div style="color:var(--muted);padding:10px;font-size:12px">آواتاری با این قوانین پیدا نشد.</div>';
+    }
+    paintPreview();
+    $('#al-only').addEventListener('change', paintPreview);
+    $$('[data-order-i]').forEach(sel => sel.addEventListener('change', e => {
+      const i = +e.target.dataset.orderI || +e.target.dataset.order_i;
+      cfg.sort[i] = e.target.value;
+      save(cfg); APP.go('mgmt'); mgmtTab = 'avatars';
+    }));
+    $$('[data-dir-i]').forEach(sel => sel.addEventListener('change', e => {
+      const i = +e.target.dataset.dirI || +e.target.dataset.dir_i;
+      const k = cfg.sort[i]; cfg.dir[k] = +e.target.value;
+      save(cfg); APP.go('mgmt'); mgmtTab = 'avatars';
+    }));
+    $('#al-save').addEventListener('click', () => {
+      const club = ['par','birdie','eagle'].map(id => {
+        const lo = +($('[data-club-lo="'+id+'"]').value||1);
+        const hi = +($('[data-club-hi="'+id+'"]').value||1);
+        return [Math.min(lo,hi), Math.max(lo,hi), id];
+      });
+      cfg.club = club;
+      cfg.onlySpenders = $('#al-only').checked;
+      saveAndReload(cfg);
+    });
   }
 
   /* ═══════════════ ویرایش مرکزی نام همهٔ آیتم‌ها و تب‌ها ═══════════════ */
@@ -8236,8 +8471,9 @@ window.__L3D = {
     battle:['nav.battle','میدان نبرد'], academy:['nav.academy','پنل آکادمی'], acourses:['nav.acourses','طراح زمین'],
     atournaments:['nav.atournaments','طراح مسابقه'], ascorecards:['nav.ascorecards','ثبت نتایج'],
     mgmt:['nav.mgmt','پنل مدیریت'], users:['nav.users','یوزرها'], settings:['nav.settings','تنظیمات نمایش'],
+    avatarland:['nav.avatarland','سرزمین آواتارها'],
   };
-  const PAGE_ICONS = { memberzone:'👤',cmd:'🎯',race:'🏁',player:'🏌️',match:'🥇',course:'🗺️',records:'🎖️',cal:'📅',tv:'📺',battle:'⚔️',academy:'🏫',acourses:'🛠️',atournaments:'🛠️',ascorecards:'🛠️',mgmt:'⚙️',users:'🔐',settings:'🛠️' };
+  const PAGE_ICONS = { memberzone:'👤',cmd:'🎯',race:'🏁',player:'🏌️',match:'🥇',course:'🗺️',records:'🎖️',cal:'📅',tv:'📺',battle:'⚔️',academy:'🏫',acourses:'🛠️',atournaments:'🛠️',ascorecards:'🛠️',mgmt:'⚙️',users:'🔐',settings:'🛠️',avatarland:'🌸' };
   const PAGES = {};
   function updatePageLabels(){
     Object.keys(PAGE_LABELS).forEach(pg => { PAGES[pg] = { t:L(PAGE_LABELS[pg][0], PAGE_LABELS[pg][1]), i:PAGE_ICONS[pg] }; });
@@ -8247,8 +8483,8 @@ window.__L3D = {
   let playerSel = 8, matchSel = 1, courseSel = 1, coursePlayerSel = 8;
 
   const MEM_PAGE_KEY = { cmd:'memCmd', race:'memRace', player:'memPlayer', match:'memMatch',
-    course:'memCourse', records:'memRecords', cal:'memCal', tv:'memTv' };
-  const MEMBER_PAGE_ORDER = ['cmd','race','player','match','course','records','cal','tv'];
+    course:'memCourse', records:'memRecords', cal:'memCal', tv:'memTv', avatarland:'memAvatarLand' };
+  const MEMBER_PAGE_ORDER = ['cmd','race','player','match','course','records','cal','tv','avatarland'];
 
   /* دسترسی سریع اعضا در موبایل — صفحات فعال دیگر داخل منوی کشویی پنهان نمی‌مانند. */
   function renderMemberMobileNav(rec, page){
@@ -9270,6 +9506,179 @@ window.__L3D = {
     }, 80);
   }
 
+  /* ═══════════ صفحه: سرزمین آواتارها ═══════════ */
+  function avLandCfg(){
+    const def = {
+      sort:['spent','income','lv','join'],
+      dir:{ spent:-1, income:-1, lv:-1, join:1 },
+      club:[[1,5,'par'],[6,10,'birdie'],[11,15,'eagle']],
+      onlySpenders:true, count:80,
+    };
+    try { return Object.assign(def, JSON.parse(localStorage.getItem('ga_avatarland_cfg') || '{}')); }
+    catch(e){ return def; }
+  }
+  function avLandSave(cfg){ try { localStorage.setItem('ga_avatarland_cfg', JSON.stringify(cfg)); } catch(e){} }
+  function avLandJoin(pid){
+    pid = +pid;
+    try { const b = D.loadPlayers().find(p => p[0] === pid); if (b) return b[4] || ''; } catch(e){}
+    try { const cs = D.loadCustomPlayers(); const i = cs.findIndex((c,idx) => (9000+idx) === pid); if (i >= 0) return cs[i].join || ''; } catch(e){}
+    return '';
+  }
+  function clubOf(lv, cfg){
+    cfg = cfg || avLandCfg();
+    const cl = cfg.club || [];
+    for (let i=0;i<cl.length;i++){
+      const a = cl[i][0], b = cl[i][1], id = cl[i][2];
+      if (+lv >= +a && +lv <= +b) return id;
+    }
+    return 'par';
+  }
+  function avLandStats(){
+    const cfg = avLandCfg();
+    const users = (APP.users && APP.users.list ? APP.users.list() : []).filter(u => u.role === 'member' && u.active !== false);
+    const out = [];
+    users.forEach(u => {
+      const pid = +u.pid; if (!pid) return;
+      const gender = genderOfUser(u.user);
+      const av = AV.avatarOf(u.user, gender);
+      const c = AV.coinOf(u.user);
+      const hn = AV.honorOf(u.user, ptsOfUser(u.user));
+      const log = c.log || [];
+      const income = log.filter(l => (+l.amount||0) > 0 && (String(l.source||'').indexOf('req:') === 0 || String(l.source||'') === 'admin')).reduce((a,l)=>a+(+l.amount||0),0);
+      const spent = log.filter(l => (+l.amount||0) < 0).reduce((a,l)=>a+Math.abs(+l.amount||0),0);
+      const purchased = (av.owned||[]).filter(id => { const it = AV.shopItem(id); return it && (+it.price||0) > 0; }).length;
+      out.push({
+        user:u.user, pid, name:(u.name || D.nameOf(pid) || u.user), gender,
+        av, lv:hn.lv, rank:hn.rank, club:clubOf(hn.lv, cfg), income, spent, purchased, join:avLandJoin(pid),
+      });
+    });
+    return out;
+  }
+  function avLandSort(list, cfg){
+    const sort = cfg.sort || ['spent','income','lv','join'];
+    const dir = cfg.dir || {};
+    return list.slice().sort((a,b) => {
+      for (let i=0;i<sort.length;i++){
+        const k = sort[i];
+        const d = (+dir[k] || 0) === 1 ? 1 : -1;
+        if (k === 'join'){
+          const cmp = String(a.join||'').localeCompare(String(b.join||''));
+          if (cmp) return cmp * d;
+          continue;
+        }
+        const av = (a[k] ?? 0), bv = (b[k] ?? 0);
+        if (av === bv) continue;
+        return (av - bv) * d;
+      }
+      return 0;
+    });
+  }
+  function avLandHeroHtml(p, kind){
+    if (!p) return `<div class="al-hero ${kind}"><div style="flex:1;text-align:center;color:var(--muted);padding:20px">هنوز آواتاری با معیار ${kind==='gold'?'خرج':'درآمد'} ثبت نشده است</div></div>`;
+    const tag = kind === 'gold' ? '👑 سلطان استایل گلف' : '🏆 ثروتمندترین آواتار';
+    const stat1 = kind === 'gold' ? `کل خرج‌کرده: <b style="color:#f6e27a">${D.faNum(p.spent,0)} 🪙</b>` : `درآمد کل: <b style="color:#5FE3B0">${D.faNum(p.income,0)} 🪙</b>`;
+    return `<div class="al-hero ${kind}">
+      <span class="${kind==='gold'?'al-hero-crown':'al-hero-trophy'}">${kind==='gold'?'👑':'🏆'}</span>
+      <div class="al-hero-avatar">${AV.renderAvatarSVG(p.av.sel, { gender:p.gender, w:120, h:132 })}</div>
+      <div style="flex:1;min-width:0">
+        <div class="al-hero-name">${esc(p.name)}</div>
+        <div class="al-hero-meta">${esc(p.rank.en)} • ${esc(p.rank.fa)} • سطح ${D.fa(p.lv)}</div>
+        <div class="al-hero-stat"><span>${stat1}</span><span>${D.fa(p.purchased)} آیتم</span></div>
+        <div class="al-hero-stat"><span>باشگاه:</span><span class="al-club ${p.club}">${p.club==='eagle'?'🦅 Eagle':p.club==='birdie'?'🐦 Birdie':'⛳ Par'}</span></div>
+        <span class="al-hero-tag">${tag}</span>
+      </div>
+    </div>`;
+  }
+  function pageAvatarLand(){
+    const v = $('#view');
+    let cfg = avLandCfg();
+    let list = avLandStats();
+    if (cfg.onlySpenders) list = list.filter(m => m.spent > 0);
+    list = avLandSort(list, cfg);
+    const hero1 = list[0] || null;
+    const byIncome = avLandSort(list, Object.assign({}, cfg, { sort:['income','spent','lv','join'], dir:Object.assign({}, cfg.dir, { income:-1 }) }));
+    const hero2 = byIncome.find(m => m.user !== (hero1 && hero1.user)) || byIncome[0] || null;
+    const heroUsers = new Set([ hero1 && hero1.user, hero2 && hero2.user ].filter(Boolean));
+    const grid = list.filter(m => !heroUsers.has(m.user));
+    const clubNames = { eagle:'🦅 Eagle Club', birdie:'🐦 Birdie Club', par:'⛳ Par Club' };
+    const petals = Array.from({length:10}, (_,i) => `<span class="al-petal" style="left:${(i*9+4)%100}%;animation-duration:${(7+(i%5)).toFixed(1)}s;animation-delay:${(i*0.7).toFixed(1)}s"></span>`).join('');
+    const clouds = `<span class="al-cloud" style="animation-duration:38s">☁️</span><span class="al-cloud" style="animation-duration:52s;animation-delay:8s;top:20px;font-size:38px;left:30%">☁️</span>`;
+    v.innerHTML = `
+    <div class="al-wrap">
+      <div class="al-scene">
+        <div class="al-sun-rays"></div>
+        <div class="al-cloud" style="animation-duration:34s">☁️</div>
+        <div class="al-cloud" style="animation-duration:50s;animation-delay:6s;top:22px;left:20%;font-size:38px">☁️</div>
+        <div class="al-hills"></div>
+        <div class="al-tree t1">🌸</div><div class="al-tree t2">🍃</div><div class="al-tree t3">🌳</div><div class="al-tree t4">🌸</div>
+        <span class="al-tee" style="left:16%">🏌️</span>
+        <div class="al-flag" style="left:62%"></div>
+        <span class="al-tee" style="right:22%">⛳</span>
+        <div class="al-lake"></div>
+        <div class="al-path"></div>
+        <div class="al-petals">${petals}</div>
+      </div>
+      <div class="al-banner">
+        <div class="al-title-deco">🌹 ⛳ 🏌️</div>
+        <div class="al-title">🌸 ${esc(L('nav.avatarland','سرزمین آواتارها'))} 🌸</div>
+        <div class="al-subtitle">«اینجا خانه افتخارات، شخصیت و سبک زندگی گلف هر عضو آکادمی است.»</div>
+      </div>
+      <div class="al-hero-row">
+        ${avLandHeroHtml(hero1, 'gold')}
+        ${avLandHeroHtml(hero2, 'silver')}
+      </div>
+      <div class="al-toolbar">
+        <select class="sel" id="al-sort" title="مرتب‌سازی">
+          <option value="spent" ${cfg.sort[0]==='spent'?'selected':''}>بیشترین خرج</option>
+          <option value="income" ${cfg.sort[0]==='income'?'selected':''}>بیشترین درآمد</option>
+          <option value="lv" ${cfg.sort[0]==='lv'?'selected':''}>سطح بالاتر</option>
+          <option value="join" ${cfg.sort[0]==='join'?'selected':''}>عضو قدیمی‌تر</option>
+        </select>
+        <select class="sel" id="al-clubfilter" title="باشگاه">
+          <option value="">همه باشگاه‌ها</option>
+          <option value="eagle">Eagle Club</option>
+          <option value="birdie">Birdie Club</option>
+          <option value="par">Par Club</option>
+        </select>
+        <span class="chip gold">${D.fa(grid.length + (hero1?1:0) + (hero2?1:0))} آواتار</span>
+      </div>
+      <div class="al-grid" id="al-grid"></div>
+      <div class="al-empty" id="al-empty" style="display:none"></div>
+    </div>`;
+    const rankBase = (hero1?1:0)+(hero2?1:0)+1;
+    function paintGrid(){
+      const cf = $('#al-clubfilter').value;
+      const g = grid.filter(m => !cf || m.club === cf);
+      const box = $('#al-grid');
+      const empty = $('#al-empty');
+      if (!g.length){
+        box.innerHTML = '';
+        empty.style.display = 'block';
+        empty.textContent = 'آواتاری با این فیلتر پیدا نشد. در «پنل مدیریت ← سرزمین آواتارها» می‌توانید قوانین مرتب‌سازی و باشگاه‌ها را تغییر دهید.';
+        return;
+      }
+      empty.style.display = 'none';
+      box.innerHTML = g.map((m,i) => `
+        <div class="al-card">
+          <span class="al-rank ${i<3?'top3':''}">${D.fa(i+rankBase)}</span>
+          <div class="al-avatar">${AV.renderAvatarSVG(m.av.sel, { gender:m.gender, w:96, h:104 })}</div>
+          <div class="al-card-name">${esc(m.name)}</div>
+          <div class="al-card-lvl">سطح ${D.fa(m.lv)} • ${esc(m.rank.en)}</div>
+          <div class="al-card-stat"><span>خرج</span><b>${D.faNum(m.spent,0)} 🪙</b></div>
+          <div class="al-card-stat"><span>درآمد</span><b>${D.faNum(m.income,0)} 🪙</b></div>
+          <div class="al-card-stat"><span>آیتم</span><b>${D.fa(m.purchased)}</b></div>
+          <span class="al-club ${m.club}">${clubNames[m.club]||'Par Club'}</span>
+        </div>`).join('');
+    }
+    paintGrid();
+    $('#al-sort').addEventListener('change', e => {
+      cfg.sort[0] = e.target.value;
+      cfg.sort = [e.target.value].concat(cfg.sort.filter(k => k !== e.target.value));
+      avLandSave(cfg); APP.go('avatarland');
+    });
+    $('#al-clubfilter').addEventListener('change', paintGrid);
+  }
+
   /* ═══════════ صفحه: آکادمی ═══════════ */
   function pageAcademy(){
     const v = $('#view');
@@ -9904,7 +10313,7 @@ window.__L3D = {
     memberzone: pageMemberZone,
     cmd: pageCmd, race: pageRace, player: pagePlayer, match: pageMatch,
     course: pageCourse, records: pageRecords, cal: pageCal, tv: pageTv,
-    battle: pageBattle, academy: pageAcademy,
+    battle: pageBattle, academy: pageAcademy, avatarland: pageAvatarLand,
     acourses: pageACourses, atournaments: pageATours, ascorecards: pageAScorecards,
     mgmt: () => MGMT.pageMgmt(), users: () => MGMT.pageUsers(), settings: () => MGMT.pageSettings(),
   };

@@ -193,8 +193,9 @@
     battle:['nav.battle','میدان نبرد'], academy:['nav.academy','پنل آکادمی'], acourses:['nav.acourses','طراح زمین'],
     atournaments:['nav.atournaments','طراح مسابقه'], ascorecards:['nav.ascorecards','ثبت نتایج'],
     mgmt:['nav.mgmt','پنل مدیریت'], users:['nav.users','یوزرها'], settings:['nav.settings','تنظیمات نمایش'],
+    avatarland:['nav.avatarland','سرزمین آواتارها'],
   };
-  const PAGE_ICONS = { memberzone:'👤',cmd:'🎯',race:'🏁',player:'🏌️',match:'🥇',course:'🗺️',records:'🎖️',cal:'📅',tv:'📺',battle:'⚔️',academy:'🏫',acourses:'🛠️',atournaments:'🛠️',ascorecards:'🛠️',mgmt:'⚙️',users:'🔐',settings:'🛠️' };
+  const PAGE_ICONS = { memberzone:'👤',cmd:'🎯',race:'🏁',player:'🏌️',match:'🥇',course:'🗺️',records:'🎖️',cal:'📅',tv:'📺',battle:'⚔️',academy:'🏫',acourses:'🛠️',atournaments:'🛠️',ascorecards:'🛠️',mgmt:'⚙️',users:'🔐',settings:'🛠️',avatarland:'🌸' };
   const PAGES = {};
   function updatePageLabels(){
     Object.keys(PAGE_LABELS).forEach(pg => { PAGES[pg] = { t:L(PAGE_LABELS[pg][0], PAGE_LABELS[pg][1]), i:PAGE_ICONS[pg] }; });
@@ -204,8 +205,8 @@
   let playerSel = 8, matchSel = 1, courseSel = 1, coursePlayerSel = 8;
 
   const MEM_PAGE_KEY = { cmd:'memCmd', race:'memRace', player:'memPlayer', match:'memMatch',
-    course:'memCourse', records:'memRecords', cal:'memCal', tv:'memTv' };
-  const MEMBER_PAGE_ORDER = ['cmd','race','player','match','course','records','cal','tv'];
+    course:'memCourse', records:'memRecords', cal:'memCal', tv:'memTv', avatarland:'memAvatarLand' };
+  const MEMBER_PAGE_ORDER = ['cmd','race','player','match','course','records','cal','tv','avatarland'];
 
   /* دسترسی سریع اعضا در موبایل — صفحات فعال دیگر داخل منوی کشویی پنهان نمی‌مانند. */
   function renderMemberMobileNav(rec, page){
@@ -1227,6 +1228,179 @@
     }, 80);
   }
 
+  /* ═══════════ صفحه: سرزمین آواتارها ═══════════ */
+  function avLandCfg(){
+    const def = {
+      sort:['spent','income','lv','join'],
+      dir:{ spent:-1, income:-1, lv:-1, join:1 },
+      club:[[1,5,'par'],[6,10,'birdie'],[11,15,'eagle']],
+      onlySpenders:true, count:80,
+    };
+    try { return Object.assign(def, JSON.parse(localStorage.getItem('ga_avatarland_cfg') || '{}')); }
+    catch(e){ return def; }
+  }
+  function avLandSave(cfg){ try { localStorage.setItem('ga_avatarland_cfg', JSON.stringify(cfg)); } catch(e){} }
+  function avLandJoin(pid){
+    pid = +pid;
+    try { const b = D.loadPlayers().find(p => p[0] === pid); if (b) return b[4] || ''; } catch(e){}
+    try { const cs = D.loadCustomPlayers(); const i = cs.findIndex((c,idx) => (9000+idx) === pid); if (i >= 0) return cs[i].join || ''; } catch(e){}
+    return '';
+  }
+  function clubOf(lv, cfg){
+    cfg = cfg || avLandCfg();
+    const cl = cfg.club || [];
+    for (let i=0;i<cl.length;i++){
+      const a = cl[i][0], b = cl[i][1], id = cl[i][2];
+      if (+lv >= +a && +lv <= +b) return id;
+    }
+    return 'par';
+  }
+  function avLandStats(){
+    const cfg = avLandCfg();
+    const users = (APP.users && APP.users.list ? APP.users.list() : []).filter(u => u.role === 'member' && u.active !== false);
+    const out = [];
+    users.forEach(u => {
+      const pid = +u.pid; if (!pid) return;
+      const gender = genderOfUser(u.user);
+      const av = AV.avatarOf(u.user, gender);
+      const c = AV.coinOf(u.user);
+      const hn = AV.honorOf(u.user, ptsOfUser(u.user));
+      const log = c.log || [];
+      const income = log.filter(l => (+l.amount||0) > 0 && (String(l.source||'').indexOf('req:') === 0 || String(l.source||'') === 'admin')).reduce((a,l)=>a+(+l.amount||0),0);
+      const spent = log.filter(l => (+l.amount||0) < 0).reduce((a,l)=>a+Math.abs(+l.amount||0),0);
+      const purchased = (av.owned||[]).filter(id => { const it = AV.shopItem(id); return it && (+it.price||0) > 0; }).length;
+      out.push({
+        user:u.user, pid, name:(u.name || D.nameOf(pid) || u.user), gender,
+        av, lv:hn.lv, rank:hn.rank, club:clubOf(hn.lv, cfg), income, spent, purchased, join:avLandJoin(pid),
+      });
+    });
+    return out;
+  }
+  function avLandSort(list, cfg){
+    const sort = cfg.sort || ['spent','income','lv','join'];
+    const dir = cfg.dir || {};
+    return list.slice().sort((a,b) => {
+      for (let i=0;i<sort.length;i++){
+        const k = sort[i];
+        const d = (+dir[k] || 0) === 1 ? 1 : -1;
+        if (k === 'join'){
+          const cmp = String(a.join||'').localeCompare(String(b.join||''));
+          if (cmp) return cmp * d;
+          continue;
+        }
+        const av = (a[k] ?? 0), bv = (b[k] ?? 0);
+        if (av === bv) continue;
+        return (av - bv) * d;
+      }
+      return 0;
+    });
+  }
+  function avLandHeroHtml(p, kind){
+    if (!p) return `<div class="al-hero ${kind}"><div style="flex:1;text-align:center;color:var(--muted);padding:20px">هنوز آواتاری با معیار ${kind==='gold'?'خرج':'درآمد'} ثبت نشده است</div></div>`;
+    const tag = kind === 'gold' ? '👑 سلطان استایل گلف' : '🏆 ثروتمندترین آواتار';
+    const stat1 = kind === 'gold' ? `کل خرج‌کرده: <b style="color:#f6e27a">${D.faNum(p.spent,0)} 🪙</b>` : `درآمد کل: <b style="color:#5FE3B0">${D.faNum(p.income,0)} 🪙</b>`;
+    return `<div class="al-hero ${kind}">
+      <span class="${kind==='gold'?'al-hero-crown':'al-hero-trophy'}">${kind==='gold'?'👑':'🏆'}</span>
+      <div class="al-hero-avatar">${AV.renderAvatarSVG(p.av.sel, { gender:p.gender, w:120, h:132 })}</div>
+      <div style="flex:1;min-width:0">
+        <div class="al-hero-name">${esc(p.name)}</div>
+        <div class="al-hero-meta">${esc(p.rank.en)} • ${esc(p.rank.fa)} • سطح ${D.fa(p.lv)}</div>
+        <div class="al-hero-stat"><span>${stat1}</span><span>${D.fa(p.purchased)} آیتم</span></div>
+        <div class="al-hero-stat"><span>باشگاه:</span><span class="al-club ${p.club}">${p.club==='eagle'?'🦅 Eagle':p.club==='birdie'?'🐦 Birdie':'⛳ Par'}</span></div>
+        <span class="al-hero-tag">${tag}</span>
+      </div>
+    </div>`;
+  }
+  function pageAvatarLand(){
+    const v = $('#view');
+    let cfg = avLandCfg();
+    let list = avLandStats();
+    if (cfg.onlySpenders) list = list.filter(m => m.spent > 0);
+    list = avLandSort(list, cfg);
+    const hero1 = list[0] || null;
+    const byIncome = avLandSort(list, Object.assign({}, cfg, { sort:['income','spent','lv','join'], dir:Object.assign({}, cfg.dir, { income:-1 }) }));
+    const hero2 = byIncome.find(m => m.user !== (hero1 && hero1.user)) || byIncome[0] || null;
+    const heroUsers = new Set([ hero1 && hero1.user, hero2 && hero2.user ].filter(Boolean));
+    const grid = list.filter(m => !heroUsers.has(m.user));
+    const clubNames = { eagle:'🦅 Eagle Club', birdie:'🐦 Birdie Club', par:'⛳ Par Club' };
+    const petals = Array.from({length:10}, (_,i) => `<span class="al-petal" style="left:${(i*9+4)%100}%;animation-duration:${(7+(i%5)).toFixed(1)}s;animation-delay:${(i*0.7).toFixed(1)}s"></span>`).join('');
+    const clouds = `<span class="al-cloud" style="animation-duration:38s">☁️</span><span class="al-cloud" style="animation-duration:52s;animation-delay:8s;top:20px;font-size:38px;left:30%">☁️</span>`;
+    v.innerHTML = `
+    <div class="al-wrap">
+      <div class="al-scene">
+        <div class="al-sun-rays"></div>
+        <div class="al-cloud" style="animation-duration:34s">☁️</div>
+        <div class="al-cloud" style="animation-duration:50s;animation-delay:6s;top:22px;left:20%;font-size:38px">☁️</div>
+        <div class="al-hills"></div>
+        <div class="al-tree t1">🌸</div><div class="al-tree t2">🍃</div><div class="al-tree t3">🌳</div><div class="al-tree t4">🌸</div>
+        <span class="al-tee" style="left:16%">🏌️</span>
+        <div class="al-flag" style="left:62%"></div>
+        <span class="al-tee" style="right:22%">⛳</span>
+        <div class="al-lake"></div>
+        <div class="al-path"></div>
+        <div class="al-petals">${petals}</div>
+      </div>
+      <div class="al-banner">
+        <div class="al-title-deco">🌹 ⛳ 🏌️</div>
+        <div class="al-title">🌸 ${esc(L('nav.avatarland','سرزمین آواتارها'))} 🌸</div>
+        <div class="al-subtitle">«اینجا خانه افتخارات، شخصیت و سبک زندگی گلف هر عضو آکادمی است.»</div>
+      </div>
+      <div class="al-hero-row">
+        ${avLandHeroHtml(hero1, 'gold')}
+        ${avLandHeroHtml(hero2, 'silver')}
+      </div>
+      <div class="al-toolbar">
+        <select class="sel" id="al-sort" title="مرتب‌سازی">
+          <option value="spent" ${cfg.sort[0]==='spent'?'selected':''}>بیشترین خرج</option>
+          <option value="income" ${cfg.sort[0]==='income'?'selected':''}>بیشترین درآمد</option>
+          <option value="lv" ${cfg.sort[0]==='lv'?'selected':''}>سطح بالاتر</option>
+          <option value="join" ${cfg.sort[0]==='join'?'selected':''}>عضو قدیمی‌تر</option>
+        </select>
+        <select class="sel" id="al-clubfilter" title="باشگاه">
+          <option value="">همه باشگاه‌ها</option>
+          <option value="eagle">Eagle Club</option>
+          <option value="birdie">Birdie Club</option>
+          <option value="par">Par Club</option>
+        </select>
+        <span class="chip gold">${D.fa(grid.length + (hero1?1:0) + (hero2?1:0))} آواتار</span>
+      </div>
+      <div class="al-grid" id="al-grid"></div>
+      <div class="al-empty" id="al-empty" style="display:none"></div>
+    </div>`;
+    const rankBase = (hero1?1:0)+(hero2?1:0)+1;
+    function paintGrid(){
+      const cf = $('#al-clubfilter').value;
+      const g = grid.filter(m => !cf || m.club === cf);
+      const box = $('#al-grid');
+      const empty = $('#al-empty');
+      if (!g.length){
+        box.innerHTML = '';
+        empty.style.display = 'block';
+        empty.textContent = 'آواتاری با این فیلتر پیدا نشد. در «پنل مدیریت ← سرزمین آواتارها» می‌توانید قوانین مرتب‌سازی و باشگاه‌ها را تغییر دهید.';
+        return;
+      }
+      empty.style.display = 'none';
+      box.innerHTML = g.map((m,i) => `
+        <div class="al-card">
+          <span class="al-rank ${i<3?'top3':''}">${D.fa(i+rankBase)}</span>
+          <div class="al-avatar">${AV.renderAvatarSVG(m.av.sel, { gender:m.gender, w:96, h:104 })}</div>
+          <div class="al-card-name">${esc(m.name)}</div>
+          <div class="al-card-lvl">سطح ${D.fa(m.lv)} • ${esc(m.rank.en)}</div>
+          <div class="al-card-stat"><span>خرج</span><b>${D.faNum(m.spent,0)} 🪙</b></div>
+          <div class="al-card-stat"><span>درآمد</span><b>${D.faNum(m.income,0)} 🪙</b></div>
+          <div class="al-card-stat"><span>آیتم</span><b>${D.fa(m.purchased)}</b></div>
+          <span class="al-club ${m.club}">${clubNames[m.club]||'Par Club'}</span>
+        </div>`).join('');
+    }
+    paintGrid();
+    $('#al-sort').addEventListener('change', e => {
+      cfg.sort[0] = e.target.value;
+      cfg.sort = [e.target.value].concat(cfg.sort.filter(k => k !== e.target.value));
+      avLandSave(cfg); APP.go('avatarland');
+    });
+    $('#al-clubfilter').addEventListener('change', paintGrid);
+  }
+
   /* ═══════════ صفحه: آکادمی ═══════════ */
   function pageAcademy(){
     const v = $('#view');
@@ -1861,7 +2035,7 @@
     memberzone: pageMemberZone,
     cmd: pageCmd, race: pageRace, player: pagePlayer, match: pageMatch,
     course: pageCourse, records: pageRecords, cal: pageCal, tv: pageTv,
-    battle: pageBattle, academy: pageAcademy,
+    battle: pageBattle, academy: pageAcademy, avatarland: pageAvatarLand,
     acourses: pageACourses, atournaments: pageATours, ascorecards: pageAScorecards,
     mgmt: () => MGMT.pageMgmt(), users: () => MGMT.pageUsers(), settings: () => MGMT.pageSettings(),
   };

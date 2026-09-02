@@ -24,7 +24,7 @@
     /* نمایش آیتم‌ها برای اعضا — پیش‌فرض جهانی روی همهٔ دستگاه‌ها فعال است.
        مدیر همچنان می‌تواند هر بخش را در «تنظیمات نمایش» غیرفعال کند. */
     memCmd: true, memRace: true, memPlayer: true, memMatch: true,
-    memCourse: true, memRecords: true, memCal: true, memTv: true,
+    memCourse: true, memRecords: true, memCal: true, memTv: true, memAvatarLand: true,
   };
   function getSettings(){
     try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem('ga_ui') || '{}')); }
@@ -243,7 +243,7 @@
       ['programs','🎓',L('admin.programs','دوره‌ها')], ['results','⛳',L('admin.results','نتایج')], ['calendar','📅',L('admin.calendar','تقویم')],
       ['contact','📞',L('admin.contact','تماس با ما')], ['info','ℹ️',L('admin.info','اطلاعات')], ['users','🔐',L('admin.users','یوزرها')],
       ['coins','🪙',L('admin.coins','درخواست سکه')], ['honor','🏅',L('admin.honor','رنک و آواتار')], ['shop','🛍️',L('admin.shop','فروشگاه آواتار')],
-      ['battle','⚔️',L('admin.battle','نبرد میدان‌ها')], ['labels','✏️',L('admin.labels','ویرایش آیتم‌ها')],
+      ['battle','⚔️',L('admin.battle','نبرد میدان‌ها')], ['avatars','🌸',L('admin.avatars','سرزمین آواتارها')], ['labels','✏️',L('admin.labels','ویرایش آیتم‌ها')],
     ];
     v.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:18px">
@@ -281,6 +281,7 @@
     else if (mgmtTab === 'info') mgmtInfo(body);
     else if (mgmtTab === 'users') mgmtUsers(body);
     else if (mgmtTab === 'battle') mgmtBattle(body);
+    else if (mgmtTab === 'avatars') mgmtAvatarLand(body);
     else if (mgmtTab === 'labels') mgmtLabels(body);
   }
 
@@ -519,6 +520,124 @@
 
     renderTeamList();
     renderMatchList();
+  }
+
+  /* ═══════════════ سرزمین آواتارها: قوانین مرتب‌سازی و باشگاه‌ها ═══════════════ */
+  function mgmtAvatarLand(body){
+    const KEY = 'ga_avatarland_cfg';
+    function load(){
+      const def = { sort:['spent','income','lv','join'], dir:{ spent:-1, income:-1, lv:-1, join:1 }, club:[[1,5,'par'],[6,10,'birdie'],[11,15,'eagle']], onlySpenders:true };
+      try { return Object.assign(def, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch(e){ return def; }
+    }
+    function save(c){ try { localStorage.setItem(KEY, JSON.stringify(c)); } catch(e){} }
+    function saveAndReload(c){ save(c); APP.reloadData(); APP.go('mgmt'); mgmtTab = 'avatars'; APP.toast('قوانین سرزمین آواتارها ذخیره شد ✓', 'green'); }
+    let cfg = load();
+    const DIMS = { spent:'بیشترین خرج', income:'بیشترین درآمد', lv:'سطح بالاتر', join:'عضو قدیمی‌تر' };
+    const DIM_KEYS = Object.keys(DIMS);
+    const orderSel = cur => DIM_KEYS.map(k => `<option value="${k}" ${cur===k?'selected':''}>${DIMS[k]}</option>`).join('');
+    const clubRows = cfg.club.slice();
+    body.innerHTML = `
+    <div class="glass gold-border" style="margin-bottom:16px">
+      <div class="card-head"><span class="ic">🌸</span><h3>${esc(L('admin.avatars','سرزمین آواتارها'))} — قوانین نمایش و مرتب‌سازی</h3><span class="tag">Avatar Land ⚙️</span></div>
+      <div style="font-size:11.5px;color:var(--muted);line-height:2;margin-top:6px">ترتیب نمایش کارت‌ها و کارت‌های افتخار طبق این اولویت‌ها محاسبه می‌شود (اولویت اول تا چهارم). تغییرات پس از ذخیره فوراً روی صفحهٔ اعمال می‌شود.</div>
+      <div class="form-section" style="margin-top:12px">🔀 ترتیب مرتب‌سازی (اولویت ۱ تا ۴)</div>
+      <div class="field-grid">
+        ${[0,1,2,3].map(i => `
+          <div><label>اولویت ${['اول','دوم','سوم','چهارم'][i]}</label>
+            <div style="display:flex;gap:6px;align-items:center">
+              <select class="sel" data-order-i="${i}" style="flex:1">${orderSel(cfg.sort[i])}</select>
+              <select class="sel" data-dir="${cfg.sort[i]||'spent'}" data-dir-i="${i}" style="width:82px">
+                <option value="-1" ${(cfg.dir[cfg.sort[i]]||-1)===-1?'selected':''}>نزولی</option>
+                <option value="1" ${(cfg.dir[cfg.sort[i]]||-1)===1?'selected':''}>صعودی</option>
+              </select>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="form-section" style="margin-top:12px">🏳️ باشگاه‌ها (محدودهٔ سطح)</div>
+      <div class="field-grid">
+        ${['par','birdie','eagle'].map((id,ci) => {
+          const row = clubRows.find(r => r[2] === id) || (id==='par'?[1,5,'par']:id==='birdie'?[6,10,'birdie']:[11,15,'eagle']);
+          return `<div style="display:flex;gap:6px;align-items:center">
+            <span style="flex:0 0 auto;width:92px;font-size:12px;font-weight:800" class="${id==='eagle'?'al-club eagle':id==='birdie'?'al-club birdie':'al-club par'}">${id==='eagle'?'🦅 Eagle':id==='birdie'?'🐦 Birdie':'⛳ Par'}</span>
+            <input class="input" type="number" data-club-lo="${id}" value="${row[0]}" style="width:70px" min="1" max="15">
+            <span style="color:var(--muted)">تا</span>
+            <input class="input" type="number" data-club-hi="${id}" value="${row[1]}" style="width:70px" min="1" max="15">
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
+        <label class="lbl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="al-only" ${cfg.onlySpenders?'checked':''}> فقط اعضایی که حداقل ۱ سکه خرج کرده‌اند</label>
+        <button class="btn sm" id="al-save" style="margin-right:auto">💾 ذخیره قوانین</button>
+      </div>
+    </div>
+    <div class="glass">
+      <div class="card-head"><span class="ic">👑</span><h3>پیش‌نمایش برترین‌ها</h3><span class="tag">${D.fa(avLandPreview().length)} آواتار</span></div>
+      <div id="al-prev" style="margin-top:10px"></div>
+    </div>`;
+    function avLandPreview(){
+      // reuse the same aggregation used by the member page (mirrored here to keep admin independent)
+      let out = [];
+      try {
+        const st = gstate().S || {};
+        const plist = st.players || [];
+        const users = (window.APP && APP.users && APP.users.list) ? APP.users.list().filter(u => u.role==='member' && u.active!==false) : [];
+        users.forEach(u => {
+          const pid = +u.pid; if (!pid || !window.AV) return;
+          const prow = plist.find(x => x[0]===pid);
+          const c = AV.coinOf(u.user);
+          const log = c.log || [];
+          const income = log.filter(l => (+l.amount||0) > 0 && (String(l.source||'').indexOf('req:')===0 || String(l.source||'')==='admin')).reduce((a,l)=>a+(+l.amount||0),0);
+          const spent = log.filter(l => (+l.amount||0) < 0).reduce((a,l)=>a+Math.abs(+l.amount||0),0);
+          out.push({ user:u.user, name:u.name, spent, income });
+        });
+      } catch(e){}
+      return out;
+    }
+    function clubColor(c){ return c==='eagle'?'#f6e27a':c==='birdie'?'#5FE3B0':'#CBD4E1'; }
+    function paintPreview(){
+      const box = $('#al-prev'); if (!box) return;
+      let lst = avLandPreview();
+      if ($('#al-only').checked) lst = lst.filter(m => m.spent > 0);
+      const dir = cfg.dir || { spent:-1, income:-1, lv:-1, join:1 };
+      const sort = cfg.sort || ['spent','income','lv','join'];
+      lst.sort((a,b) => {
+        for (let i=0;i<sort.length;i++){
+          const k = sort[i]; const d = (+dir[k]||0)===1?1:-1;
+          const av = (a[k]??0), bv = (b[k]??0);
+          if (av === bv) continue; return (av-bv)*d;
+        }
+        return 0;
+      });
+      box.innerHTML = lst.length ? lst.slice(0,10).map((m,i) => `
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:12px;border:1px solid var(--line-soft);background:rgba(255,255,255,.03);margin-bottom:7px">
+          <span style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;background:linear-gradient(135deg,#f6e27a,#d4af37);color:#0B0F14">${D.fa(i+1)}</span>
+          <b style="flex:1;font-size:13px">${esc(m.name)}</b>
+          <span style="font-size:11px;color:var(--muted)">💸 ${D.faNum(m.spent,0)}</span>
+          <span style="font-size:11px;color:var(--muted)">💵 ${D.faNum(m.income,0)}</span>
+        </div>`).join('') : '<div style="color:var(--muted);padding:10px;font-size:12px">آواتاری با این قوانین پیدا نشد.</div>';
+    }
+    paintPreview();
+    $('#al-only').addEventListener('change', paintPreview);
+    $$('[data-order-i]').forEach(sel => sel.addEventListener('change', e => {
+      const i = +e.target.dataset.orderI || +e.target.dataset.order_i;
+      cfg.sort[i] = e.target.value;
+      save(cfg); APP.go('mgmt'); mgmtTab = 'avatars';
+    }));
+    $$('[data-dir-i]').forEach(sel => sel.addEventListener('change', e => {
+      const i = +e.target.dataset.dirI || +e.target.dataset.dir_i;
+      const k = cfg.sort[i]; cfg.dir[k] = +e.target.value;
+      save(cfg); APP.go('mgmt'); mgmtTab = 'avatars';
+    }));
+    $('#al-save').addEventListener('click', () => {
+      const club = ['par','birdie','eagle'].map(id => {
+        const lo = +($('[data-club-lo="'+id+'"]').value||1);
+        const hi = +($('[data-club-hi="'+id+'"]').value||1);
+        return [Math.min(lo,hi), Math.max(lo,hi), id];
+      });
+      cfg.club = club;
+      cfg.onlySpenders = $('#al-only').checked;
+      saveAndReload(cfg);
+    });
   }
 
   /* ═══════════════ ویرایش مرکزی نام همهٔ آیتم‌ها و تب‌ها ═══════════════ */
