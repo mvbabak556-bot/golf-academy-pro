@@ -84,11 +84,7 @@
   /* ── دسترسی REST به Supabase (PostgREST) ────────────────────────── */
   function rest(path, init) {
     var c = cfg();
-    var h = {
-      'apikey': c.key,
-      'Authorization': '***' + c.key,
-      'Content-Type': 'application/json'
-    };
+    var h = { 'apikey': c.key, 'Content-Type': 'application/json' }; // apikey تنها و کافی است (کلیدهای جدید publishable)
     init = init || {};
     Object.keys(init.headers || {}).forEach(function (k) { h[k] = init.headers[k]; });
     return fetch(c.url + '/rest/v1/' + path, {
@@ -408,8 +404,7 @@
       fetch(c.url + '/rest/v1/ga_store', {
         method: 'POST',
         headers: {
-          'apikey': c.key, 'Authorization': '***' + c.key,
-          'Content-Type': 'application/json',
+          'apikey': c.key, 'Content-Type': 'application/json',
           'Prefer': 'return=minimal,resolution=merge-duplicates'
         },
         body: JSON.stringify(rows),
