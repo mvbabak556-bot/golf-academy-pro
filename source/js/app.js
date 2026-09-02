@@ -96,7 +96,7 @@
   }
 
   /* ── ابزارهای کمکی UI ── */
-  const avatar = pid => (window.Data && Data.photoOf) ? Data.photoOf(pid) : (pid % 2 ? 'assets/avatar_m.png' : 'assets/avatar_f.png');
+  const avatar = pid => (window.Data && Data.photoOf) ? Data.photoOf(pid) : (pid % 2 ? 'assets/avatar_m.webp' : 'assets/avatar_f.webp');
   const ringColor = rk => rk === 'Gold Elite' ? 'gold' : rk === 'Red' ? 'red' : rk === 'Blue' ? 'blue' : rk === 'Green' ? 'green' : 'dim';
   function rankPill(rk){ return `<span class="rank-pill" style="background:${D.RANK_DEF.find(r=>r[0]===rk)[3]}22;color:${D.RANK_DEF.find(r=>r[0]===rk)[3]};border:1px solid ${D.RANK_DEF.find(r=>r[0]===rk)[3]}55">${D.RANK_TEXT[rk]}</span>`; }
   /* Honor Rank — چیپ رنک برای کل سایت */
@@ -252,7 +252,7 @@
     const top = A.LB.slice(0, 3);
     v.innerHTML = `
     <div class="glass gold-border" style="padding:0;overflow:hidden;margin-bottom:18px">
-      <img src="assets/hero_main.png" class="hero-pano" alt="">
+      <img src="assets/hero_main.webp" class="hero-pano" alt="">
       <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(11,15,20,.92));display:flex;flex-direction:column;justify-content:flex-end;padding:26px">
         <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
           <div>
@@ -774,7 +774,7 @@
     ];
     v.innerHTML = `
     <div style="display:flex;align-items:center;gap:18px;margin-bottom:18px">
-      <img src="assets/trophy_3d.png" class="floaty glow-img" style="width:110px;height:110px;border-radius:16px;object-fit:cover" alt="">
+      <img src="assets/trophy_3d.webp" class="floaty glow-img" style="width:110px;height:110px;border-radius:16px;object-fit:cover" alt="">
       <div>
         <h2 class="gold-text" style="font-size:24px;font-weight:900">تالار افتخارات ۱۴۰۵</h2>
         <div style="color:var(--muted);font-size:12.5px;margin-top:4px">رکوردها و قهرمانان فصل — Hall of Fame</div>
@@ -884,7 +884,7 @@
 
     v.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-      <img src="assets/ball_3d.png" class="floaty fast glow-img green" style="width:64px;height:64px;border-radius:14px;object-fit:cover" alt="">
+      <img src="assets/ball_3d.webp" class="floaty fast glow-img green" style="width:64px;height:64px;border-radius:14px;object-fit:cover" alt="">
       <div>
         <div style="font-size:12px;color:var(--muted)">رویداد بعدی</div>
         <div style="font-size:19px;font-weight:900" class="gold-text">${TYPE_ICON[events[nextIdx].type]||'📌'} ${esc(events[nextIdx].name)}</div>
@@ -1059,7 +1059,7 @@
     <div class="tv-wrap">
       <div class="glass" style="border-color:var(--line)">
         <div class="tv-screen">
-          <img src="assets/course_pano.png" class="bg" alt="">
+          <img src="assets/course_pano.webp" class="bg" alt="">
           <div class="overlay"></div>
           <div class="content">
             <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
@@ -1122,7 +1122,7 @@
     const maxT = Math.max(...teams.map(t=>t.pts), 1);
     v.innerHTML = `
     <div class="glass gold-border" style="display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap">
-      <img src="assets/flag_3d.png" class="floaty glow-img" style="width:70px;height:70px;border-radius:14px;object-fit:cover" alt="">
+      <img src="assets/flag_3d.webp" class="floaty glow-img" style="width:70px;height:70px;border-radius:14px;object-fit:cover" alt="">
       <div>
         <h2 style="font-size:21px;font-weight:900" class="gold-text">میدان نبرد — جدال تیمها</h2>
         <div style="color:var(--muted);font-size:12px;margin-top:3px">سبک لیگ جهانی LIV • ${D.fa(teams.length)} تیم × ${D.fa(teams[0].members.length)} بازیکن</div>

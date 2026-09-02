@@ -9,20 +9,20 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # asset -> (max width, jpeg quality) — keep small for sprites, larger for hero/login
 SIZES = {
-    'login_bg.png':    (1400, 72),
-    'hero_main.png':   (1200, 74),
-    'course_pano.png': (1100, 72),
-    'ball_3d.png':     (520, 80),
-    'trophy_3d.png':   (520, 80),
-    'flag_3d.png':     (420, 82),
-    'avatar_m.png':    (280, 84),
-    'avatar_f.png':    (280, 84),
-    'lobby_bg_v3.png': (1536, 92),
-    'shop_hero.png':   (1280, 78),
-    'open_tee.png':    (1100, 84),
-    'open_swing.png':  (1100, 84),
-    'open_sky.png':    (1100, 84),
-    'open_hole.png':   (1100, 84),
+    'login_bg.webp':    (1400, 72),
+    'hero_main.webp':   (1200, 74),
+    'course_pano.webp': (1100, 72),
+    'ball_3d.webp':     (520, 80),
+    'trophy_3d.webp':   (520, 80),
+    'flag_3d.webp':     (420, 82),
+    'avatar_m.webp':    (280, 84),
+    'avatar_f.webp':    (280, 84),
+    'lobby_bg_v3.webp': (1536, 92),
+    'shop_hero.webp':   (1280, 78),
+    'open_tee.webp':    (1100, 84),
+    'open_swing.webp':  (1100, 84),
+    'open_sky.webp':    (1100, 84),
+    'open_hole.webp':   (1100, 84),
 }
 
 def img_uri(name):

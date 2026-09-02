@@ -4,6 +4,9 @@
    ۳) سکه‌های قهرمانی خودکار و واکنشی (حذف/تغییر نتیجه = کم/زیاد شدن سکه)
    ۴) صدا: پنل بی‌صدا — صدای سوئیت‌اسپات روی فریم ضربه و تشویق روی ورود توپ به حفره */
 const { chromium } = require('playwright-core');
+const fs = require('fs');
+const SHOT_DIR = process.env.SHOT_DIR || '/tmp/golf-academy-screenshots';
+fs.mkdirSync(SHOT_DIR, { recursive: true });
 const EXE = process.env.CHROME || '/home/user/.cache/ms-playwright/chromium-1140/chrome-linux/chrome';
 const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
 
@@ -16,7 +19,7 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push('CONSOLE: ' + m.text()); });
   const ok = (c, msg) => console.log((c ? 'PASS' : 'FAIL') + ' | ' + msg);
-  const shot = n => page.screenshot({ path: '/home/user/golf_web/screenshots/' + n });
+  const shot = n => page.screenshot({ path: SHOT_DIR + '/' + n });
   const realErrors = () => errors.filter(e => !/arcTo/.test(e));
 
   /* ابزار صدا: هر ساخت نُد صوتی با زمانش ثبت می‌شود */
@@ -216,7 +219,7 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   ok(/^(1|2)\d/.test(bgPos.trim()), 'v7 موبایل: تصویر لابی به سمت چپ جابه‌جا شد (' + bgPos + ')');
   const rcx = await mp.evaluate(() => { const r = document.querySelector('#l3d-reception').getBoundingClientRect(); return r.left + r.width / 2; });
   ok(Math.abs(rcx - 195) < 30, 'v7 موبایل: خانم رسپشن وسط قاب است (cx=' + Math.round(rcx) + ')');
-  await mp.screenshot({ path: '/home/user/golf_web/screenshots/v7_mobile_landing.png' });
+  await mp.screenshot({ path: SHOT_DIR + '/v7_mobile_landing.png' });
   await mctx.close();
 
   ok(realErrors().length === 0, 'بدون خطای جاوااسکریپت' + (realErrors().length ? ' → ' + realErrors().slice(0, 3).join(' | ') : ''));

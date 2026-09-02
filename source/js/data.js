@@ -656,9 +656,9 @@
   function photoOf(pid){
     pid = +pid;
     const r = playerRows().find(x => x.pid === pid);
-    if (!r) return 'assets/avatar_m.png';
+    if (!r) return 'assets/avatar_m.webp';
     if (r.photo) return r.photo;
-    return r.gender === 'زن' ? (window.__AV_F || 'assets/avatar_f.png') : (window.__AV_M || 'assets/avatar_m.png');
+    return r.gender === 'زن' ? (window.__AV_F || 'assets/avatar_f.webp') : (window.__AV_M || 'assets/avatar_m.webp');
   }
 
   /* ── بذر دادهٔ فصل ۱۴۰۵ (حذف دادهٔ فیک و بارگذاری دادهٔ واقعی) ── */

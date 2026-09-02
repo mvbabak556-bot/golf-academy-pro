@@ -58,7 +58,7 @@ var CSS = `
 /* ═══ لابی (بازطراحی) ═══ */
 #l3d-stage{position:absolute;inset:0;perspective:1300px;transition:transform 1.1s cubic-bezier(.2,.9,.25,1),transform-origin 1.1s cubic-bezier(.2,.9,.25,1)}
 #l3d-bg{position:absolute;left:50%;top:50%;width:116%;height:116%;transform:translate(-50%,-50%);
-  background-image:url(assets/lobby_bg_v3.png);background-size:cover;background-position:center;
+  background-image:url(assets/lobby_bg_v3.webp);background-size:cover;background-position:center;
   will-change:transform;box-shadow:0 0 120px rgba(0,0,0,.5) inset}
 #l3d-rays{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;opacity:.45;mix-blend-mode:screen;
   background:
@@ -201,10 +201,10 @@ var root = document.createElement('div');
 root.id = 'l3d';
 root.innerHTML =
   '<div id="l3d-intro">' +
-    '<div class="fr" style="background-image:url(assets/open_tee.png)"></div>' +
-    '<div class="fr" style="background-image:url(assets/open_swing.png)"></div>' +
-    '<div class="fr" style="background-image:url(assets/open_sky.png)"></div>' +
-    '<div class="fr" style="background-image:url(assets/open_hole.png)"></div>' +
+    '<div class="fr" style="background-image:url(assets/open_tee.webp)"></div>' +
+    '<div class="fr" style="background-image:url(assets/open_swing.webp)"></div>' +
+    '<div class="fr" style="background-image:url(assets/open_sky.webp)"></div>' +
+    '<div class="fr" style="background-image:url(assets/open_hole.webp)"></div>' +
     '<div class="vin"></div>' +
     '<div id="l3d-logo"><div class="lg-letters" id="l3d-lg"></div><div class="lg-sub" id="l3d-lgsub">آکادمی گلف ۱۴۰۵ — GolfAcademy.sa</div><div class="lg-line" id="l3d-lgline"></div></div>' +
     '<div id="l3d-flash"></div><div id="l3d-wave"></div><div id="l3d-sndhint">🔊 برای شنیدن صدای افتتاحیه، صفحه را لمس کنید</div>' +
@@ -373,8 +373,8 @@ function medalsOf(r){
   return m || '—';
 }
 function photoOf(pid){
-  try { return D.photoOf ? D.photoOf(pid) : (pid % 2 ? 'assets/avatar_m.png' : 'assets/avatar_f.png'); }
-  catch(e){ return 'assets/avatar_m.png'; }
+  try { return D.photoOf ? D.photoOf(pid) : (pid % 2 ? 'assets/avatar_m.webp' : 'assets/avatar_f.webp'); }
+  catch(e){ return 'assets/avatar_m.webp'; }
 }
 
 /* ─────────── سکانس افتتاحیه — لایو-اکشن MARVEL (~۱۰ ثانیه) ─────────── */

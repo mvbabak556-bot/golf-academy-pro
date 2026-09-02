@@ -1,5 +1,8 @@
 /* E2E: فصل ۱۴۰۵ — دادهٔ واقعی + باگ تغییر نام بازیکن */
 const { chromium } = require('playwright-core');
+const fs = require('fs');
+const SHOT_DIR = process.env.SHOT_DIR || '/tmp/golf-academy-screenshots';
+fs.mkdirSync(SHOT_DIR, { recursive: true });
 const EXE = process.env.CHROME || '/home/user/.cache/ms-playwright/chromium-1140/chrome-linux/chrome';
 const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
 (async () => {
@@ -24,7 +27,7 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   await page.click('#login-form button[type="submit"]');
   await page.waitForTimeout(1800);
   ok(!(await page.locator('#login').isVisible()), 'ورود با admin انجام شد');
-  const shot = n => page.screenshot({ path: '/home/user/golf_web/screenshots/' + n });
+  const shot = n => page.screenshot({ path: SHOT_DIR + '/' + n });
 
   // ۱) جدول رقابت: بابک اول، مهشید دوم
   await page.click('.nav-item[data-page="race"]');

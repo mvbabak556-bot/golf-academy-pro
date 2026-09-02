@@ -436,7 +436,7 @@
         const rank = rankRow ? rankRow.color : 'White';
         const col = D.RANK_DEF.find(r=>r[0]===rank)[3];
         const isCustom = p[0] >= 9000;
-        const photo = full.photo || (p[2] === 'زن' ? (W.__AV_F || 'assets/avatar_f.png') : (W.__AV_M || 'assets/avatar_m.png'));
+        const photo = full.photo || (p[2] === 'زن' ? (W.__AV_F || 'assets/avatar_f.webp') : (W.__AV_M || 'assets/avatar_m.webp'));
         const birthFa = full.birth ? (() => { try { const j = D.jalaliInfo(D.dateFrom(full.birth)); return `${D.fa(j.dd)} ${j.monthFa} ${D.fa(j.yy)}`; } catch(e){ return ''; } })() : '—';
         return `<tr data-pid="${p[0]}" class="${p[5]?'':'off-row'}">
           <td><img src="${photo}" style="width:38px;height:38px;border-radius:10px;object-fit:cover;border:1px solid ${col}66" alt=""></td>

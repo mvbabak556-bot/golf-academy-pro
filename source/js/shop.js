@@ -126,7 +126,7 @@
 
       <!-- ویترین -->
       <main class="as-main">
-        <div class="as-hero" style="background-image:url(assets/shop_hero.png)">
+        <div class="as-hero" style="background-image:url(assets/shop_hero.webp)">
           <div class="as-hero-txt">
             <h2>اوتار اختصاصی شما</h2>
             <p>استایل خود را انتخاب کنید و در مسابقات بدرخشید</p>

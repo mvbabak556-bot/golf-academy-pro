@@ -1,5 +1,8 @@
 /* E2E v6: Honor Rank (Avatar Rank Appearance) + مدیریت فروشگاه + رد درخواست + پرداخت مستقیم */
 const { chromium } = require('playwright-core');
+const fs = require('fs');
+const SHOT_DIR = process.env.SHOT_DIR || '/tmp/golf-academy-screenshots';
+fs.mkdirSync(SHOT_DIR, { recursive: true });
 const EXE = process.env.CHROME || '/home/user/.cache/ms-playwright/chromium-1140/chrome-linux/chrome';
 const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
 (async () => {
@@ -11,7 +14,7 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push('CONSOLE: ' + m.text()); });
   const ok = (c, msg) => console.log((c ? 'PASS' : 'FAIL') + ' | ' + msg);
-  const shot = n => page.screenshot({ path: '/home/user/golf_web/screenshots/' + n });
+  const shot = n => page.screenshot({ path: SHOT_DIR + '/' + n });
   const realErrors = () => errors.filter(e => !/arcTo/.test(e));
 
   async function gotoLanding(){
@@ -95,13 +98,13 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   await page.click('.mgmt-tab:has-text("فروشگاه اوتار")'); await page.waitForTimeout(1000);
   const rows = await page.locator('[data-isave]').count();
   ok(rows >= 20, 'کاتالوگ پولوشرت برندهای جهانی در پنل مدیریت فهرست شد (' + rows + ' آیتم)');
-  await page.fill('[data-ip="sh_qu"]', '5');
+  await page.fill('[data-ir="sh_qu"] [data-f="price"]', '5');
   await page.click('[data-isave="sh_qu"]'); await page.waitForTimeout(900);
   const shopEdit = await page.evaluate(() => JSON.parse(localStorage.getItem('ga_shop') || '{}'));
   ok(shopEdit.edit && +shopEdit.edit.sh_qu.price === 5, 'قیمت آیتم از پنل مدیریت تغییر کرد');
-  await page.fill('#sp-n', 'پولوشرت تست مدیر');
-  await page.fill('#sp-p', '7');
-  await page.click('#sp-add'); await page.waitForTimeout(1000);
+  await page.fill('#np-n', 'پولوشرت تست مدیر');
+  await page.fill('#np-p', '7');
+  await page.click('#np-add'); await page.waitForTimeout(1000);
   const added = await page.evaluate(() => (JSON.parse(localStorage.getItem('ga_shop') || '{}').add || []).length);
   ok(added === 1, 'آیتم تازه از پنل مدیریت به فروشگاه اضافه شد');
   await shot('mgmt_shop.png');
@@ -142,7 +145,7 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   const left = await page.evaluate(() => (JSON.parse(localStorage.getItem('ga_coins') || '{}').p8 || {}).total);
   ok(left === 20, 'خرید با قیمت ویرایش‌شده انجام و سکه کسر شد (۲۵ → ۲۰)');
   // تعویض جنسیت آواتار (آواتار خانم/آقا)
-  await page.click('[data-gender="f"]'); await page.waitForTimeout(900);
+  await page.click('[data-agender="f"]'); await page.waitForTimeout(900);
   const g = await page.evaluate(() => (JSON.parse(localStorage.getItem('ga_avatars') || '{}').p8 || {}).gender);
   ok(g === 'f', 'حالت آواتار خانم فعال شد (مو/پوشش مخصوص خانم‌ها)');
   const fItems = await page.evaluate(() => window.AV.shop().filter(i => i.g === 'f').length);
