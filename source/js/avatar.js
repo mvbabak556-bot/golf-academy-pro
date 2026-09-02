@@ -11,6 +11,9 @@
   function LSget(k, def){ try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return (v && typeof v === 'object') ? v : def; } catch(e){ return def; } }
   function LSset(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch(e){ return false; } }
   let UID = 0; const uid = () => 'av' + (++UID);
+  /* یکدست‌سازی نام کاربری (کوچک‌نویسی) — چون هنگام ورودِ عضو نام کاربری کوچک می‌شود،
+     همهٔ کلیدهای ذخیره (کیف پول، آواتار، سبد خرید، …) نیز باید با همین قاعده کلید بخورند. */
+  const norm = u => String(u == null ? '' : u).toLowerCase();
 
   /* ═════════ ۱) Honor Rank — تعریف پایه ═════════ */
   const DIVISIONS = [
@@ -90,12 +93,14 @@
   const HONOR_KEY = 'ga_honor';
   function honorStore(){ return LSget(HONOR_KEY, {}); }
   function setHonorOverride(user, lv){
+    user = norm(user);
     const st = honorStore();
     if (lv === null || lv === '' || lv === undefined) delete st[user]; else st[user] = { lv: Math.max(1, Math.min(15, +lv)) };
     LSset(HONOR_KEY, st);
   }
   /* honorOf(user, pts) → {lv, rank, pts, next, prog, manual} */
   function honorOf(user, pts){
+    user = norm(user);
     const st = honorStore();
     const manual = st[user] && st[user].lv ? +st[user].lv : 0;
     const lv = manual || levelOfPts(pts || 0);
@@ -432,9 +437,10 @@
 
   /* ── سبد خرید و علاقه‌مندی هر کاربر ── */
   const CART_KEY = 'ga_cart', FAV_KEY = 'ga_fav';
-  function cart(user){ const d = LSget(CART_KEY, {}); return Array.isArray(d[user]) ? d[user] : []; }
-  function saveCart(user, a){ const d = LSget(CART_KEY, {}); d[user] = a; LSset(CART_KEY, d); }
+  function cart(user){ user = norm(user); const d = LSget(CART_KEY, {}); return Array.isArray(d[user]) ? d[user] : []; }
+  function saveCart(user, a){ user = norm(user); const d = LSget(CART_KEY, {}); d[user] = a; LSset(CART_KEY, d); }
   function cartAdd(user, id){
+    user = norm(user);
     const a = cart(user);
     if (a.includes(id)) return { ok:false, msg:'این آیتم قبلاً در سبد شماست' };
     const rec = avatarOf(user);
@@ -459,8 +465,9 @@
     cartClear(user);
     return { ok:true, msg: n + ' آیتم خریداری شد و برای همیشه در کمد شماست ✓', n, total };
   }
-  function favs(user){ const d = LSget(FAV_KEY, {}); return Array.isArray(d[user]) ? d[user] : []; }
+  function favs(user){ user = norm(user); const d = LSget(FAV_KEY, {}); return Array.isArray(d[user]) ? d[user] : []; }
   function toggleFav(user, id){
+    user = norm(user);
     const d = LSget(FAV_KEY, {}); const a = Array.isArray(d[user]) ? d[user] : [];
     const i = a.indexOf(id);
     if (i > -1) a.splice(i, 1); else a.push(id);
@@ -469,6 +476,7 @@
   }
   /* خرید یک ست کامل (بسته) */
   function buyBundle(user, bid){
+    user = norm(user);
     const b = bundles().find(x => x.id === bid);
     if (!b) return { ok:false, msg:'بسته پیدا نشد' };
     const rec = avatarOf(user);
@@ -489,9 +497,14 @@
   function saveAvatars(d){ LSset(AV_KEY, d); }
   /* مهاجرت نرم از نسخهٔ ۵ (h1/f1/e1/s1/h0) */
   function avatarOf(user, defGender){
+    user = norm(user);
     const d = avatarData();
     const g = (defGender === 'f' || defGender === 'زن') ? 'f' : 'm';
     let rec = d[user];
+    if (!rec){
+      // اگر آواتار زیرِ کلیدی با حروف متفاوت (مثلاً Sina_Golf) ذخیره شده، آن را بکش و کوچک کن
+      for (const k in d){ if (norm(k) === user){ rec = d[k]; d[user] = rec; try { delete d[k]; } catch(e){} saveAvatars(d); break; } }
+    }
     if (!rec || !rec.v6){
       rec = { v6:1, gender: (rec && rec.gender) || g, owned: FREE_IDS(), sel: DEFAULT_SEL((rec && rec.gender) || g), lvl: 0 };
       d[user] = rec; saveAvatars(d);
@@ -503,12 +516,14 @@
     return rec;
   }
   function setAvatar(user, patch){
+    user = norm(user);
     const d = avatarData();
     const rec = d[user] || (d[user] = { v6:1, gender:'m', owned: FREE_IDS(), sel: DEFAULT_SEL('m'), lvl:0 });
     Object.assign(rec, patch);
     saveAvatars(d); return rec;
   }
   function selectItem(user, id){
+    user = norm(user);
     const it = shopItem(id); if (!it) return false;
     const rec = avatarOf(user);
     if (!rec.owned.includes(id)) return false;
@@ -518,6 +533,7 @@
   }
   /* خرید: کسر سکه + مالکیت دائمی */
   function buyItem(user, id){
+    user = norm(user);
     const it = shopItem(id); if (!it) return { ok:false, msg:'آیتم پیدا نشد' };
     const rec = avatarOf(user);
     if (rec.owned.includes(id)) return { ok:false, msg:'این آیتم را قبلاً خریده‌اید (برای همیشه در کمد شماست)' };
@@ -539,6 +555,7 @@
   let AUTO_FN = null;
   function setAutoProvider(fn){ AUTO_FN = (typeof fn === 'function') ? fn : null; }
   function autoOf(user){
+    user = norm(user);
     if (!AUTO_FN) return { total: 0, items: [] };
     try {
       const r = AUTO_FN(user) || {};
@@ -546,9 +563,23 @@
     } catch(e){ return { total: 0, items: [] }; }
   }
   function coinData(){
-    const d = LSget(COIN_KEY, {});
+    let d = LSget(COIN_KEY, {});
+    /* یکپارچه‌سازی کلیدهای نام کاربری با حروف متفاوت ← کوچک‌نویسی (تا کیف پولِ مدیر و عضو یکی شود) */
+    let merged = false;
+    const nd = {};
+    Object.keys(d).forEach(u => {
+      const key = norm(u);
+      const c = d[u] || {};
+      if (key !== u) merged = true;
+      if (!nd[key]) nd[key] = { total:0, log:[], v7auto:0 };
+      const t = nd[key];
+      t.total = (+t.total || 0) + (+c.total || 0);
+      t.log = (t.log || []).concat(Array.isArray(c.log) ? c.log : []);
+      if (c.v7auto) t.v7auto = 1;
+    });
+    if (merged) d = nd;
     /* مهاجرت v7: سکه‌های خودکارِ قدیمی که یک‌بار ثبت شده بودند از موجودی ثابت پاک می‌شوند */
-    let dirty = false;
+    let dirty = merged;
     Object.keys(d).forEach(u => {
       const c = d[u];
       if (!c || c.v7auto) return;
@@ -567,6 +598,7 @@
   function saveCoins(d){ LSset(COIN_KEY, d); }
   /* coinOf → { total (نهایی), base (ثابت), auto (قهرمانی‌ها), autoItems, log } */
   function coinOf(user){
+    user = norm(user);
     const d = coinData();
     if (!d[user]) d[user] = { total:0, log:[] };
     const c = d[user];
@@ -575,6 +607,7 @@
     return { total: base + a.total, base, auto: a.total, autoItems: a.items, log: c.log || [] };
   }
   function addCoins(user, amount, source, note){
+    user = norm(user);
     amount = +amount || 0;
     if (amount <= 0) return null;
     const d = coinData();
@@ -584,6 +617,7 @@
     saveCoins(d); return c.total + autoOf(user).total;
   }
   function spendCoins(user, amount, source, note){
+    user = norm(user);
     amount = +amount || 0;
     if (amount <= 0) return null;
     const d = coinData();
@@ -599,7 +633,7 @@
   const REQ_KEY = 'ga_coinreq';
   function reqs(){ const a = LSget(REQ_KEY, []); return Array.isArray(a) ? a : []; }
   function saveReqs(a){ LSset(REQ_KEY, a); }
-  function reqsOf(user){ return reqs().filter(r => r.user === user).sort((a,b) => b.ts - a.ts); }
+  function reqsOf(user){ const u = norm(user); return reqs().filter(r => norm(r.user) === u).sort((a,b) => b.ts - a.ts); }
   function pendingReqs(){ return reqs().filter(r => r.status === 'pending').sort((a,b) => a.ts - b.ts); }
   function addReq(o){
     const a = reqs();
@@ -607,6 +641,7 @@
       id: 'r' + Date.now() + Math.floor(Math.random()*900+100),
       status: 'pending', ts: Date.now(), date: new Date().toISOString().slice(0,10),
     }, o);
+    r.user = norm(r.user);
     a.push(r); saveReqs(a); return r;
   }
   function decideReq(id, ok, by, adminNote, amountOverride){

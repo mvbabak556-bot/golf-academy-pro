@@ -2576,7 +2576,7 @@
             <td>${hn.manual ? '<span class="chip gold">دستی</span>' : '<span class="chip dim">خودکار</span>'}</td>
             <td><select class="sel" data-hset="${esc(u.user)}" style="min-width:130px">
               <option value="">خودکار (امتیاز)</option>
-              ${AV.ranks().map(x => `<option value="${x.lv}" ${(ov[u.user] && +ov[u.user].lv === x.lv) ? 'selected' : ''}>Lv ${x.lv} — ${x.en}</option>`).join('')}
+              ${AV.ranks().map(x => `<option value="${x.lv}" ${(ov[String(u.user||'').toLowerCase()] && +ov[String(u.user||'').toLowerCase()].lv === x.lv) ? 'selected' : ''}>Lv ${x.lv} — ${x.en}</option>`).join('')}
             </select></td>
           </tr>`;
         }).join('')}
