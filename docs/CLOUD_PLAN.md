@@ -6,7 +6,7 @@
 
 ## فاز ۱ — آینهٔ KV روی `ga_store` ✅ (این نسخه)
 
-- جدول تک‌ردیف‌به‌کلید: `key text PK | value jsonb | updated_at timestamptz`
+- جدول تک‌ردیف‌به‌کلید: `k text PK | v jsonb | updated_at timestamptz`
 - `cloud.js` بدون وابستگی: نگهبان setItem/removeItem + صف کثیف + جاروب ۲۰ ثانیه‌ای
   + flush هنگام مخفی/بسته‌شدن تب (fetch keepalive).
 - تقابل LWW بر پایهٔ `updated_at`؛ ستون ساعتِ نوشتنِ محلی است
@@ -34,8 +34,9 @@
 
 - `source/build_standalone.py` لیست اسکریپت‌ها + `source/index.html` تگ
   `<script src="js/cloud.js">` — فراموش نشود، وگرنه نسخهٔ تک‌فایل بی‌ابر می‌شود.
-- تست دود ابری (پیشنهادی برای CI): `POST /rest/v1/ga_store` ردیف
-  `__smoke` → `GET` → `DELETE`؛ در صورت 401 یعنی کلید روتیت/غلط است.
+- تست دود ابری: بازکردن سایت زنده در تب تازه (سیدِ اولیه ⇒ push خودکار)
+  و سپس `GET /rest/v1/ga_store?select=k&limit=10` با کلید public — ردیف‌های `ga_*`
+  باید دیده شوند؛ `GA_CLOUD.test()` هم در کنسول در دسترس است.
 
 ## تعریف موفقیت فاز ۱
 
