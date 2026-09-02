@@ -45,7 +45,17 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   await page.fill('#login-pass', 'golf1405');
   await page.click('#login-form button[type="submit"]');
   await page.waitForTimeout(1800);
-  // 3) دراور موبایل
+  // 3) دسترسی‌های اعضا باید در گوشی تازه نیز کامل و مستقیم دیده شوند
+  const quickPages = await page.evaluate(() => [...document.querySelectorAll('#member-mobile-nav [data-member-page]')].map(x => x.dataset.memberPage));
+  ok(quickPages.length === 9, 'نوار موبایل، پنل اعضا و هر ۸ بخش فعال را نشان می‌دهد (' + quickPages.join(',') + ')');
+  ok(['memberzone','cmd','race','player','match','course','records','cal','tv'].every(x => quickPages.includes(x)), 'همهٔ تب‌های فعال اعضا در موبایل حاضرند');
+  ok(await page.locator('#member-mobile-nav').isVisible(), 'نوار دسترسی اعضا بدون بازکردن منوی کشویی دیده می‌شود');
+  await page.click('#member-mobile-nav [data-member-page="race"]');
+  await page.waitForTimeout(900);
+  ok(/رقابت فصل/.test(await page.locator('#top-title').innerText()), 'تب فعال «رقابت فصل» مستقیماً از نوار موبایل باز می‌شود');
+  await page.click('#member-mobile-nav [data-member-page="memberzone"]');
+  await page.waitForTimeout(700);
+  // 4) دراور موبایل
   ok((await css('.menu-btn')).display !== 'none', 'دکمهٔ ☰ منو در موبایل دیده می‌شود');
   await page.click('#menu-btn');
   await page.waitForTimeout(800);
@@ -54,7 +64,7 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   const sidebarRight = await page.evaluate(() => getComputedStyle(document.querySelector('.sidebar')).right);
   ok(sidebarRight === '0px', 'منوی کشویی به موقعیت باز رسید');
   const navItems = await page.evaluate(() => [...document.querySelectorAll('#app .nav-item')].filter(n => getComputedStyle(n).display !== 'none').map(n => n.dataset.page));
-  ok(navItems.length >= 1, 'آیتم‌های منو در دراور قابل مشاهده‌اند');
+  ok(navItems.length === 9 && quickPages.every(x => navItems.includes(x)), 'همهٔ تب‌های فعال در منوی کشویی موبایل نیز قابل مشاهده‌اند');
   await page.click('.nav-item[data-page="memberzone"]');
   await page.waitForTimeout(900);
   const closed = await page.evaluate(() => !document.body.classList.contains('nav-open'));

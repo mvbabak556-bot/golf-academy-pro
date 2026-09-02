@@ -201,6 +201,33 @@
 
   const MEM_PAGE_KEY = { cmd:'memCmd', race:'memRace', player:'memPlayer', match:'memMatch',
     course:'memCourse', records:'memRecords', cal:'memCal', tv:'memTv' };
+  const MEMBER_PAGE_ORDER = ['cmd','race','player','match','course','records','cal','tv'];
+
+  /* دسترسی سریع اعضا در موبایل — صفحات فعال دیگر داخل منوی کشویی پنهان نمی‌مانند. */
+  function renderMemberMobileNav(rec, page){
+    const nav = $('#member-mobile-nav');
+    if (!nav) return;
+    if (!rec || rec.role !== 'member'){
+      nav.innerHTML = '';
+      nav.classList.remove('ready');
+      return;
+    }
+    const settings = MGMT.getSettings();
+    const pages = ['memberzone'].concat(MEMBER_PAGE_ORDER.filter(pg => settings[MEM_PAGE_KEY[pg]]));
+    nav.innerHTML = pages.map(pg => {
+      const p = PAGES[pg];
+      const active = pg === page;
+      const title = pg === 'memberzone' ? 'پنل اعضا' : p.t;
+      return `<button type="button" class="member-mobile-link ${active?'active':''}" data-member-page="${pg}" aria-current="${active?'page':'false'}"><span>${p.i}</span><b>${esc(title)}</b></button>`;
+    }).join('');
+    nav.classList.add('ready');
+    nav.querySelectorAll('[data-member-page]').forEach(b => b.addEventListener('click', () => {
+      go(b.dataset.memberPage);
+      closeNav();
+    }));
+    const active = nav.querySelector('.member-mobile-link.active');
+    if (active) setTimeout(() => active.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' }), 20);
+  }
 
   function go(page){
     if (!PAGES[page]) page = 'cmd';
@@ -218,6 +245,7 @@
     if (page === 'memberzone' && rec && rec.role !== 'member') page = 'cmd';
     currentPage = page;
     $$('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
+    renderMemberMobileNav(rec, page);
     $('#view').innerHTML = '';
     const p = PAGES[page];
     $('#top-title').textContent = `${p.i} ${p.t}`;

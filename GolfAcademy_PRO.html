@@ -361,6 +361,8 @@ canvas.glow-canvas{filter:drop-shadow(0 0 6px rgba(212,175,55,.25))}
   display:none;width:42px;height:42px;border-radius:12px;border:1px solid var(--line-soft);
   background:var(--panel);color:var(--gold-l);font-size:20px;cursor:pointer;flex:0 0 auto;
 }
+/* نوار دسترسی مستقیم اعضا فقط در موبایل نمایش داده می‌شود. */
+.member-mobile-nav{display:none}
 #nav-overlay{position:fixed;inset:0;z-index:94;background:rgba(4,8,14,.66);backdrop-filter:blur(3px);display:none}
 @media (max-width:760px){
   .menu-btn{display:inline-flex;align-items:center;justify-content:center}
@@ -371,6 +373,25 @@ canvas.glow-canvas{filter:drop-shadow(0 0 6px rgba(212,175,55,.25))}
   body.nav-open .sidebar{right:0}
   body.nav-open #nav-overlay{display:block}
   .main{margin-right:0;padding:14px 12px 26px}
+  .member-mobile-nav.ready{
+    display:flex;align-items:center;gap:7px;direction:rtl;overflow-x:auto;overscroll-behavior-x:contain;
+    scrollbar-width:none;scroll-snap-type:x proximity;position:sticky;top:0;z-index:44;
+    margin:0 0 14px;padding:8px;border:1px solid var(--line-soft);border-radius:15px;
+    background:linear-gradient(135deg,rgba(19,28,41,.96),rgba(11,15,20,.94));
+    box-shadow:0 9px 28px rgba(0,0,0,.28);backdrop-filter:blur(16px);
+  }
+  .member-mobile-nav::-webkit-scrollbar{display:none}
+  .member-mobile-link{
+    flex:0 0 auto;scroll-snap-align:center;display:inline-flex;align-items:center;gap:6px;
+    min-height:38px;padding:7px 11px;border-radius:11px;border:1px solid rgba(255,255,255,.09);
+    background:rgba(255,255,255,.035);color:var(--muted);font-family:inherit;cursor:pointer;
+  }
+  .member-mobile-link span{font-size:15px;line-height:1}
+  .member-mobile-link b{font-size:10.8px;white-space:nowrap}
+  .member-mobile-link.active{
+    color:#08120c;border-color:transparent;background:linear-gradient(135deg,var(--gold-l),var(--gold));
+    box-shadow:0 5px 16px rgba(212,175,55,.28);
+  }
   .topbar{margin-bottom:14px;gap:10px}
   .topbar h1{font-size:18px}
   .topbar .crumb{font-size:10.5px}
@@ -1055,6 +1076,7 @@ input[type=color].asa-in{padding:2px;width:38px;height:28px}
         <div class="hud-chip gold"><span>⏱️</span><span class="clock" id="hud-clock">—</span></div>
       </div>
     </div>
+    <nav id="member-mobile-nav" class="member-mobile-nav" aria-label="بخش‌های فعال اعضا"></nav>
     <div id="view"></div>
   </main>
 </div>
@@ -4893,9 +4915,10 @@ window.__L3D = {
     chCmd: true, chMonthly: true, chRace: true, chRaceBars: true,
     chPlayer: true, chPlayerRadar: true, chMatch: true, chCourse: true,
     chRecords: true, chCal: true, chTv: true, chBattle: true,
-    /* نمایش آیتم‌ها برای اعضا (مدیر تصمیم می‌گیرد کدام بخش برای عضوها باز باشد) */
-    memCmd: false, memRace: false, memPlayer: false, memMatch: false,
-    memCourse: false, memRecords: false, memCal: false, memTv: false,
+    /* نمایش آیتم‌ها برای اعضا — پیش‌فرض جهانی روی همهٔ دستگاه‌ها فعال است.
+       مدیر همچنان می‌تواند هر بخش را در «تنظیمات نمایش» غیرفعال کند. */
+    memCmd: true, memRace: true, memPlayer: true, memMatch: true,
+    memCourse: true, memRecords: true, memCal: true, memTv: true,
   };
   function getSettings(){
     try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem('ga_ui') || '{}')); }
@@ -7372,6 +7395,33 @@ window.__L3D = {
 
   const MEM_PAGE_KEY = { cmd:'memCmd', race:'memRace', player:'memPlayer', match:'memMatch',
     course:'memCourse', records:'memRecords', cal:'memCal', tv:'memTv' };
+  const MEMBER_PAGE_ORDER = ['cmd','race','player','match','course','records','cal','tv'];
+
+  /* دسترسی سریع اعضا در موبایل — صفحات فعال دیگر داخل منوی کشویی پنهان نمی‌مانند. */
+  function renderMemberMobileNav(rec, page){
+    const nav = $('#member-mobile-nav');
+    if (!nav) return;
+    if (!rec || rec.role !== 'member'){
+      nav.innerHTML = '';
+      nav.classList.remove('ready');
+      return;
+    }
+    const settings = MGMT.getSettings();
+    const pages = ['memberzone'].concat(MEMBER_PAGE_ORDER.filter(pg => settings[MEM_PAGE_KEY[pg]]));
+    nav.innerHTML = pages.map(pg => {
+      const p = PAGES[pg];
+      const active = pg === page;
+      const title = pg === 'memberzone' ? 'پنل اعضا' : p.t;
+      return `<button type="button" class="member-mobile-link ${active?'active':''}" data-member-page="${pg}" aria-current="${active?'page':'false'}"><span>${p.i}</span><b>${esc(title)}</b></button>`;
+    }).join('');
+    nav.classList.add('ready');
+    nav.querySelectorAll('[data-member-page]').forEach(b => b.addEventListener('click', () => {
+      go(b.dataset.memberPage);
+      closeNav();
+    }));
+    const active = nav.querySelector('.member-mobile-link.active');
+    if (active) setTimeout(() => active.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' }), 20);
+  }
 
   function go(page){
     if (!PAGES[page]) page = 'cmd';
@@ -7389,6 +7439,7 @@ window.__L3D = {
     if (page === 'memberzone' && rec && rec.role !== 'member') page = 'cmd';
     currentPage = page;
     $$('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
+    renderMemberMobileNav(rec, page);
     $('#view').innerHTML = '';
     const p = PAGES[page];
     $('#top-title').textContent = `${p.i} ${p.t}`;

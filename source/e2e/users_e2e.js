@@ -80,11 +80,12 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   ok(/اشتباه/.test(errTxt), 'پیام خطای ورود نمایش داده می‌شود');
   await shot('users_deactivated_blocked.png');
 
-  // 4) ورود عضو فعال (p1) → فقط بخش اعضا
+  // 4) ورود عضو فعال (p1) → پنل اعضا + همهٔ بخش‌های نمایشی فعال در هر دستگاه
   await login('p1', 'golf1405');
   await page.waitForTimeout(1200);
-  const visibleNavs = await page.evaluate(() => [...document.querySelectorAll('#app .nav-item')].filter(n => getComputedStyle(n).display !== 'none').length);
-  ok(visibleNavs === 1, 'عضو فقط ۱ آیتم منو می‌بیند (' + visibleNavs + ')');
+  const visiblePages = await page.evaluate(() => [...document.querySelectorAll('#app .nav-item')].filter(n => getComputedStyle(n).display !== 'none').map(n => n.dataset.page));
+  ok(visiblePages.length === 9, 'عضو پنل اعضا و هر ۸ تب فعال را می‌بیند (' + visiblePages.length + ')');
+  ok(['memberzone','cmd','race','player','match','course','records','cal','tv'].every(x => visiblePages.includes(x)), 'همهٔ تب‌های مجاز اعضا فعال هستند');
   ok(await page.locator('.nav-item[data-page="memberzone"]').isVisible(), 'آیتم «بخش اعضا» برای عضو دیده می‌شود');
   ok(!(await page.locator('#side-mgmt-btn').isVisible()), 'دکمهٔ «پلن مدیریت» برای عضو مخفی است');
   const mzTxt = await page.locator('#view').innerText();

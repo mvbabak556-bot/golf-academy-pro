@@ -51,8 +51,10 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8181/index.html';
   ok(/فرماندهی/.test(stTxt) && /رقابت فصل/.test(stTxt) && /مرکز بازیکن/.test(stTxt), 'آیتم‌های فرماندهی/رقابت/مرکز بازیکن در تنظیمات هستند');
   await page.evaluate(() => {
     const boxes = [...document.querySelectorAll('input[data-set]')];
-    const set = k => { const b = boxes.find(x => x.dataset.set === k); if (b && !b.checked) b.click(); };
-    set('memCmd'); set('memRace');
+    const memberKeys = ['memCmd','memRace','memPlayer','memMatch','memCourse','memRecords','memCal','memTv'];
+    const find = k => boxes.find(x => x.dataset.set === k);
+    memberKeys.forEach(k => { const b = find(k); if (b && b.checked) b.click(); });
+    ['memCmd','memRace'].forEach(k => { const b = find(k); if (b && !b.checked) b.click(); });
   });
   await page.waitForTimeout(700);
   await shot('member_settings.png');

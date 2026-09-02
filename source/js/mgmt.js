@@ -20,9 +20,10 @@
     chCmd: true, chMonthly: true, chRace: true, chRaceBars: true,
     chPlayer: true, chPlayerRadar: true, chMatch: true, chCourse: true,
     chRecords: true, chCal: true, chTv: true, chBattle: true,
-    /* نمایش آیتم‌ها برای اعضا (مدیر تصمیم می‌گیرد کدام بخش برای عضوها باز باشد) */
-    memCmd: false, memRace: false, memPlayer: false, memMatch: false,
-    memCourse: false, memRecords: false, memCal: false, memTv: false,
+    /* نمایش آیتم‌ها برای اعضا — پیش‌فرض جهانی روی همهٔ دستگاه‌ها فعال است.
+       مدیر همچنان می‌تواند هر بخش را در «تنظیمات نمایش» غیرفعال کند. */
+    memCmd: true, memRace: true, memPlayer: true, memMatch: true,
+    memCourse: true, memRecords: true, memCal: true, memTv: true,
   };
   function getSettings(){
     try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem('ga_ui') || '{}')); }
