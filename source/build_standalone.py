@@ -57,9 +57,13 @@ def main():
         mcss = open(os.path.join(ROOT, 'css', 'mgmt.css'), encoding='utf-8').read()
         html = re.sub(r'<link rel="stylesheet" href="css/mgmt.css">',
                       '<style>' + mcss + '</style>', html)
+    if os.path.exists(os.path.join(ROOT, 'css', 'avatarland.css')):
+        alcss = open(os.path.join(ROOT, 'css', 'avatarland.css'), encoding='utf-8').read()
+        html = re.sub(r'<link rel="stylesheet" href="css/avatarland.css">',
+                      '<style>' + alcss + '</style>', html)
 
     # 3) inline JS in load order
-    for jsname in ['labels', 'holidays', 'data', 'charts', 'qrcode.min', 'landing', 'jdate', 'avatar', 'shop', 'mgmt', 'app']:
+    for jsname in ['labels', 'holidays', 'data', 'charts', 'qrcode.min', 'battle', 'landing', 'jdate', 'avatar', 'shop', 'mgmt', 'app']:
         js = open(os.path.join(ROOT, 'js', jsname + '.js'), encoding='utf-8').read()
         html = re.sub(rf'<script src="js/{jsname}\.js"></script>',
                       lambda m: '<script>' + js + '</script>', html)

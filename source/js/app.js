@@ -193,8 +193,9 @@
     battle:['nav.battle','میدان نبرد'], academy:['nav.academy','پنل آکادمی'], acourses:['nav.acourses','طراح زمین'],
     atournaments:['nav.atournaments','طراح مسابقه'], ascorecards:['nav.ascorecards','ثبت نتایج'],
     mgmt:['nav.mgmt','پنل مدیریت'], users:['nav.users','یوزرها'], settings:['nav.settings','تنظیمات نمایش'],
+    avatarland:['nav.avatarland','سرزمین آواتارها'],
   };
-  const PAGE_ICONS = { memberzone:'👤',cmd:'🎯',race:'🏁',player:'🏌️',match:'🥇',course:'🗺️',records:'🎖️',cal:'📅',tv:'📺',battle:'⚔️',academy:'🏫',acourses:'🛠️',atournaments:'🛠️',ascorecards:'🛠️',mgmt:'⚙️',users:'🔐',settings:'🛠️' };
+  const PAGE_ICONS = { memberzone:'👤',cmd:'🎯',race:'🏁',player:'🏌️',match:'🥇',course:'🗺️',records:'🎖️',cal:'📅',tv:'📺',battle:'⚔️',academy:'🏫',acourses:'🛠️',atournaments:'🛠️',ascorecards:'🛠️',mgmt:'⚙️',users:'🔐',settings:'🛠️',avatarland:'🌸' };
   const PAGES = {};
   function updatePageLabels(){
     Object.keys(PAGE_LABELS).forEach(pg => { PAGES[pg] = { t:L(PAGE_LABELS[pg][0], PAGE_LABELS[pg][1]), i:PAGE_ICONS[pg] }; });
@@ -204,8 +205,8 @@
   let playerSel = 8, matchSel = 1, courseSel = 1, coursePlayerSel = 8;
 
   const MEM_PAGE_KEY = { cmd:'memCmd', race:'memRace', player:'memPlayer', match:'memMatch',
-    course:'memCourse', records:'memRecords', cal:'memCal', tv:'memTv' };
-  const MEMBER_PAGE_ORDER = ['cmd','race','player','match','course','records','cal','tv'];
+    course:'memCourse', records:'memRecords', cal:'memCal', tv:'memTv', avatarland:'memAvatarLand' };
+  const MEMBER_PAGE_ORDER = ['cmd','race','player','match','course','records','cal','tv','avatarland'];
 
   /* دسترسی سریع اعضا در موبایل — صفحات فعال دیگر داخل منوی کشویی پنهان نمی‌مانند. */
   function renderMemberMobileNav(rec, page){
@@ -1135,53 +1136,55 @@
 
   /* ═══════════ صفحه: میدان نبرد ═══════════ */
   function pageBattle(){
-
-  if (!MGMT.getSettings().chBattle){
+    const v = $('#view');
+    const BT = window.Battle;
+    if (!MGMT.getSettings().chBattle){
       v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">⚔️ ${esc(L('nav.battle','میدان نبرد'))} غیرفعال است — از «${esc(L('nav.settings','تنظیمات نمایش'))}» فعال کنید</div>`;
       return;
-    }    const v = $('#view');
-    const teams = [
-      ['🦅','عقابهای طلایی', [1,2,3,4], '#D4AF37'],
-      ['🐆','یوزرهای سبز', [5,6,7,8], '#1EBB8A'],
-      ['🦈','کوسههای آبی', [9,10,11,12], '#2E86DE'],
-      ['🐺','گرگهای شب', [13,14,15,16], '#9B59B6'],
-    ].map(([ic,n,ids,c]) => ({
-      ic, n, c, ids,
-      pts: ids.reduce((a,pid)=>a+(A.PTS[pid]||0),0),
-      members: ids.map(pid => A.LB.find(r=>r.pid===pid) || { name: D.nameOf(pid), pts:0, color:'White' }),
-    }));
-    teams.sort((a,b) => b.pts - a.pts);
+    }
+    const B = (window.Battle && BT.ensure) ? BT.ensure() : null;
+    if (!B || !B.teams.length){
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">⚔️ ${esc(L('nav.battle','میدان نبرد'))} — هنوز تیمی ساخته نشده است. از «پنل مدیریت ← نبرد میدانها» تیم و جدال بسازید.</div>`;
+      return;
+    }
+    const teams = BT.standings();
+    const PTS = (A && A.PTS) || {};
+    teams.forEach(t => { t.seasonPts = t.members.reduce((a,pid)=>a+(PTS[pid]||0),0); });
+    const matches = (B.matches || []).slice().sort((a,b) => (b.date||'').localeCompare(a.date||''));
     const maxT = Math.max(...teams.map(t=>t.pts), 1);
+    const totalMembers = B.teams.reduce((a,t)=>a+(t.members||[]).length,0);
     v.innerHTML = `
     <div class="glass gold-border" style="display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap">
       <img src="assets/flag_3d.webp" class="floaty glow-img" style="width:70px;height:70px;border-radius:14px;object-fit:cover" alt="">
       <div>
-        <h2 style="font-size:21px;font-weight:900" class="gold-text">${esc(L('nav.battle','میدان نبرد'))} — جدال تیم‌ها</h2>
-        <div style="color:var(--muted);font-size:12px;margin-top:3px">سبک لیگ جهانی LIV • ${D.fa(teams.length)} تیم × ${D.fa(teams[0].members.length)} بازیکن</div>
+        <h2 style="font-size:21px;font-weight:900" class="gold-text">${esc(L('nav.battle','میدان نبرد'))} — جدال تیمها</h2>
+        <div style="color:var(--muted);font-size:12px;margin-top:3px">سبک لیگ جهانی LIV • ${D.fa(teams.length)} تیم × ${D.fa(totalMembers)} بازیکن</div>
       </div>
-      <div style="margin-right:auto" class="chip green">🔴 فصل در جریان</div>
+      <div style="margin-right:auto" class="chip ${B.settings.seasonEnabled?'green':'orange'}">${B.settings.seasonEnabled?'🔴 فصل در جریان':'نتیجه روی فصل اثر ندارد'}</div>
     </div>
     <div class="grid cols-2" style="margin-bottom:18px">
       ${teams.map(t => `
-        <div class="glass tilt" style="border-color:${t.c}44">
+        <div class="glass tilt" style="border-color:${t.color}44">
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-            <span style="font-size:32px;animation:float 5s ease-in-out infinite">${t.ic}</span>
+            <span style="font-size:32px;animation:float 5s ease-in-out infinite">${t.icon}</span>
             <div>
-              <div style="font-size:16px;font-weight:900;color:${t.c}">${esc(t.n)}</div>
-              <div style="font-size:11px;color:var(--muted)">امتیاز تیم: <b style="color:var(--white)">${D.faNum(t.pts,0)}</b></div>
+              <div style="font-size:16px;font-weight:900;color:${t.color}">${esc(t.name)}</div>
+              <div style="font-size:11px;color:var(--muted)">${D.fa(t.win)} برد • ${D.fa(t.draw)} مساوی • ${D.fa(t.loss)} باخت — امتیاز جدال: <b style="color:var(--white)">${D.faNum(t.pts,0)}</b></div>
             </div>
-            <div style="margin-right:auto;font-size:12px;color:var(--muted)">رتبه ${D.fa(teams.indexOf(t)+1)}</div>
+            <div style="margin-right:auto;font-size:12px;color:var(--muted)">رتبه ${D.fa(t.rank)}</div>
           </div>
           ${pbar(t.pts/maxT*100, 'gold')}
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
-            ${t.members.map(m => `
-              <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border:1px solid var(--line-soft);border-radius:11px;padding:7px 9px">
-                <img src="${avatar(m.pid)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid ${t.c}" alt="">
+            ${t.members.map(m => {
+              const rec = (A && A.LB && A.LB.find(r=>r.pid===m)) || { name: D.nameOf(m) };
+              return `<div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border:1px solid var(--line-soft);border-radius:11px;padding:7px 9px">
+                <img src="${avatar(m)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid ${t.color}" alt="">
                 <div style="min-width:0">
-                  <div style="font-size:11.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(m.name)}</div>
-                  <div style="font-size:10px;color:${t.c}">${D.faNum(m.pts,0)} امتیاز</div>
+                  <div style="font-size:11.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(rec.name)}</div>
+                  <div style="font-size:10px;color:${t.color}">${D.faNum(PTS[m]||0,0)} امتیاز فصل</div>
                 </div>
-              </div>`).join('')}
+              </div>`;
+            }).join('')}
           </div>
         </div>`).join('')}
     </div>
@@ -1191,25 +1194,211 @@
         <div class="chart-box"><canvas id="bt-chart"></canvas></div>
       </div>
       <div class="glass">
-        <div class="card-head"><span class="ic">🔥</span><h3>جدالهای هفته — ۱ به ۱</h3><span class="tag">Lock Zone</span></div>
-        ${[
-          ['سینا رحیمی','مهدی کریمی','۱۷:۰۰', true],
-          ['شایان اکبری','درسا سلطانی','۱۷:۱۲', true],
-          ['حسین قاسمی','مریم کاظمی','۱۷:۲۴', false],
-          ['پارسا عظیمی','تارا یزدانی','۱۷:۳۶', false],
-        ].map(([a,b,tm,live]) => `
-          <div style="display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:13px;margin-bottom:9px;background:rgba(255,255,255,.03);border:1px solid ${live?'rgba(231,76,60,.4)':'var(--line-soft)'}">
-            <b style="flex:1;font-size:12.5px">${esc(a)}</b>
-            <span class="chip gold" style="flex:0 0 auto">VS</span>
-            <b style="flex:1;text-align:right;font-size:12.5px">${esc(b)}</b>
-            <span style="font-size:11px;color:var(--dim);direction:ltr">${tm}</span>
-            <span class="chip ${live?'red':'dim'}">${live?'زنده':'برنامه'}</span>
-          </div>`).join('')}
+        <div class="card-head"><span class="ic">🔥</span><h3>جدالهای نبرد</h3><span class="tag">${D.fa(matches.length)} جدال</span></div>
+        ${matches.length ? matches.map(m => {
+          if (!m.home || !m.away) return '';
+          const hName = BT.teamName(m.home), aName = BT.teamName(m.away);
+          const hIcon = BT.teamIcon(m.home), aIcon = BT.teamIcon(m.away);
+          let mid, badge = '<span class="chip dim">برنامه</span>';
+          if (m.status === 'done' && m.winner){
+            mid = `<span style="font-size:13px;font-weight:900;direction:ltr">${D.faNum(m.homeScore,0)} - ${D.faNum(m.awayScore,0)}</span>`;
+            badge = m.winner === 'home' ? `<span class="chip green">${esc(hName)} پیروز</span>`
+                  : m.winner === 'away' ? `<span class="chip green">${esc(aName)} پیروز</span>`
+                  : `<span class="chip gold">مساوی</span>`;
+          } else {
+            mid = '<span class="chip gold" style="flex:0 0 auto">VS</span>';
+          }
+          const dateTxt = m.date ? (D.isoToShamsi ? D.isoToShamsi(m.date) : m.date) : '—';
+          return `<div style="display:flex;align-items:center;gap:8px;padding:11px 13px;border-radius:13px;margin-bottom:9px;background:rgba(255,255,255,.03);border:1px solid ${m.status==='done'?'var(--line-soft)':'rgba(231,76,60,.3)'}">
+            <span style="font-size:18px">${esc(hIcon)}</span>
+            <b style="flex:1;font-size:12px;color:${BT.teamColor(m.home)}">${esc(hName)}</b>
+            ${mid}
+            <b style="flex:1;text-align:right;font-size:12px;color:${BT.teamColor(m.away)}">${esc(aName)}</b>
+            <span style="font-size:18px">${esc(aIcon)}</span>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+              <span style="font-size:10px;color:var(--dim);direction:ltr">${esc(dateTxt)}</span>
+              ${badge}
+            </div>
+          </div>`;
+        }).join('') : '<div style="color:var(--muted);font-size:12px;padding:10px">هنوز جدالی ثبت نشده است.</div>'}
       </div>
     </div>`;
     setTimeout(() => {
-      Charts.barsH($('#bt-chart'), teams.map(t=>t.n), teams.map(t=>t.pts), { color:'#E9C766', showVal:true, valFmt:v=>D.faNum(v,0) });
+      if (window.Charts) Charts.barsH($('#bt-chart'), teams.map(t=>t.name), teams.map(t=>t.pts), { color:'#E9C766', showVal:true, valFmt:v=>D.faNum(v,0) });
     }, 80);
+  }
+
+  /* ═══════════ صفحه: سرزمین آواتارها ═══════════ */
+  function avLandCfg(){
+    const def = {
+      sort:['spent','income','lv','join'],
+      dir:{ spent:-1, income:-1, lv:-1, join:1 },
+      club:[[1,5,'par'],[6,10,'birdie'],[11,15,'eagle']],
+      onlySpenders:true, count:80,
+    };
+    try { return Object.assign(def, JSON.parse(localStorage.getItem('ga_avatarland_cfg') || '{}')); }
+    catch(e){ return def; }
+  }
+  function avLandSave(cfg){ try { localStorage.setItem('ga_avatarland_cfg', JSON.stringify(cfg)); } catch(e){} }
+  function avLandJoin(pid){
+    pid = +pid;
+    try { const b = D.loadPlayers().find(p => p[0] === pid); if (b) return b[4] || ''; } catch(e){}
+    try { const cs = D.loadCustomPlayers(); const i = cs.findIndex((c,idx) => (9000+idx) === pid); if (i >= 0) return cs[i].join || ''; } catch(e){}
+    return '';
+  }
+  function clubOf(lv, cfg){
+    cfg = cfg || avLandCfg();
+    const cl = cfg.club || [];
+    for (let i=0;i<cl.length;i++){
+      const a = cl[i][0], b = cl[i][1], id = cl[i][2];
+      if (+lv >= +a && +lv <= +b) return id;
+    }
+    return 'par';
+  }
+  function avLandStats(){
+    const cfg = avLandCfg();
+    const users = (APP.users && APP.users.list ? APP.users.list() : []).filter(u => u.role === 'member' && u.active !== false);
+    const out = [];
+    users.forEach(u => {
+      const pid = +u.pid; if (!pid) return;
+      const gender = genderOfUser(u.user);
+      const av = AV.avatarOf(u.user, gender);
+      const c = AV.coinOf(u.user);
+      const hn = AV.honorOf(u.user, ptsOfUser(u.user));
+      const log = c.log || [];
+      const income = log.filter(l => (+l.amount||0) > 0 && (String(l.source||'').indexOf('req:') === 0 || String(l.source||'') === 'admin')).reduce((a,l)=>a+(+l.amount||0),0);
+      const spent = log.filter(l => (+l.amount||0) < 0).reduce((a,l)=>a+Math.abs(+l.amount||0),0);
+      const purchased = (av.owned||[]).filter(id => { const it = AV.shopItem(id); return it && (+it.price||0) > 0; }).length;
+      out.push({
+        user:u.user, pid, name:(u.name || D.nameOf(pid) || u.user), gender,
+        av, lv:hn.lv, rank:hn.rank, club:clubOf(hn.lv, cfg), income, spent, purchased, join:avLandJoin(pid),
+      });
+    });
+    return out;
+  }
+  function avLandSort(list, cfg){
+    const sort = cfg.sort || ['spent','income','lv','join'];
+    const dir = cfg.dir || {};
+    return list.slice().sort((a,b) => {
+      for (let i=0;i<sort.length;i++){
+        const k = sort[i];
+        const d = (+dir[k] || 0) === 1 ? 1 : -1;
+        if (k === 'join'){
+          const cmp = String(a.join||'').localeCompare(String(b.join||''));
+          if (cmp) return cmp * d;
+          continue;
+        }
+        const av = (a[k] ?? 0), bv = (b[k] ?? 0);
+        if (av === bv) continue;
+        return (av - bv) * d;
+      }
+      return 0;
+    });
+  }
+  function avLandHeroHtml(p, kind){
+    if (!p) return `<div class="al-hero ${kind}"><div style="flex:1;text-align:center;color:var(--muted);padding:20px">هنوز آواتاری با معیار ${kind==='gold'?'خرج':'درآمد'} ثبت نشده است</div></div>`;
+    const tag = kind === 'gold' ? '👑 سلطان استایل گلف' : '🏆 ثروتمندترین آواتار';
+    const stat1 = kind === 'gold' ? `کل خرج‌کرده: <b style="color:#f6e27a">${D.faNum(p.spent,0)} 🪙</b>` : `درآمد کل: <b style="color:#5FE3B0">${D.faNum(p.income,0)} 🪙</b>`;
+    return `<div class="al-hero ${kind}">
+      <span class="${kind==='gold'?'al-hero-crown':'al-hero-trophy'}">${kind==='gold'?'👑':'🏆'}</span>
+      <div class="al-hero-avatar">${AV.renderAvatarSVG(p.av.sel, { gender:p.gender, w:120, h:132 })}</div>
+      <div style="flex:1;min-width:0">
+        <div class="al-hero-name">${esc(p.name)}</div>
+        <div class="al-hero-meta">${esc(p.rank.en)} • ${esc(p.rank.fa)} • سطح ${D.fa(p.lv)}</div>
+        <div class="al-hero-stat"><span>${stat1}</span><span>${D.fa(p.purchased)} آیتم</span></div>
+        <div class="al-hero-stat"><span>باشگاه:</span><span class="al-club ${p.club}">${p.club==='eagle'?'🦅 Eagle':p.club==='birdie'?'🐦 Birdie':'⛳ Par'}</span></div>
+        <span class="al-hero-tag">${tag}</span>
+      </div>
+    </div>`;
+  }
+  function pageAvatarLand(){
+    const v = $('#view');
+    let cfg = avLandCfg();
+    let list = avLandStats();
+    if (cfg.onlySpenders) list = list.filter(m => m.spent > 0);
+    list = avLandSort(list, cfg);
+    const hero1 = list[0] || null;
+    const byIncome = avLandSort(list, Object.assign({}, cfg, { sort:['income','spent','lv','join'], dir:Object.assign({}, cfg.dir, { income:-1 }) }));
+    const hero2 = byIncome.find(m => m.user !== (hero1 && hero1.user)) || byIncome[0] || null;
+    const heroUsers = new Set([ hero1 && hero1.user, hero2 && hero2.user ].filter(Boolean));
+    const grid = list.filter(m => !heroUsers.has(m.user));
+    const clubNames = { eagle:'🦅 Eagle Club', birdie:'🐦 Birdie Club', par:'⛳ Par Club' };
+    const petals = Array.from({length:10}, (_,i) => `<span class="al-petal" style="left:${(i*9+4)%100}%;animation-duration:${(7+(i%5)).toFixed(1)}s;animation-delay:${(i*0.7).toFixed(1)}s"></span>`).join('');
+    const clouds = `<span class="al-cloud" style="animation-duration:38s">☁️</span><span class="al-cloud" style="animation-duration:52s;animation-delay:8s;top:20px;font-size:38px;left:30%">☁️</span>`;
+    v.innerHTML = `
+    <div class="al-wrap">
+      <div class="al-scene">
+        <div class="al-sun-rays"></div>
+        <div class="al-cloud" style="animation-duration:34s">☁️</div>
+        <div class="al-cloud" style="animation-duration:50s;animation-delay:6s;top:22px;left:20%;font-size:38px">☁️</div>
+        <div class="al-hills"></div>
+        <div class="al-tree t1">🌸</div><div class="al-tree t2">🍃</div><div class="al-tree t3">🌳</div><div class="al-tree t4">🌸</div>
+        <span class="al-tee" style="left:16%">🏌️</span>
+        <div class="al-flag" style="left:62%"></div>
+        <span class="al-tee" style="right:22%">⛳</span>
+        <div class="al-lake"></div>
+        <div class="al-path"></div>
+        <div class="al-petals">${petals}</div>
+      </div>
+      <div class="al-banner">
+        <div class="al-title-deco">🌹 ⛳ 🏌️</div>
+        <div class="al-title">🌸 ${esc(L('nav.avatarland','سرزمین آواتارها'))} 🌸</div>
+        <div class="al-subtitle">«اینجا خانه افتخارات، شخصیت و سبک زندگی گلف هر عضو آکادمی است.»</div>
+      </div>
+      <div class="al-hero-row">
+        ${avLandHeroHtml(hero1, 'gold')}
+        ${avLandHeroHtml(hero2, 'silver')}
+      </div>
+      <div class="al-toolbar">
+        <select class="sel" id="al-sort" title="مرتب‌سازی">
+          <option value="spent" ${cfg.sort[0]==='spent'?'selected':''}>بیشترین خرج</option>
+          <option value="income" ${cfg.sort[0]==='income'?'selected':''}>بیشترین درآمد</option>
+          <option value="lv" ${cfg.sort[0]==='lv'?'selected':''}>سطح بالاتر</option>
+          <option value="join" ${cfg.sort[0]==='join'?'selected':''}>عضو قدیمی‌تر</option>
+        </select>
+        <select class="sel" id="al-clubfilter" title="باشگاه">
+          <option value="">همه باشگاه‌ها</option>
+          <option value="eagle">Eagle Club</option>
+          <option value="birdie">Birdie Club</option>
+          <option value="par">Par Club</option>
+        </select>
+        <span class="chip gold">${D.fa(grid.length + (hero1?1:0) + (hero2?1:0))} آواتار</span>
+      </div>
+      <div class="al-grid" id="al-grid"></div>
+      <div class="al-empty" id="al-empty" style="display:none"></div>
+    </div>`;
+    const rankBase = (hero1?1:0)+(hero2?1:0)+1;
+    function paintGrid(){
+      const cf = $('#al-clubfilter').value;
+      const g = grid.filter(m => !cf || m.club === cf);
+      const box = $('#al-grid');
+      const empty = $('#al-empty');
+      if (!g.length){
+        box.innerHTML = '';
+        empty.style.display = 'block';
+        empty.textContent = 'آواتاری با این فیلتر پیدا نشد. در «پنل مدیریت ← سرزمین آواتارها» می‌توانید قوانین مرتب‌سازی و باشگاه‌ها را تغییر دهید.';
+        return;
+      }
+      empty.style.display = 'none';
+      box.innerHTML = g.map((m,i) => `
+        <div class="al-card">
+          <span class="al-rank ${i<3?'top3':''}">${D.fa(i+rankBase)}</span>
+          <div class="al-avatar">${AV.renderAvatarSVG(m.av.sel, { gender:m.gender, w:96, h:104 })}</div>
+          <div class="al-card-name">${esc(m.name)}</div>
+          <div class="al-card-lvl">سطح ${D.fa(m.lv)} • ${esc(m.rank.en)}</div>
+          <div class="al-card-stat"><span>خرج</span><b>${D.faNum(m.spent,0)} 🪙</b></div>
+          <div class="al-card-stat"><span>درآمد</span><b>${D.faNum(m.income,0)} 🪙</b></div>
+          <div class="al-card-stat"><span>آیتم</span><b>${D.fa(m.purchased)}</b></div>
+          <span class="al-club ${m.club}">${clubNames[m.club]||'Par Club'}</span>
+        </div>`).join('');
+    }
+    paintGrid();
+    $('#al-sort').addEventListener('change', e => {
+      cfg.sort[0] = e.target.value;
+      cfg.sort = [e.target.value].concat(cfg.sort.filter(k => k !== e.target.value));
+      avLandSave(cfg); APP.go('avatarland');
+    });
+    $('#al-clubfilter').addEventListener('change', paintGrid);
   }
 
   /* ═══════════ صفحه: آکادمی ═══════════ */
@@ -1846,7 +2035,7 @@
     memberzone: pageMemberZone,
     cmd: pageCmd, race: pageRace, player: pagePlayer, match: pageMatch,
     course: pageCourse, records: pageRecords, cal: pageCal, tv: pageTv,
-    battle: pageBattle, academy: pageAcademy,
+    battle: pageBattle, academy: pageAcademy, avatarland: pageAvatarLand,
     acourses: pageACourses, atournaments: pageATours, ascorecards: pageAScorecards,
     mgmt: () => MGMT.pageMgmt(), users: () => MGMT.pageUsers(), settings: () => MGMT.pageSettings(),
   };

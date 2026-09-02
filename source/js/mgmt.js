@@ -24,7 +24,7 @@
     /* نمایش آیتم‌ها برای اعضا — پیش‌فرض جهانی روی همهٔ دستگاه‌ها فعال است.
        مدیر همچنان می‌تواند هر بخش را در «تنظیمات نمایش» غیرفعال کند. */
     memCmd: true, memRace: true, memPlayer: true, memMatch: true,
-    memCourse: true, memRecords: true, memCal: true, memTv: true,
+    memCourse: true, memRecords: true, memCal: true, memTv: true, memAvatarLand: true,
   };
   function getSettings(){
     try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem('ga_ui') || '{}')); }
@@ -243,7 +243,7 @@
       ['programs','🎓',L('admin.programs','دوره‌ها')], ['results','⛳',L('admin.results','نتایج')], ['calendar','📅',L('admin.calendar','تقویم')],
       ['contact','📞',L('admin.contact','تماس با ما')], ['info','ℹ️',L('admin.info','اطلاعات')], ['users','🔐',L('admin.users','یوزرها')],
       ['coins','🪙',L('admin.coins','درخواست سکه')], ['honor','🏅',L('admin.honor','رنک و آواتار')], ['shop','🛍️',L('admin.shop','فروشگاه آواتار')],
-      ['labels','✏️',L('admin.labels','ویرایش آیتم‌ها')],
+      ['battle','⚔️',L('admin.battle','نبرد میدان‌ها')], ['avatars','🌸',L('admin.avatars','سرزمین آواتارها')], ['labels','✏️',L('admin.labels','ویرایش آیتم‌ها')],
     ];
     v.innerHTML = `
     <div class="glass gold-border" style="margin-bottom:18px">
@@ -280,7 +280,364 @@
     else if (mgmtTab === 'contact') mgmtContact(body);
     else if (mgmtTab === 'info') mgmtInfo(body);
     else if (mgmtTab === 'users') mgmtUsers(body);
+    else if (mgmtTab === 'battle') mgmtBattle(body);
+    else if (mgmtTab === 'avatars') mgmtAvatarLand(body);
     else if (mgmtTab === 'labels') mgmtLabels(body);
+  }
+
+  /* ═══════════════ نبرد میدان‌ها: مدیریت تیم‌ها و جدال‌های تیمی ═══════════════ */
+  function mgmtBattle(body){
+    const B = window.Battle;
+    if (!B){ body.innerHTML = '<div class="glass" style="color:#ff8f82">ماژول نبرد بارگذاری نشده است.</div>'; return; }
+    let data = B.ensure();
+    const settings = data.settings;
+    const teams = data.teams;
+
+    function activePlayers(){
+      try { return D.playerRows().filter(p => p.active); } catch(e){ return []; }
+    }
+    function teamSel(sel){
+      return teams.map(t => `<option value="${t.id}" ${sel===t.id?'selected':''}>${esc((t.icon||'')+' '+(t.name||''))}</option>`).join('');
+    }
+
+    body.innerHTML = `
+    <div class="glass gold-border" style="margin-bottom:16px">
+      <div class="card-head"><span class="ic">⚔️</span><h3>${esc(L('admin.battle','نبرد میدان‌ها'))} — مدیریت تیم‌ها و جدال‌های تیمی</h3><span class="tag">Team Battle</span></div>
+      <div class="form-section" style="margin-top:10px">🎛 تنظیمات امتیازدهی</div>
+      <div class="field-grid">
+        <div><label>امتیاز برد (جدول تیمی)</label><input class="input" id="bt-win" type="number" min="0" value="${+settings.winPts||0}"></div>
+        <div><label>امتیاز مساوی</label><input class="input" id="bt-draw" type="number" min="0" value="${+settings.drawPts||0}"></div>
+        <div><label>امتیاز باخت</label><input class="input" id="bt-loss" type="number" min="0" value="${+settings.lossPts||0}"></div>
+        <div><label>امتیاز فصلِ هر بازیکن — برد</label><input class="input" id="bt-swin" type="number" min="0" value="${+settings.seasonWinPts||0}"></div>
+        <div><label>امتیاز فصل — مساوی</label><input class="input" id="bt-sdraw" type="number" min="0" value="${+settings.seasonDrawPts||0}"></div>
+        <div><label>امتیاز فصل — باخت</label><input class="input" id="bt-sloss" type="number" min="0" value="${+settings.seasonLossPts||0}"></div>
+        <div class="span2"><label class="lbl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bt-season" ${settings.seasonEnabled?'checked':''}> نتایج نبرد روی امتیاز/رنک فصلِ بازیکنان اثر بگذارد</label></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn sm" id="bt-settings-save">💾 ذخیره تنظیمات</button>
+        <button class="btn sm ghost" id="bt-reset">♻️ بازنشانی نمونه‌ی تیم‌ها</button>
+      </div>
+    </div>
+
+    <div class="glass" style="margin-bottom:16px">
+      <div class="card-head"><span class="ic">🛡️</span><h3>تیم‌ها</h3><span class="tag">${D.fa(teams.length)} تیم</span>
+        <button class="btn sm" id="bt-add-team" style="margin-right:auto">➕ تیم جدید</button>
+      </div>
+      <div id="bt-team-list" style="margin-top:10px"></div>
+    </div>
+
+    <div class="glass">
+      <div class="card-head"><span class="ic">⚔️</span><h3>جدال‌های رودررو</h3><span class="tag">${D.fa(data.matches.length)} جدال</span></div>
+      <div class="form-section" style="margin-top:10px">➕ ثبت جدال جدید</div>
+      <div class="field-grid">
+        <div><label>تیم میزبان</label><select class="sel" id="bt-m-home" style="width:100%">${teamSel('')}</select></div>
+        <div><label>تیم مهمان</label><select class="sel" id="bt-m-away" style="width:100%">${teamSel('')}</select></div>
+        <div><label>تاریخ (شمسی)</label><div id="bt-m-date"></div></div>
+        <div><label>ساعت</label><input class="input" id="bt-m-time" type="time" style="width:100%"></div>
+        <div class="span2"><label class="lbl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bt-m-counted" checked> این جدال در رنک/امتیاز فصل شمرده شود</label></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <button class="btn sm" id="bt-add-match">⚔️ ثبت جدال</button>
+      </div>
+      <div id="bt-match-list" style="margin-top:14px"></div>
+    </div>`;
+
+    if (window.JDate && $('#bt-m-date')) JDate.render($('#bt-m-date'), { value: D.shamsiToISO(1405,7,15), onChange(){} });
+
+    function renderTeamList(){
+      const box = $('#bt-team-list'); if (!box) return;
+      const dt = B.ensure();
+      box.innerHTML = dt.teams.length ? dt.teams.map(t => {
+        const act = (t.members||[]).map(B.nameOf).join('، ') || '— بدون بازیکن';
+        return `<div class="bt-item" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line-soft);border-radius:13px;margin-bottom:9px;background:rgba(255,255,255,.03)">
+          <span style="font-size:26px">${esc(t.icon||'')}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14.5px;font-weight:900;color:${esc(t.color||'#fff')}">${esc(t.name||'')}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">${D.fa((t.members||[]).length)} بازیکن • ${esc(act)}</div>
+          </div>
+          <button class="btn sm ghost" data-btteam="${t.id}" title="ویرایش">✏️</button>
+          <button class="btn sm ghost" data-btdel="${t.id}" title="حذف">🗑</button>
+        </div>`;
+      }).join('') : '<div style="color:var(--muted);font-size:12px;padding:8px">تیمی ساخته نشده است.</div>';
+      box.querySelectorAll('[data-btteam]').forEach(b => b.addEventListener('click', () => battleTeamModal(b.dataset.btteam)));
+      box.querySelectorAll('[data-btdel]').forEach(b => b.addEventListener('click', () => {
+        if (!confirm('تیم حذف شود؟ جدال‌های وابسته هم حذف می‌شوند.')) return;
+        B.deleteTeam(b.dataset.btdel); B.refresh(); refreshBattle();
+      }));
+    }
+    function renderMatchList(){
+      const box = $('#bt-match-list'); if (!box) return;
+      const dt = B.ensure();
+      const matches = dt.matches.slice().sort((a,b) => (b.date||'').localeCompare(a.date||''));
+      box.innerHTML = matches.length ? matches.map(m => {
+        if (!m.home || !m.away) return '';
+        const res = m.status==='done' && m.winner ? `${D.faNum(m.homeScore,0)} - ${D.faNum(m.awayScore,0)} (${m.winner==='home'?'میزبان':m.winner==='away'?'مهمان':'مساوی'})` : 'برنامه‌ریزی‌شده';
+        return `<div class="bt-item" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line-soft);border-radius:13px;margin-bottom:9px;background:rgba(255,255,255,.03)">
+          <div style="flex:1;min-width:0;font-size:12.5px">${esc(B.teamIcon(m.home))} <b style="color:${esc(B.teamColor(m.home))}">${esc(B.teamName(m.home))}</b>
+            <span class="chip gold">VS</span> ${esc(B.teamIcon(m.away))} <b style="color:${esc(B.teamColor(m.away))}">${esc(B.teamName(m.away))}</b></div>
+          <div style="font-size:11px;color:var(--muted);direction:ltr">${esc(m.counted===false?'بدون اثر فصل':'اثر فصل')}</div>
+          <span class="chip ${m.status==='done'?'green':'orange'}">${res}</span>
+          <button class="btn sm ghost" data-btmatch="${m.id}" title="نتیجه/ویرایش">🎯</button>
+          <button class="btn sm ghost" data-bmdel="${m.id}" title="حذف">🗑</button>
+        </div>`;
+      }).join('') : '<div style="color:var(--muted);font-size:12px;padding:8px">جدالی ثبت نشده است.</div>';
+      box.querySelectorAll('[data-btmatch]').forEach(b => b.addEventListener('click', () => battleMatchModal(b.dataset.btmatch)));
+      box.querySelectorAll('[data-bmdel]').forEach(b => b.addEventListener('click', () => {
+        B.deleteMatch(b.dataset.bmdel); B.refresh(); refreshBattle();
+      }));
+    }
+    function refreshBattle(){
+      APP.reloadData(); APP.go('mgmt'); mgmtTab = 'battle';
+    }
+
+    /* ── مودال تیم ── */
+    function battleTeamModal(id){
+      const d = B.ensure();
+      const t = id ? d.teams.find(x => x.id === id) : null;
+      let m = $('#modal-battle');
+      if (!m){
+        m = document.createElement('div'); m.id = 'modal-battle';
+        m.style.cssText = 'position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(4,8,14,.72);backdrop-filter:blur(6px)';
+        document.body.appendChild(m);
+        m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
+      }
+      const act = activePlayers();
+      const members = t ? (t.members||[]).slice() : [];
+      m.innerHTML = `
+      <div class="glass gold-border" style="width:min(620px,94vw);padding:22px">
+        <div class="card-head"><span class="ic">🛡️</span><h3>${t?'ویرایش تیم':'تیم جدید'}</h3><span class="tag">${t?esc(t.name):'Team'}</span></div>
+        <div class="field-grid" style="margin-top:12px">
+          <div><label>نام تیم</label><input class="input" id="tm-name" style="width:100%" value="${t?esc(t.name):''}"></div>
+          <div><label>آیکن</label><input class="input" id="tm-icon" style="width:100%" value="${t?esc(t.icon):'⚔️'}"></div>
+          <div><label>رنگ</label><input class="input" id="tm-color" type="color" style="width:100%;height:38px" value="${t?esc(t.color):'#D4AF37'}"></div>
+        </div>
+        <div class="form-section" style="margin-top:10px">👥 بازیکنان تیم (دابل‌کلیک برای افزودن/حذف) — ${D.fa(members.length)} نفر</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:5px">بازیکنان موجود</div>
+            <input class="input" id="tm-search" placeholder="جست‌وجو…" style="width:100%;margin-bottom:6px">
+            <div id="tm-all" class="rp-list" style="max-height:200px;overflow:auto"></div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:5px">اعضای تیم</div>
+            <div id="tm-part" class="rp-list" style="max-height:200px;overflow:auto"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end">
+          <button class="btn sm ghost" id="tm-cancel">انصراف</button>
+          <button class="btn sm" id="tm-save">💾 ذخیره</button>
+        </div>
+      </div>`;
+      m.style.display = 'flex';
+      const allBox = m.querySelector('#tm-all'), partBox = m.querySelector('#tm-part'), qbox = m.querySelector('#tm-search');
+      const nameOf = pid => { const x = act.find(p => p.pid === +pid); return x ? x.name : B.nameOf(pid); };
+      function paint(){
+        const q = (qbox.value || '').trim();
+        const partSet = new Set(members);
+        allBox.innerHTML = act.filter(p => !partSet.has(p.pid) && (!q || p.name.includes(q))).map(p => `<div class="rp-item" data-pid="${p.pid}">${esc(p.name)}</div>`).join('') || '<div style="color:var(--muted);font-size:12px;padding:8px">—</div>';
+        partBox.innerHTML = members.map(pid => `<div class="rp-item sel" data-pid="${pid}">${esc(nameOf(pid))}</div>`).join('') || '<div style="color:var(--muted);font-size:12px;padding:8px">—</div>';
+      }
+      allBox.addEventListener('dblclick', e => { const it = e.target.closest('.rp-item'); if (!it) return; members.push(+it.dataset.pid); paint(); });
+      partBox.addEventListener('dblclick', e => { const it = e.target.closest('.rp-item'); if (!it) return; members.splice(members.indexOf(+it.dataset.pid),1); paint(); });
+      qbox.addEventListener('input', paint);
+      paint();
+      m.querySelector('#tm-cancel').addEventListener('click', () => m.style.display = 'none');
+      m.querySelector('#tm-save').addEventListener('click', () => {
+        const name = (m.querySelector('#tm-name').value || '').trim();
+        if (!name){ APP.toast('نام تیم را وارد کنید', 'red'); return; }
+        const patch = { name, icon: m.querySelector('#tm-icon').value || '⚔️', color: m.querySelector('#tm-color').value || '#D4AF37', members };
+        if (t) B.updateTeam(t.id, patch); else B.addTeam(patch);
+        B.refresh(); m.style.display = 'none'; refreshBattle();
+        APP.toast(t?'تیم ویرایش شد ✓':'تیم جدید ثبت شد ✓', 'green');
+      });
+    }
+
+    /* ── مودال جدال: تعریف + ثبت نتیجه ── */
+    function battleMatchModal(id){
+      const d = B.ensure();
+      const mm = d.matches.find(x => x.id === id);
+      if (!mm || !mm.home || !mm.away){ APP.toast('جدال معتبر نیست', 'red'); return; }
+      let m = $('#modal-battle2');
+      if (!m){
+        m = document.createElement('div'); m.id = 'modal-battle2';
+        m.style.cssText = 'position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(4,8,14,.72);backdrop-filter:blur(6px)';
+        document.body.appendChild(m);
+        m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
+      }
+      m.innerHTML = `
+      <div class="glass gold-border" style="width:min(560px,94vw);padding:22px">
+        <div class="card-head"><span class="ic">🎯</span><h3>نتیجهٔ جدال — ${esc(B.teamName(mm.home))} در برابر ${esc(B.teamName(mm.away))}</h3><span class="tag">${mm.status==='done'?'ثبت‌شده':'برنامه'}</span></div>
+        <div class="field-grid" style="margin-top:12px">
+          <div><label>برنده</label><select class="sel" id="bm-winner" style="width:100%">
+            <option value="" ${!mm.winner?'selected':''}>— انتخاب —</option>
+            <option value="home" ${mm.winner==='home'?'selected':''}>${esc(B.teamName(mm.home))} (میزبان)</option>
+            <option value="away" ${mm.winner==='away'?'selected':''}>${esc(B.teamName(mm.away))} (مهمان)</option>
+            <option value="draw" ${mm.winner==='draw'?'selected':''}>مساوی</option>
+          </select></div>
+          <div><label>امتیاز میزبان</label><input class="input" id="bm-hs" type="number" min="0" value="${mm.homeScore!=null?mm.homeScore:''}"></div>
+          <div><label>امتیاز مهمان</label><input class="input" id="bm-as" type="number" min="0" value="${mm.awayScore!=null?mm.awayScore:''}"></div>
+          <div class="span2"><label class="lbl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bm-counted" ${mm.counted!==false?'checked':''}> این جدال در رنک/امتیاز فصل شمرده شود</label></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end">
+          <button class="btn sm ghost" id="bm-cancel">انصراف</button>
+          <button class="btn sm" id="bm-save">💾 ثبت نتیجه</button>
+        </div>
+      </div>`;
+      m.style.display = 'flex';
+      m.querySelector('#bm-cancel').addEventListener('click', () => m.style.display = 'none');
+      m.querySelector('#bm-save').addEventListener('click', () => {
+        const winner = m.querySelector('#bm-winner').value;
+        if (!winner){ APP.toast('برنده را انتخاب کنید', 'red'); return; }
+        const hs = +(m.querySelector('#bm-hs').value||0), as = +(m.querySelector('#bm-as').value||0);
+        B.updateMatch(id, { winner, status:'done', homeScore:hs, awayScore:as, counted: m.querySelector('#bm-counted').checked });
+        B.refresh(); m.style.display = 'none'; refreshBattle();
+        APP.toast('نتیجهٔ جدال ثبت شد — امتیاز فصل به‌روز شد ✓', 'green');
+      });
+    }
+
+    /* ── رویدادهای اصلی ── */
+    $('#bt-settings-save').addEventListener('click', () => {
+      B.saveSettings({
+        winPts:+($('#bt-win').value||0), drawPts:+($('#bt-draw').value||0), lossPts:+($('#bt-loss').value||0),
+        seasonWinPts:+($('#bt-swin').value||0), seasonDrawPts:+($('#bt-sdraw').value||0), seasonLossPts:+($('#bt-sloss').value||0),
+        seasonEnabled: $('#bt-season').checked,
+      });
+      B.refresh(); refreshBattle(); APP.toast('تنظیمات نبرد ذخیره شد ✓', 'green');
+    });
+    $('#bt-reset').addEventListener('click', () => {
+      if (!confirm('تیم‌ها و جدال‌ها به نمونهٔ پیش‌فرض بازنشانی شود؟')) return;
+      B.reset(); B.refresh(); refreshBattle(); APP.toast('نمونهٔ تیم‌ها بازنشانی شد ✓', 'green');
+    });
+    $('#bt-add-team').addEventListener('click', () => battleTeamModal(null));
+    $('#bt-add-match').addEventListener('click', () => {
+      const home = $('#bt-m-home').value, away = $('#bt-m-away').value;
+      if (!home || !away || home === away){ APP.toast('دو تیم متفاوت را انتخاب کنید', 'red'); return; }
+      const dEl = $('#bt-m-date'); const iso = (dEl && dEl._value) ? dEl._value() : null;
+      if (!iso){ APP.toast('تاریخ را وارد کنید', 'red'); return; }
+      B.addMatch({ home, away, date: iso, time: $('#bt-m-time').value || '', counted: $('#bt-m-counted').checked, status:'scheduled', winner:null, homeScore:null, awayScore:null });
+      B.refresh(); refreshBattle(); APP.toast('جدال ثبت شد ✓', 'green');
+    });
+
+    renderTeamList();
+    renderMatchList();
+  }
+
+  /* ═══════════════ سرزمین آواتارها: قوانین مرتب‌سازی و باشگاه‌ها ═══════════════ */
+  function mgmtAvatarLand(body){
+    const KEY = 'ga_avatarland_cfg';
+    function load(){
+      const def = { sort:['spent','income','lv','join'], dir:{ spent:-1, income:-1, lv:-1, join:1 }, club:[[1,5,'par'],[6,10,'birdie'],[11,15,'eagle']], onlySpenders:true };
+      try { return Object.assign(def, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch(e){ return def; }
+    }
+    function save(c){ try { localStorage.setItem(KEY, JSON.stringify(c)); } catch(e){} }
+    function saveAndReload(c){ save(c); APP.reloadData(); APP.go('mgmt'); mgmtTab = 'avatars'; APP.toast('قوانین سرزمین آواتارها ذخیره شد ✓', 'green'); }
+    let cfg = load();
+    const DIMS = { spent:'بیشترین خرج', income:'بیشترین درآمد', lv:'سطح بالاتر', join:'عضو قدیمی‌تر' };
+    const DIM_KEYS = Object.keys(DIMS);
+    const orderSel = cur => DIM_KEYS.map(k => `<option value="${k}" ${cur===k?'selected':''}>${DIMS[k]}</option>`).join('');
+    const clubRows = cfg.club.slice();
+    body.innerHTML = `
+    <div class="glass gold-border" style="margin-bottom:16px">
+      <div class="card-head"><span class="ic">🌸</span><h3>${esc(L('admin.avatars','سرزمین آواتارها'))} — قوانین نمایش و مرتب‌سازی</h3><span class="tag">Avatar Land ⚙️</span></div>
+      <div style="font-size:11.5px;color:var(--muted);line-height:2;margin-top:6px">ترتیب نمایش کارت‌ها و کارت‌های افتخار طبق این اولویت‌ها محاسبه می‌شود (اولویت اول تا چهارم). تغییرات پس از ذخیره فوراً روی صفحهٔ اعمال می‌شود.</div>
+      <div class="form-section" style="margin-top:12px">🔀 ترتیب مرتب‌سازی (اولویت ۱ تا ۴)</div>
+      <div class="field-grid">
+        ${[0,1,2,3].map(i => `
+          <div><label>اولویت ${['اول','دوم','سوم','چهارم'][i]}</label>
+            <div style="display:flex;gap:6px;align-items:center">
+              <select class="sel" data-order-i="${i}" style="flex:1">${orderSel(cfg.sort[i])}</select>
+              <select class="sel" data-dir="${cfg.sort[i]||'spent'}" data-dir-i="${i}" style="width:82px">
+                <option value="-1" ${(cfg.dir[cfg.sort[i]]||-1)===-1?'selected':''}>نزولی</option>
+                <option value="1" ${(cfg.dir[cfg.sort[i]]||-1)===1?'selected':''}>صعودی</option>
+              </select>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="form-section" style="margin-top:12px">🏳️ باشگاه‌ها (محدودهٔ سطح)</div>
+      <div class="field-grid">
+        ${['par','birdie','eagle'].map((id,ci) => {
+          const row = clubRows.find(r => r[2] === id) || (id==='par'?[1,5,'par']:id==='birdie'?[6,10,'birdie']:[11,15,'eagle']);
+          return `<div style="display:flex;gap:6px;align-items:center">
+            <span style="flex:0 0 auto;width:92px;font-size:12px;font-weight:800" class="${id==='eagle'?'al-club eagle':id==='birdie'?'al-club birdie':'al-club par'}">${id==='eagle'?'🦅 Eagle':id==='birdie'?'🐦 Birdie':'⛳ Par'}</span>
+            <input class="input" type="number" data-club-lo="${id}" value="${row[0]}" style="width:70px" min="1" max="15">
+            <span style="color:var(--muted)">تا</span>
+            <input class="input" type="number" data-club-hi="${id}" value="${row[1]}" style="width:70px" min="1" max="15">
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
+        <label class="lbl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="al-only" ${cfg.onlySpenders?'checked':''}> فقط اعضایی که حداقل ۱ سکه خرج کرده‌اند</label>
+        <button class="btn sm" id="al-save" style="margin-right:auto">💾 ذخیره قوانین</button>
+      </div>
+    </div>
+    <div class="glass">
+      <div class="card-head"><span class="ic">👑</span><h3>پیش‌نمایش برترین‌ها</h3><span class="tag">${D.fa(avLandPreview().length)} آواتار</span></div>
+      <div id="al-prev" style="margin-top:10px"></div>
+    </div>`;
+    function avLandPreview(){
+      // reuse the same aggregation used by the member page (mirrored here to keep admin independent)
+      let out = [];
+      try {
+        const st = gstate().S || {};
+        const plist = st.players || [];
+        const users = (window.APP && APP.users && APP.users.list) ? APP.users.list().filter(u => u.role==='member' && u.active!==false) : [];
+        users.forEach(u => {
+          const pid = +u.pid; if (!pid || !window.AV) return;
+          const prow = plist.find(x => x[0]===pid);
+          const c = AV.coinOf(u.user);
+          const log = c.log || [];
+          const income = log.filter(l => (+l.amount||0) > 0 && (String(l.source||'').indexOf('req:')===0 || String(l.source||'')==='admin')).reduce((a,l)=>a+(+l.amount||0),0);
+          const spent = log.filter(l => (+l.amount||0) < 0).reduce((a,l)=>a+Math.abs(+l.amount||0),0);
+          out.push({ user:u.user, name:u.name, spent, income });
+        });
+      } catch(e){}
+      return out;
+    }
+    function clubColor(c){ return c==='eagle'?'#f6e27a':c==='birdie'?'#5FE3B0':'#CBD4E1'; }
+    function paintPreview(){
+      const box = $('#al-prev'); if (!box) return;
+      let lst = avLandPreview();
+      if ($('#al-only').checked) lst = lst.filter(m => m.spent > 0);
+      const dir = cfg.dir || { spent:-1, income:-1, lv:-1, join:1 };
+      const sort = cfg.sort || ['spent','income','lv','join'];
+      lst.sort((a,b) => {
+        for (let i=0;i<sort.length;i++){
+          const k = sort[i]; const d = (+dir[k]||0)===1?1:-1;
+          const av = (a[k]??0), bv = (b[k]??0);
+          if (av === bv) continue; return (av-bv)*d;
+        }
+        return 0;
+      });
+      box.innerHTML = lst.length ? lst.slice(0,10).map((m,i) => `
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:12px;border:1px solid var(--line-soft);background:rgba(255,255,255,.03);margin-bottom:7px">
+          <span style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;background:linear-gradient(135deg,#f6e27a,#d4af37);color:#0B0F14">${D.fa(i+1)}</span>
+          <b style="flex:1;font-size:13px">${esc(m.name)}</b>
+          <span style="font-size:11px;color:var(--muted)">💸 ${D.faNum(m.spent,0)}</span>
+          <span style="font-size:11px;color:var(--muted)">💵 ${D.faNum(m.income,0)}</span>
+        </div>`).join('') : '<div style="color:var(--muted);padding:10px;font-size:12px">آواتاری با این قوانین پیدا نشد.</div>';
+    }
+    paintPreview();
+    $('#al-only').addEventListener('change', paintPreview);
+    $$('[data-order-i]').forEach(sel => sel.addEventListener('change', e => {
+      const i = +e.target.dataset.orderI || +e.target.dataset.order_i;
+      cfg.sort[i] = e.target.value;
+      save(cfg); APP.go('mgmt'); mgmtTab = 'avatars';
+    }));
+    $$('[data-dir-i]').forEach(sel => sel.addEventListener('change', e => {
+      const i = +e.target.dataset.dirI || +e.target.dataset.dir_i;
+      const k = cfg.sort[i]; cfg.dir[k] = +e.target.value;
+      save(cfg); APP.go('mgmt'); mgmtTab = 'avatars';
+    }));
+    $('#al-save').addEventListener('click', () => {
+      const club = ['par','birdie','eagle'].map(id => {
+        const lo = +($('[data-club-lo="'+id+'"]').value||1);
+        const hi = +($('[data-club-hi="'+id+'"]').value||1);
+        return [Math.min(lo,hi), Math.max(lo,hi), id];
+      });
+      cfg.club = club;
+      cfg.onlySpenders = $('#al-only').checked;
+      saveAndReload(cfg);
+    });
   }
 
   /* ═══════════════ ویرایش مرکزی نام همهٔ آیتم‌ها و تب‌ها ═══════════════ */
@@ -2219,7 +2576,7 @@
             <td>${hn.manual ? '<span class="chip gold">دستی</span>' : '<span class="chip dim">خودکار</span>'}</td>
             <td><select class="sel" data-hset="${esc(u.user)}" style="min-width:130px">
               <option value="">خودکار (امتیاز)</option>
-              ${AV.ranks().map(x => `<option value="${x.lv}" ${(ov[u.user] && +ov[u.user].lv === x.lv) ? 'selected' : ''}>Lv ${x.lv} — ${x.en}</option>`).join('')}
+              ${AV.ranks().map(x => `<option value="${x.lv}" ${(ov[String(u.user||'').toLowerCase()] && +ov[String(u.user||'').toLowerCase()].lv === x.lv) ? 'selected' : ''}>Lv ${x.lv} — ${x.en}</option>`).join('')}
             </select></td>
           </tr>`;
         }).join('')}
