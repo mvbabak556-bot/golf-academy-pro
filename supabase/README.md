@@ -9,7 +9,7 @@ localStorage (ga_* keys)  ⇄  cloud.js (LWW, debounce 3s)  ⇄  PostgREST  ⇄ 
 ```
 
 - هر کلید `ga_*` (به‌جز لیست SKIP: `ga_session`, `ga_seed_v2`, `ga_cloud_*`) یک ردیف است:
-  `key text PK | value jsonb | updated_at timestamptz`
+  `k text PK | v jsonb | updated_at timestamptz` (ساختار موجود در پروژه؛ همانی که schema.sql می‌سازد)
 - **Pull** هنگام باز شدن سایت: ردیف‌های تازه‌تر از آخرین همگام، روی localStorage اعمال می‌شود.
 - **Push**: نگهبانِ `localStorage.setItem/removeItem` تغییرات را در صف کثیف
   (`ga_cloud_dirty`) ثبت می‌کند؛ ارسال debounced و همچنین هنگام `visibilitychange/hidden` و `beforeunload` (با `keepalive`).

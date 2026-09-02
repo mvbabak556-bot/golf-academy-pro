@@ -178,31 +178,31 @@
   function pull() {
     if (!hasCred()) { setPhase('off', 'کانفیگ ابری کامل نیست — از پنل ☁️ تنظیم کنید'); return Promise.resolve(false); }
     setPhase('pulling');
-    return rest('ga_store?select=key,value,updated_at&order=updated_at.desc&limit=500')
+    return rest('ga_store?select=k,v,updated_at&order=updated_at.desc&limit=500')
       .then(function (rows) {
         applying = true; // نگهبانِ محلی حین اعمال خاموش است
         try {
           var d = jread(DIRTY_KEY, {}), ts = jread(TS_KEY, {}), L = ls(), applied = 0;
           (rows || []).forEach(function (r) {
-            if (!r || !r.key || SKIP[r.key]) return;
-            var remoteNewer = !ts[r.key] || r.updated_at > ts[r.key];
-            var localDirty = d[r.key];
+            if (!r || !r.k || SKIP[r.k]) return;
+            var remoteNewer = !ts[r.k] || r.updated_at > ts[r.k];
+            var localDirty = d[r.k];
             if (localDirty && localDirty >= r.updated_at) return; // محلی تازه‌تر است؛ push برنده می‌شود
             // ردیفِ نشان‌دارِ حذف (tombstone): کلید محلی هم پاک می‌شود
-            if (r.value && typeof r.value === 'object' && r.value.__del) {
+            if (r.v && typeof r.v === 'object' && r.v.__del) {
               if (remoteNewer) {
-                try { L.removeItem(r.key); } catch (e) {}
-                ts[r.key] = r.updated_at;
-                if (localDirty) delete d[r.key];
+                try { L.removeItem(r.k); } catch (e) {}
+                ts[r.k] = r.updated_at;
+                if (localDirty) delete d[r.k];
               }
               return;
             }
-            if (!remoteNewer && localDirty === undefined && L.getItem(r.key) !== null) return;
+            if (!remoteNewer && localDirty === undefined && L.getItem(r.k) !== null) return;
             if (remoteNewer) {
-              try { L.setItem(r.key, decode(r.value)); } catch (e) {}
-              ts[r.key] = r.updated_at;
+              try { L.setItem(r.k, decode(r.v)); } catch (e) {}
+              ts[r.k] = r.updated_at;
               applied++;
-              if (localDirty) delete d[r.key];
+              if (localDirty) delete d[r.k];
             }
           });
           jwrite(DIRTY_KEY, d);
@@ -231,7 +231,7 @@
     var now = localStamp();
     var rows = keys.map(function (k) {
       var v = L.getItem(k);
-      return { key: k, value: v === null ? { __del: 1 } : encode(v), updated_at: d[k] || now };
+      return { k: k, v: v === null ? { __del: 1 } : encode(v), updated_at: d[k] || now };
     });
     // توجه: ردیف حذف به‌صورت tombstone ({__del:1}) روی سرور می‌ماند تا
     // بقیهٔ دستگاه‌ها در pull بعدی آن را ببینند و کلید محلی را پاک کنند.
@@ -275,7 +275,7 @@
   /* ── تست اتصال (پنل + عیب‌یابی) ─────────────────────────────────── */
   function test() {
     if (!cfg().key) return Promise.resolve({ ok: false, why: 'کلید تنظیم نشده' });
-    return rest('ga_store?select=key&limit=1')
+    return rest('ga_store?select=k&limit=1')
       .then(function () { return { ok: true, why: 'اتصال برقرار — ga_store پاسخ می‌دهد' }; })
       .catch(function (e) {
         var why = e.message;
@@ -402,7 +402,7 @@
       var L = ls(), now = localStamp();
       var rows = keys.map(function (k) {
         var v = L.getItem(k);
-        return { key: k, value: v === null ? { __del: 1 } : encode(v), updated_at: d[k] || now };
+        return { k: k, v: v === null ? { __del: 1 } : encode(v), updated_at: d[k] || now };
       });
       var c = cfg();
       fetch(c.url + '/rest/v1/ga_store', {

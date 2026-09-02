@@ -32,17 +32,17 @@ function makeServer({ apiKey = SERVER_KEY } = {}) {
       if (!u.pathname.endsWith('/rest/v1/ga_store')) return { status: 404, text: '{}' };
       if (init.method === 'GET') {
         let list = [...rows.values()];
-        const inF = u.searchParams.get('key');
+        const inF = u.searchParams.get('k');
         if (inF && inF.startsWith('in.(')) {
           const set = new Set(inF.slice(4, -1).split(',').map(decodeURIComponent));
-          list = list.filter(r => set.has(r.key));
+          list = list.filter(r => set.has(r.k));
         }
         const limit = Number(u.searchParams.get('limit') || '1000');
         return { status: 200, text: JSON.stringify(list.sort((a, b) => b.updated_at.localeCompare(a.updated_at)).slice(0, limit)) };
       }
       if (init.method === 'POST') {
         const body = JSON.parse(init.body);
-        const echo = body.map(r => { rows.set(r.key, r); return r; });
+        const echo = body.map(r => { rows.set(r.k, r); return r; });
         return { status: 201, text: JSON.stringify(echo) };
       }
       if (init.method === 'DELETE') {
@@ -113,7 +113,7 @@ A.sandbox.localStorage.setItem('ga_players', '[{"n":"Ali"},{"n":"Reza"}]'); // �
 assert(A.GA.dirty().includes('ga_players'), 'نگهبان setItem، کلید را در صف کثیف می‌گذارد');
 await A.GA.push('manual');
 assert(server.rows.has('ga_players'), 'push، ردیف ga_players را روی سرور upsert کرد');
-assert(Array.isArray(server.rows.get('ga_players').value), 'مقدار JSON به‌صورت ساخت‌یافته (jsonb) ذخیره شد');
+assert(Array.isArray(server.rows.get('ga_players').v), 'مقدار JSON به‌صورت ساخت‌یافته (jsonb) ذخیره شد');
 assert(!server.rows.has('ga_cloud_cfg'), 'کلیدهای داخلی هرگز sync نمی‌شوند');
 
 // ga_session (در لیست SKIP) نباید sync شود
@@ -132,15 +132,17 @@ assert(B.store.get('ga_players') === '[{"n":"Ali"},{"n":"Reza"}]', 'pull در د
 
 // LWW: نوشتن محلیِ تازه‌تر از pullِ سرور نمی‌سوزد
 A.sandbox.localStorage.setItem('ga_players', '[{"n":"New"}]');
+await sleep(5); // تفکیک میلی‌ثانیه‌ای برچسب‌های زمانی LWW
 await A.GA.push('manual');
 await B.GA.pull();
 assert(B.store.get('ga_players') === '[{"n":"New"}]', 'LWW: مقدار تازه‌تر روی دستگاه دوم اعمال شد');
 
 // حذف: tombstone روی سرور می‌ماند و در pull دستگاه دیگر اعمال می‌شود
+await sleep(5);
 A.sandbox.localStorage.removeItem('ga_players');
 assert(A.GA.dirty().includes('ga_players'), 'removeItem هم در صف کثیف ثبت می‌شود');
 await A.GA.push('manual');
-assert(server.rows.get('ga_players')?.value?.__del === 1, 'حذف به‌صورت tombstone روی سرور ثبت شد');
+assert(server.rows.get('ga_players')?.v?.__del === 1, 'حذف به‌صورت tombstone روی سرور ثبت شد');
 await B.GA.pull();
 assert(!B.store.has('ga_players'), 'tombstone در pull دستگاه دوم، کلید محلی را حذف کرد');
 

@@ -6,8 +6,8 @@
 
 -- جدول کلید/مقدار: هر کلید localStorage با پیشوند ga_ یک ردیف است.
 create table if not exists public.ga_store (
-  key        text primary key,
-  value      jsonb not null,
+  k          text primary key,
+  v          jsonb not null,
   updated_at timestamptz not null default now()
 );
 
@@ -15,7 +15,7 @@ comment on table public.ga_store is
   'آینهٔ کلید/مقدارِ localStorage (پیشوند ga_) برای همگام‌سازی بین دستگاه‌ها — LWW';
 
 -- اگر جدول قدیمی با ستون‌های ناقص ساخته شده باشد، کاملش می‌کند:
-alter table public.ga_store add column if not exists value      jsonb;
+alter table public.ga_store add column if not exists v jsonb;
 alter table public.ga_store add column if not exists updated_at timestamptz not null default now();
 
 -- ── دسترسی ──────────────────────────────────────────────────────────
