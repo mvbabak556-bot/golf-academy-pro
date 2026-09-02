@@ -1135,53 +1135,55 @@
 
   /* ═══════════ صفحه: میدان نبرد ═══════════ */
   function pageBattle(){
-
-  if (!MGMT.getSettings().chBattle){
+    const v = $('#view');
+    const BT = window.Battle;
+    if (!MGMT.getSettings().chBattle){
       v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">⚔️ ${esc(L('nav.battle','میدان نبرد'))} غیرفعال است — از «${esc(L('nav.settings','تنظیمات نمایش'))}» فعال کنید</div>`;
       return;
-    }    const v = $('#view');
-    const teams = [
-      ['🦅','عقابهای طلایی', [1,2,3,4], '#D4AF37'],
-      ['🐆','یوزرهای سبز', [5,6,7,8], '#1EBB8A'],
-      ['🦈','کوسههای آبی', [9,10,11,12], '#2E86DE'],
-      ['🐺','گرگهای شب', [13,14,15,16], '#9B59B6'],
-    ].map(([ic,n,ids,c]) => ({
-      ic, n, c, ids,
-      pts: ids.reduce((a,pid)=>a+(A.PTS[pid]||0),0),
-      members: ids.map(pid => A.LB.find(r=>r.pid===pid) || { name: D.nameOf(pid), pts:0, color:'White' }),
-    }));
-    teams.sort((a,b) => b.pts - a.pts);
+    }
+    const B = (window.Battle && BT.ensure) ? BT.ensure() : null;
+    if (!B || !B.teams.length){
+      v.innerHTML = `<div class="glass" style="padding:30px;text-align:center;color:var(--muted)">⚔️ ${esc(L('nav.battle','میدان نبرد'))} — هنوز تیمی ساخته نشده است. از «پنل مدیریت ← نبرد میدانها» تیم و جدال بسازید.</div>`;
+      return;
+    }
+    const teams = BT.standings();
+    const PTS = (A && A.PTS) || {};
+    teams.forEach(t => { t.seasonPts = t.members.reduce((a,pid)=>a+(PTS[pid]||0),0); });
+    const matches = (B.matches || []).slice().sort((a,b) => (b.date||'').localeCompare(a.date||''));
     const maxT = Math.max(...teams.map(t=>t.pts), 1);
+    const totalMembers = B.teams.reduce((a,t)=>a+(t.members||[]).length,0);
     v.innerHTML = `
     <div class="glass gold-border" style="display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap">
       <img src="assets/flag_3d.webp" class="floaty glow-img" style="width:70px;height:70px;border-radius:14px;object-fit:cover" alt="">
       <div>
-        <h2 style="font-size:21px;font-weight:900" class="gold-text">${esc(L('nav.battle','میدان نبرد'))} — جدال تیم‌ها</h2>
-        <div style="color:var(--muted);font-size:12px;margin-top:3px">سبک لیگ جهانی LIV • ${D.fa(teams.length)} تیم × ${D.fa(teams[0].members.length)} بازیکن</div>
+        <h2 style="font-size:21px;font-weight:900" class="gold-text">${esc(L('nav.battle','میدان نبرد'))} — جدال تیمها</h2>
+        <div style="color:var(--muted);font-size:12px;margin-top:3px">سبک لیگ جهانی LIV • ${D.fa(teams.length)} تیم × ${D.fa(totalMembers)} بازیکن</div>
       </div>
-      <div style="margin-right:auto" class="chip green">🔴 فصل در جریان</div>
+      <div style="margin-right:auto" class="chip ${B.settings.seasonEnabled?'green':'orange'}">${B.settings.seasonEnabled?'🔴 فصل در جریان':'نتیجه روی فصل اثر ندارد'}</div>
     </div>
     <div class="grid cols-2" style="margin-bottom:18px">
       ${teams.map(t => `
-        <div class="glass tilt" style="border-color:${t.c}44">
+        <div class="glass tilt" style="border-color:${t.color}44">
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-            <span style="font-size:32px;animation:float 5s ease-in-out infinite">${t.ic}</span>
+            <span style="font-size:32px;animation:float 5s ease-in-out infinite">${t.icon}</span>
             <div>
-              <div style="font-size:16px;font-weight:900;color:${t.c}">${esc(t.n)}</div>
-              <div style="font-size:11px;color:var(--muted)">امتیاز تیم: <b style="color:var(--white)">${D.faNum(t.pts,0)}</b></div>
+              <div style="font-size:16px;font-weight:900;color:${t.color}">${esc(t.name)}</div>
+              <div style="font-size:11px;color:var(--muted)">${D.fa(t.win)} برد • ${D.fa(t.draw)} مساوی • ${D.fa(t.loss)} باخت — امتیاز جدال: <b style="color:var(--white)">${D.faNum(t.pts,0)}</b></div>
             </div>
-            <div style="margin-right:auto;font-size:12px;color:var(--muted)">رتبه ${D.fa(teams.indexOf(t)+1)}</div>
+            <div style="margin-right:auto;font-size:12px;color:var(--muted)">رتبه ${D.fa(t.rank)}</div>
           </div>
           ${pbar(t.pts/maxT*100, 'gold')}
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
-            ${t.members.map(m => `
-              <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border:1px solid var(--line-soft);border-radius:11px;padding:7px 9px">
-                <img src="${avatar(m.pid)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid ${t.c}" alt="">
+            ${t.members.map(m => {
+              const rec = (A && A.LB && A.LB.find(r=>r.pid===m)) || { name: D.nameOf(m) };
+              return `<div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border:1px solid var(--line-soft);border-radius:11px;padding:7px 9px">
+                <img src="${avatar(m)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid ${t.color}" alt="">
                 <div style="min-width:0">
-                  <div style="font-size:11.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(m.name)}</div>
-                  <div style="font-size:10px;color:${t.c}">${D.faNum(m.pts,0)} امتیاز</div>
+                  <div style="font-size:11.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(rec.name)}</div>
+                  <div style="font-size:10px;color:${t.color}">${D.faNum(PTS[m]||0,0)} امتیاز فصل</div>
                 </div>
-              </div>`).join('')}
+              </div>`;
+            }).join('')}
           </div>
         </div>`).join('')}
     </div>
@@ -1191,24 +1193,37 @@
         <div class="chart-box"><canvas id="bt-chart"></canvas></div>
       </div>
       <div class="glass">
-        <div class="card-head"><span class="ic">🔥</span><h3>جدالهای هفته — ۱ به ۱</h3><span class="tag">Lock Zone</span></div>
-        ${[
-          ['سینا رحیمی','مهدی کریمی','۱۷:۰۰', true],
-          ['شایان اکبری','درسا سلطانی','۱۷:۱۲', true],
-          ['حسین قاسمی','مریم کاظمی','۱۷:۲۴', false],
-          ['پارسا عظیمی','تارا یزدانی','۱۷:۳۶', false],
-        ].map(([a,b,tm,live]) => `
-          <div style="display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:13px;margin-bottom:9px;background:rgba(255,255,255,.03);border:1px solid ${live?'rgba(231,76,60,.4)':'var(--line-soft)'}">
-            <b style="flex:1;font-size:12.5px">${esc(a)}</b>
-            <span class="chip gold" style="flex:0 0 auto">VS</span>
-            <b style="flex:1;text-align:right;font-size:12.5px">${esc(b)}</b>
-            <span style="font-size:11px;color:var(--dim);direction:ltr">${tm}</span>
-            <span class="chip ${live?'red':'dim'}">${live?'زنده':'برنامه'}</span>
-          </div>`).join('')}
+        <div class="card-head"><span class="ic">🔥</span><h3>جدالهای نبرد</h3><span class="tag">${D.fa(matches.length)} جدال</span></div>
+        ${matches.length ? matches.map(m => {
+          if (!m.home || !m.away) return '';
+          const hName = BT.teamName(m.home), aName = BT.teamName(m.away);
+          const hIcon = BT.teamIcon(m.home), aIcon = BT.teamIcon(m.away);
+          let mid, badge = '<span class="chip dim">برنامه</span>';
+          if (m.status === 'done' && m.winner){
+            mid = `<span style="font-size:13px;font-weight:900;direction:ltr">${D.faNum(m.homeScore,0)} - ${D.faNum(m.awayScore,0)}</span>`;
+            badge = m.winner === 'home' ? `<span class="chip green">${esc(hName)} پیروز</span>`
+                  : m.winner === 'away' ? `<span class="chip green">${esc(aName)} پیروز</span>`
+                  : `<span class="chip gold">مساوی</span>`;
+          } else {
+            mid = '<span class="chip gold" style="flex:0 0 auto">VS</span>';
+          }
+          const dateTxt = m.date ? (D.isoToShamsi ? D.isoToShamsi(m.date) : m.date) : '—';
+          return `<div style="display:flex;align-items:center;gap:8px;padding:11px 13px;border-radius:13px;margin-bottom:9px;background:rgba(255,255,255,.03);border:1px solid ${m.status==='done'?'var(--line-soft)':'rgba(231,76,60,.3)'}">
+            <span style="font-size:18px">${esc(hIcon)}</span>
+            <b style="flex:1;font-size:12px;color:${BT.teamColor(m.home)}">${esc(hName)}</b>
+            ${mid}
+            <b style="flex:1;text-align:right;font-size:12px;color:${BT.teamColor(m.away)}">${esc(aName)}</b>
+            <span style="font-size:18px">${esc(aIcon)}</span>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+              <span style="font-size:10px;color:var(--dim);direction:ltr">${esc(dateTxt)}</span>
+              ${badge}
+            </div>
+          </div>`;
+        }).join('') : '<div style="color:var(--muted);font-size:12px;padding:10px">هنوز جدالی ثبت نشده است.</div>'}
       </div>
     </div>`;
     setTimeout(() => {
-      Charts.barsH($('#bt-chart'), teams.map(t=>t.n), teams.map(t=>t.pts), { color:'#E9C766', showVal:true, valFmt:v=>D.faNum(v,0) });
+      if (window.Charts) Charts.barsH($('#bt-chart'), teams.map(t=>t.name), teams.map(t=>t.pts), { color:'#E9C766', showVal:true, valFmt:v=>D.faNum(v,0) });
     }, 80);
   }
 

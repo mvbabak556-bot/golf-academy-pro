@@ -59,7 +59,7 @@ def main():
                       '<style>' + mcss + '</style>', html)
 
     # 3) inline JS in load order
-    for jsname in ['labels', 'holidays', 'data', 'charts', 'qrcode.min', 'landing', 'jdate', 'avatar', 'shop', 'mgmt', 'app']:
+    for jsname in ['labels', 'holidays', 'data', 'charts', 'qrcode.min', 'battle', 'landing', 'jdate', 'avatar', 'shop', 'mgmt', 'app']:
         js = open(os.path.join(ROOT, 'js', jsname + '.js'), encoding='utf-8').read()
         html = re.sub(rf'<script src="js/{jsname}\.js"></script>',
                       lambda m: '<script>' + js + '</script>', html)

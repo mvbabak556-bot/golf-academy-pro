@@ -432,6 +432,16 @@
         MONTH_PTS[j.monthFa][pid] = (MONTH_PTS[j.monthFa][pid] || 0) + pts;
       });
     });
+    // نبرد میدانها — امتیاز فصلِ نتایج تیمی (روی رنک/امتیاز فصل اثر میگذارد)
+    // اگر هیچ جدالی با نتیجه ثبت نشده باشد، bonus خالی است و چیزی تغییر نمیکند.
+    try {
+      const bM = window.Battle;
+      const btBonus = (bM && bM.computeSeasonBonus) ? bM.computeSeasonBonus() : {};
+      Object.keys(btBonus).forEach(pid => {
+        if (PTS[pid] !== undefined) PTS[pid] += btBonus[pid];
+      });
+    } catch(e){}
+
     Object.entries(CARDS).forEach(([pid, arr]) => {
       const s = ST[pid];
       arr.forEach(c => {
