@@ -21,7 +21,7 @@
      سمت کلاینت طراحی شده؛ هرگز کلید service_role را اینجا نگذارید. */
   var DEF = {
     url: 'https://mszrzhoezqrjvonxrefi.supabase.co',
-    key: 'sb_publishab...tj0p',
+    key: 'sb_publishable_Dm9e9uexCoAIMgHjtXhO_Q_6_iKtj0p',
     on: true
   };
 
