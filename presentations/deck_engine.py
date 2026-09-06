@@ -16,7 +16,13 @@ os.makedirs(CROP, exist_ok=True)
 
 EMU_W, EMU_H = Inches(13.333), Inches(7.5)
 SW, SH = 13.333, 7.5
-FONT = "Tahoma"
+FONT = "Vazirmatn"
+
+# ---- academy branding ----
+BRAND = "Puttclub"
+BRAND_FA = "آکادمی گلف پات‌کلاب"
+INSTRUCTOR = "الهام طالبی"
+INSTRUCTOR_ROLE = "مدرس درجه یک گلف ایران"
 
 # ---------- color helpers ----------
 def C(hexs):
@@ -192,9 +198,10 @@ class Deck:
 
     def footer(self, s, dark_bg=False):
         col = WHITE if dark_bg else MUTE
-        tb, tf = textbox(s, 0.55, SH - 0.5, 6.0, 0.35, anchor=MSO_ANCHOR.MIDDLE)
+        tb, tf = textbox(s, 0.55, SH - 0.5, 7.5, 0.35, anchor=MSO_ANCHOR.MIDDLE)
         p = para(tf, first=True, align=PP_ALIGN.LEFT, space_after=0)
-        run(p, f"Golf Academy  ·  {self.name_en}", 10, False, col)
+        run(p, f"⛳ {BRAND}", 11, True, self.accent if not dark_bg else self.accent2)
+        run(p, f"   ·   {self.name_en}", 10, False, col)
         tb2, tf2 = textbox(s, SW - 2.2, SH - 0.5, 1.6, 0.35, anchor=MSO_ANCHOR.MIDDLE)
         p2 = para(tf2, first=True, align=PP_ALIGN.LEFT, space_after=0)
         run(p2, str(self.page), 11, True, self.accent if not dark_bg else self.accent2)
@@ -210,6 +217,20 @@ class Deck:
         add_alpha(band, DARK, 0.55)
         # accent tab
         add_rect(s, SW - 3.2, 0.0, 3.2, 0.16, self.accent)
+        # brand lockup (top-left)
+        tb, tf = textbox(s, 0.7, 0.5, 5.0, 0.95, anchor=MSO_ANCHOR.TOP)
+        p = para(tf, first=True, align=PP_ALIGN.LEFT, space_after=0)
+        run(p, BRAND, 30, True, WHITE)
+        p = para(tf, align=PP_ALIGN.LEFT, space_after=0)
+        run(p, BRAND_FA + "  ·  " + INSTRUCTOR, 12.5, False, C("D7E2D6"))
+        # instructor pill (top-right)
+        pill = add_rect(s, SW - 4.55, 0.55, 3.85, 0.92, WHITE, round_=True)
+        add_alpha(pill, WHITE, 0.12)
+        tb, tf = textbox(s, SW - 4.55, 0.6, 3.85, 0.82, anchor=MSO_ANCHOR.MIDDLE)
+        p = para(tf, first=True, align=PP_ALIGN.CENTER, space_after=1)
+        run(p, "مدرس: " + INSTRUCTOR, 14.5, True, WHITE)
+        p = para(tf, align=PP_ALIGN.CENTER, space_after=0)
+        run(p, INSTRUCTOR_ROLE, 11, False, self.accent2)
         tb, tf = textbox(s, 1.0, SH - 3.05, SW - 2.0, 2.6, anchor=MSO_ANCHOR.MIDDLE)
         p = para(tf, first=True, align=PP_ALIGN.RIGHT, space_after=6)
         run(p, kicker, 17, True, self.accent2)
@@ -524,14 +545,22 @@ class Deck:
                                        Inches(0.34), Inches(0.5))
                 ar.fill.solid(); ar.fill.fore_color.rgb = self.accent2
                 ar.line.fill.background(); no_shadow(ar)
-        tb, tf = textbox(s, 1.2, 5.05, SW - 2.4, 1.7, anchor=MSO_ANCHOR.MIDDLE)
-        p = para(tf, first=True, align=PP_ALIGN.CENTER, space_after=8, line=1.25)
+        tb, tf = textbox(s, 1.2, 4.85, SW - 2.4, 1.35, anchor=MSO_ANCHOR.MIDDLE)
+        p = para(tf, first=True, align=PP_ALIGN.CENTER, space_after=10, line=1.25)
         run(p, final_note, 19, True, C("EAF3E8"))
+        p = para(tf, align=PP_ALIGN.CENTER, space_after=0)
+        run(p, f"⛳ {BRAND}  —  {BRAND_FA}   |   مدرس: {INSTRUCTOR} ({INSTRUCTOR_ROLE})",
+            14, True, self.accent2 if img else self.accent)
         self.footer(s, dark_bg=True)
         return s
 
     def save(self, path):
         self.prs.save(path)
+        try:
+            from embed_fonts import embed_fonts
+            embed_fonts(path)
+        except Exception as e:
+            print("  (font embed skipped:", e, ")")
 
 
 def _set_alpha_run(p):
