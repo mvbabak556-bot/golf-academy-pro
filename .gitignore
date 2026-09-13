@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 .DS_Store
 source/GolfAcademy_PRO.html
+
+# Python / presentation previews cache
+__pycache__/
+presentation/__pycache__/
