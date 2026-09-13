@@ -45,6 +45,7 @@ card("c_model.png", "img_14_model.png", 4.90, 3.30)
 card("c_method.png", "img_05_method.png", 4.10, 2.60, fx=0.62)
 card("c_findings.png", "img_06_findings.png", 4.05, 2.90)
 card("c_close.png", "img_07_conclusion.png", 2.95, 4.35, fy=0.40)
+card("c_factory.png", "img_15_factory.png", 4.45, 2.95, fx=0.42)
 
 
 def smooth(x):

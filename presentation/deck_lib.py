@@ -233,6 +233,15 @@ class QASlide:
         self.d.arc(box, start_deg, end_deg, fill=color,
                    width=int(lw * SCALE))  # زاویهٔ صلح ساعت‌گرد از راست-۳‌ساعت
 
+    def hbar(self, x, y, w, h, frac, track=(231, 235, 239), fill=TEAL):
+        """میلهٔ افقی RTL؛ مقدار از لبهٔ راست پر می‌شود."""
+        frac = max(0.0, min(1.0, frac))
+        self.rect(x, y, w, h, fill=track, radius=h / 2, shadow=False)
+        fw = w * frac
+        if fw > 0.02:
+            self.rect(x + w - fw, y, fw, h, fill=fill, radius=h / 2,
+                      shadow=False)
+
     def chevron(self, x, y, w, h, fill, flip_h=False):
         a = min(0.26, w * 0.16)
         # فلش پیش‌فرض رو به راست
@@ -434,6 +443,14 @@ class PptxSlide:
         shp.line.fill.background()
         self._no_shadow(shp)
         return shp
+
+    def hbar(self, x, y, w, h, frac, track=(231, 235, 239), fill=TEAL):
+        frac = max(0.0, min(1.0, frac))
+        self.rect(x, y, w, h, fill=track, radius=h / 2, shadow=False)
+        fw = w * frac
+        if fw > 0.02:
+            self.rect(x + w - fw, y, fw, h, fill=fill, radius=h / 2,
+                      shadow=False)
 
     def chevron(self, x, y, w, h, fill, flip_h=False):
         shp = self._shape(MSO_SHAPE.CHEVRON, x, y, w, h, flip_h=flip_h)
