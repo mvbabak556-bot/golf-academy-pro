@@ -25,11 +25,31 @@ https://mvbabak556-bot.github.io/golf-academy-pro/
 - 📅 تقویم شمسی با تعطیلات رسمی ۱۴۰۵ + ورودی تاریخ شمسی در همهٔ فرم‌ها.
 - 📊 صفحات تحلیلی، رکوردها، نمایش تلویزیونی و طراحی موبایل‌محور.
 
+## 🗺️ نقشهٔ زمین (MIS Golf Club — مسجدسلیمان)
+`course-map.html` — صفحهٔ تعاملیِ تک‌فایلیِ نقشهٔ ۱۸ هول باشگاه گلف MIS مسجدسلیمان:
+زوم و پن، انتخاب هر هول (با کلیک روی نقشه یا جدول یا کلیدهای ← →)، مسیر پیمایش ۱۸ هول،
+کارت امتیاز، چاپ دقیق A4 افقی و خروجی SVG/PNG. کاملاً آفلاین؛ با دابل‌کلیک در مرورگر باز می‌شود.
+روی GitHub Pages هم در دسترس است: `https://mvbabak556-bot.github.io/golf-academy-pro/course-map.html`
+
+منبع حقیقتِ نقشه `source/assets/course_map_src.svg` است (همان SVG اصلی). صفحه از روی آن
+ساخته و راستی‌آزمایی می‌شود تا نقشه، جدول کارت امتیاز و جمع‌ها هرگز از هم جدا نشوند
+(۱۸ هول • OUT ۱٬۹۵۵/۳۴ • IN ۲٬۳۷۰/۳۷ • TOTAL ۴٬۳۲۵/۷۱).
+
+ساخت و راستی‌آزمایی صفحه:
+```bash
+python3 source/build_course_map.py        # ساخت course-map.html + اعتبارسنجی
+node source/e2e/coursemap_dom.js          # تست DOM (نیازمند npm i jsdom)
+```
+
 ## 🗂 ساختار
 ```
 index.html              ← نسخهٔ تک‌فایلی آفلاین (همان چیزی که Pages سرو می‌کند)
 GolfAcademy_PRO.html    ← همان تک‌فایل برای دانلود و اجرای آفلاین
+course-map.html         ← صفحهٔ تعاملی نقشهٔ زمین گلف مسجدسلیمان (تولیدی)
 source/                 ← سورس کامل: js, css, assets, e2e, build_standalone.py
+  assets/course_map_src.svg   ← SVG اصلی نقشه (منبع حقیقت)
+  build_course_map.py         ← سازندهٔ course-map.html
+  e2e/coursemap_dom.js        ← تست DOM صفحهٔ نقشه
 ```
 
 ساخت دوبارهٔ تک‌فایل:

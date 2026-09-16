@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نقشهٔ زمین گلف مسجدسلیمان — MIS GOLF CLUB</title>
+<meta name="description" content="نقشهٔ تعاملی ۱۸ هول باشگاه گلف MIS مسجدسلیمان — مجموع پار 71 و 4325 یارد، با کارت امتیاز و چاپ A4 افقی.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23f6e27a' stroke='%23b58c1c' stroke-width='3'/%3E%3Cg fill='%23c9a227'%3E%3Ccircle cx='24' cy='24' r='3'/%3E%3Ccircle cx='40' cy='24' r='3'/%3E%3Ccircle cx='32' cy='34' r='3'/%3E%3Ccircle cx='22' cy='42' r='3'/%3E%3Ccircle cx='42' cy='42' r='3'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0B0F14; --panel:#131C29; --panel2:#18202D; --sheet:#f6faf2;
+  --green:#007A5A; --green-l:#1EBB8A; --gold:#D4AF37; --gold-l:#E9C766;
+  --white:#F8FAFC; --muted:#8A93A6; --line:rgba(212,175,55,.22); --line-soft:rgba(248,250,252,.08);
+  --red:#E74C3C; --radius:16px;
+  --font:'Vazirmatn','Segoe UI',Tahoma,Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:
+  radial-gradient(900px 600px at 88% -8%, rgba(0,122,90,.28), transparent 60%),
+  radial-gradient(760px 560px at -8% 24%, rgba(212,175,55,.13), transparent 55%), var(--bg);
+  color:var(--white);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* ── نوار بالا ── */
+.topbar{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(19,28,41,.92),rgba(11,15,20,.55));backdrop-filter:blur(8px);
+  position:sticky;top:0;z-index:20}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .mark{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:24px;
+  background:radial-gradient(circle at 30% 28%,#1d3348,#0c1420);border:1px solid var(--line);
+  box-shadow:0 0 22px rgba(212,175,55,.28)}
+.brand h1{font-size:19px;font-weight:900;letter-spacing:.2px;
+  background:linear-gradient(90deg,var(--gold-l),#fff,var(--gold));-webkit-background-clip:text;
+  background-clip:text;color:transparent}
+.brand .sub{font-size:11px;color:var(--muted);letter-spacing:1.6px;margin-top:3px;direction:ltr}
+.stats{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:12px;color:#cfd7e4;background:var(--panel);border:1px solid var(--line-soft);
+  border-radius:999px;padding:6px 12px;white-space:nowrap}
+.chip b{color:var(--gold-l);font-weight:900}
+
+/* ── ابزار ── */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 20px;
+  border-bottom:1px solid var(--line-soft);position:sticky;top:78px;z-index:19;
+  background:rgba(11,15,20,.82);backdrop-filter:blur(8px)}
+.toolbar .group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.toolbar .group+.group{border-inline-start:1px solid var(--line-soft);padding-inline-start:10px}
+button,.tgl{font-family:var(--font);font-size:12.5px;color:var(--white);background:var(--panel2);
+  border:1px solid var(--line-soft);border-radius:10px;padding:7px 11px;cursor:pointer;
+  transition:.16s ease;user-select:none}
+button:hover,.tgl:hover{border-color:var(--gold);transform:translateY(-1px);
+  box-shadow:0 6px 18px rgba(0,0,0,.35)}
+button:active{transform:translateY(0)}
+button:focus-visible,.tgl:focus-within,#scorecard tbody tr:focus-visible{outline:2px solid var(--gold-l);outline-offset:2px}
+#zoom-val{font-size:12px;color:var(--muted);min-width:52px;text-align:center}
+.tgl{display:inline-flex;gap:7px;align-items:center;color:#cfd7e4}
+.tgl input{accent-color:var(--green-l);width:14px;height:14px}
+
+/* ── چیدمان ── */
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 336px;gap:16px;padding:16px 20px 26px;
+  align-items:start}
+.mapwrap{background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--radius);
+  padding:12px;box-shadow:0 10px 40px rgba(0,0,0,.45)}
+#map-viewport{position:relative;overflow:hidden;border-radius:12px;background:
+  repeating-conic-gradient(#141d29 0 25%, #101925 0 50%) 0 0/22px 22px;
+  height:min(72vh,760px);touch-action:none;cursor:grab}
+#map-viewport.drag{cursor:grabbing}
+#map-stage{position:absolute;top:0;left:0;width:1123px;height:794px;transform-origin:0 0;
+  will-change:transform}
+#map-svg{width:1123px;height:794px;display:block;background:#fff;
+  box-shadow:0 0 0 1px rgba(0,0,0,.35),0 18px 50px rgba(0,0,0,.5)}
+.hint{font-size:11.5px;color:var(--muted);margin-top:9px;text-align:center}
+
+/* ── نقشه: حالت‌ها ── */
+#route{display:none}
+body.show-route #route{display:inline}
+body.no-labels .tl,body.no-labels .hl{display:none}
+body.no-card #svg-scorecard{display:none}
+body.no-legend #svg-legend{display:none}
+.hole{cursor:pointer}
+.hole .halo{opacity:0;transition:opacity .18s}
+.hole:hover .halo{opacity:.55}
+.hole.on .halo{opacity:1;animation:pulse 1.6s ease-out infinite}
+.hole.on .grn{stroke:#c62828;stroke-width:2.4}
+@keyframes pulse{0%{r:15;opacity:1}70%{r:26;opacity:0}100%{r:26;opacity:0}}
+.fw.on{stroke:#e0a020}
+.tee.on{fill:#c62828}
+.teelabel.on,.hole.on .hl{fill:#c62828}
+.dimmed .hole:not(.on){opacity:.42}
+.dimmed .fw:not(.on){opacity:.5}
+
+/* ── پنل‌ها ── */
+.side{display:grid;gap:14px;position:sticky;top:140px}
+.panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--radius);
+  padding:14px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.panel h2{font-size:14px;font-weight:900;color:var(--gold-l);margin-bottom:10px;
+  display:flex;align-items:center;gap:8px}
+.holecart{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.holecart .box{background:var(--panel2);border:1px solid var(--line-soft);border-radius:12px;
+  padding:9px 10px}
+.holecart .box span{display:block;font-size:10.5px;color:var(--muted);margin-bottom:3px}
+.holecart .box b{font-size:17px;font-weight:900;color:var(--white)}
+.holecart .box b.gold{color:var(--gold-l)}
+.holecart .wide{grid-column:1/-1;font-size:11.5px;color:#c3ccd9;line-height:1.9}
+.navrow{display:flex;gap:6px;margin-top:10px}
+.navrow button{flex:1}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+caption{caption-side:bottom;font-size:11px;color:var(--muted);padding-top:8px;text-align:start}
+thead th{font-size:11px;color:var(--muted);font-weight:700;text-align:center;
+  border-bottom:1px solid var(--line);padding:0 4px 7px}
+tbody th,tbody td{padding:5px 4px;text-align:center;border-bottom:1px solid var(--line-soft)}
+tbody th{color:#e6ebf2;font-weight:700}
+tbody tr[data-n]{cursor:pointer}
+tbody tr[data-n]:hover{background:rgba(30,187,138,.12)}
+tbody tr.on{background:rgba(212,175,55,.18);box-shadow:inset 3px 0 0 var(--gold)}
+tbody tr.sub th,tbody tr.sub td{color:var(--green-l);font-weight:700;
+  background:rgba(0,122,90,.14)}
+tfoot th,tfoot td{padding:8px 4px;text-align:center;font-size:13px;font-weight:900;
+  color:var(--gold-l);border-top:1px solid var(--line)}
+.legend{font-size:11.5px;color:#c3ccd9;line-height:2}
+.legend i{display:inline-block;width:13px;height:13px;border-radius:3px;vertical-align:-2px;
+  margin-inline-end:6px}
+.legend .dot{border-radius:50%}
+footer{padding:0 20px 26px;color:var(--muted);font-size:11px;line-height:2;text-align:center}
+
+@media (max-width:1080px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static}
+  #map-viewport{height:62vh}
+  .toolbar{top:auto;position:static}
+}
+@media (max-width:560px){
+  .brand h1{font-size:16px}.stats .chip{font-size:11px;padding:5px 9px}
+  #map-viewport{height:52vh}
+}
+
+/* ── چاپ: دقیقاً A4 افقی ── */
+@page{size:A4 landscape;margin:0}
+@media print{
+  body{background:#fff}
+  .topbar,.toolbar,.side,.hint,footer{display:none!important}
+  .layout{display:block;padding:0}
+  .mapwrap{background:#fff;border:0;padding:0;box-shadow:none;border-radius:0}
+  #map-viewport{overflow:visible;height:auto;background:#fff;border-radius:0}
+  #map-stage{position:static;width:auto;height:auto;transform:none!important}
+  #map-svg{width:297mm;height:210mm;box-shadow:none}
+  body.no-card #svg-scorecard,body.no-legend #svg-legend{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="mark">⛳</div>
+    <div>
+      <h1>باشگاه گلف MIS — مسجدسلیمان</h1>
+      <div class="sub">MIS GOLF CLUB — MASJED SOLEIMAN</div>
+    </div>
+  </div>
+  <div class="stats">
+    <span class="chip"><b>۱۸</b> هول</span>
+    <span class="chip">مجموع پار <b>۷۱</b></span>
+    <span class="chip"><b>۴٬۳۲۵</b> یارد</span>
+    <span class="chip">OUT <b>۱٬۹۵۵</b> / پار <b>۳۴</b></span>
+    <span class="chip">IN <b>۲٬۳۷۰</b> / پار <b>۳۷</b></span>
+  </div>
+</header>
+
+<div class="toolbar" role="toolbar" aria-label="ابزار نقشه">
+  <div class="group">
+    <button type="button" id="btn-zoom-out" title="کوچک‌نمایی (−)">−</button>
+    <span id="zoom-val">۱۰۰٪</span>
+    <button type="button" id="btn-zoom-in" title="بزرگ‌نمایی (+)">+</button>
+    <button type="button" id="btn-fit">کل نقشه</button>
+    <button type="button" id="btn-100">۱:۱</button>
+  </div>
+  <div class="group">
+    <label class="tgl"><input type="checkbox" id="tg-labels" checked> برچسب‌ها</label>
+    <label class="tgl"><input type="checkbox" id="tg-route"> مسیر ۱۸ هول</label>
+    <label class="tgl"><input type="checkbox" id="tg-card" checked> کارت امتیاز روی نقشه</label>
+    <label class="tgl"><input type="checkbox" id="tg-legend" checked> راهنما</label>
+  </div>
+  <div class="group">
+    <button type="button" id="btn-print">🖨️ چاپ A4</button>
+    <button type="button" id="btn-svg">⬇️ SVG</button>
+    <button type="button" id="btn-png">⬇️ PNG</button>
+    <button type="button" id="btn-fs">⛶ تمام‌صفحه</button>
+  </div>
+</div>
+
+<main class="layout">
+  <section class="mapwrap">
+    <div id="map-viewport">
+      <div id="map-stage">
+        <svg id="map-svg" xmlns="http://www.w3.org/2000/svg" width="297mm" height="210mm" viewBox="0 0 1123 794">
+        <defs><style>
+        text{font-family:'Segoe UI',Tahoma,Arial,sans-serif}
+        .t{font-size:26px;font-weight:700;fill:#143a1f}.st{font-size:13px;fill:#444}
+        .tl{font-size:7.5px;font-weight:700;fill:#1f4e79;stroke:#fff;stroke-width:2.2;paint-order:stroke}
+        .hl{font-size:7.5px;font-weight:600;fill:#2c6e38;stroke:#fff;stroke-width:2.2;paint-order:stroke}
+        .gn{font-size:8px;font-weight:700;fill:#fff}.th{font-size:11px;font-weight:700;fill:#fff}
+        .td{font-size:10px;fill:#222}.tb{font-size:10px;font-weight:700;fill:#143a1f}
+        .cap{font-size:8px;fill:#555}.lg{font-size:9.5px;fill:#333}
+        </style></defs>
+        <rect width="1123" height="794" fill="#fff"/>
+        <rect x="20" y="20" width="1083" height="754" fill="none" stroke="#143a1f" stroke-width="2"/>
+        <text x="40" y="52" class="t">MIS GOLF CLUB — MASJED SOLEIMAN</text>
+        <text x="40" y="72" class="st">نقشه زمین گلف مسجدسلیمان — ۱۸ میدان • Total: Par 71 • 4,325 Yards</text>
+        <line x1="40" y1="82" x2="780" y2="82" stroke="#143a1f" stroke-width="1"/>
+        <rect x="45" y="86" width="735" height="616" fill="#f6faf2" stroke="#c9d8c0"/>
+        <!-- Walking route 1..18 (tee -> green -> next tee) -->
+        <polyline id="route" points="354.7,294.5 514.4,325 575.4,346 743.5,495.8 757.7,438 632.6,467.5 657.1,526.7 526.8,476.9 496.1,386.7 322.7,430.9 304.8,428.9 214.5,658.8 205.9,577.5 137.1,676 141.6,601.6 264.9,360.8 183.6,453.5 237.3,311.4 305,428.6 295.8,641 320.3,603.6 623.1,607.2 665.2,526.1 326.6,553.2 343.5,511.4 561.1,422.9 524.2,364.9 320.8,323.1 301.8,226.8 233,104.1 202.8,169.1 70,337.2 136.5,317.7 137.1,468.6 183.6,453.5 209.8,249" fill="none" stroke="#c62828" stroke-width="2" stroke-dasharray="7 5" stroke-linejoin="round" opacity=".8"/>
+        <!-- Fairways (edge + turf) -->
+        <g stroke="#7fae6a" stroke-width="24" stroke-linecap="round">
+        <line id="fwe-1" class="fw" data-n="1" x1="354.7" y1="294.5" x2="514.4" y2="325"/>
+        <line id="fwe-2" class="fw" data-n="2" x1="575.4" y1="346" x2="743.5" y2="495.8"/>
+        <line id="fwe-3" class="fw" data-n="3" x1="757.7" y1="438" x2="632.6" y2="467.5"/>
+        <line id="fwe-4" class="fw" data-n="4" x1="657.1" y1="526.7" x2="526.8" y2="476.9"/>
+        <line id="fwe-5" class="fw" data-n="5" x1="496.1" y1="386.7" x2="322.7" y2="430.9"/>
+        <line id="fwe-6" class="fw" data-n="6" x1="304.8" y1="428.9" x2="214.5" y2="658.8"/>
+        <line id="fwe-7" class="fw" data-n="7" x1="205.9" y1="577.5" x2="137.1" y2="676"/>
+        <line id="fwe-8" class="fw" data-n="8" x1="141.6" y1="601.6" x2="264.9" y2="360.8"/>
+        <line id="fwe-9" class="fw" data-n="9" x1="183.6" y1="453.5" x2="237.3" y2="311.4"/>
+        <line id="fwe-10" class="fw" data-n="10" x1="305" y1="428.6" x2="295.8" y2="641"/>
+        <line id="fwe-11" class="fw" data-n="11" x1="320.3" y1="603.6" x2="623.1" y2="607.2"/>
+        <line id="fwe-12" class="fw" data-n="12" x1="665.2" y1="526.1" x2="326.6" y2="553.2"/>
+        <line id="fwe-13" class="fw" data-n="13" x1="343.5" y1="511.4" x2="561.1" y2="422.9"/>
+        <line id="fwe-14" class="fw" data-n="14" x1="524.2" y1="364.9" x2="320.8" y2="323.1"/>
+        <line id="fwe-15" class="fw" data-n="15" x1="301.8" y1="226.8" x2="233" y2="104.1"/>
+        <line id="fwe-16" class="fw" data-n="16" x1="202.8" y1="169.1" x2="70" y2="337.2"/>
+        <line id="fwe-17" class="fw" data-n="17" x1="136.5" y1="317.7" x2="137.1" y2="468.6"/>
+        <line id="fwe-18" class="fw" data-n="18" x1="183.6" y1="453.5" x2="209.8" y2="249"/>
+        </g>
+        <g stroke="#cde3b4" stroke-width="19" stroke-linecap="round">
+        <line id="fw-1" class="fw" data-n="1" x1="354.7" y1="294.5" x2="514.4" y2="325"/>
+        <line id="fw-2" class="fw" data-n="2" x1="575.4" y1="346" x2="743.5" y2="495.8"/>
+        <line id="fw-3" class="fw" data-n="3" x1="757.7" y1="438" x2="632.6" y2="467.5"/>
+        <line id="fw-4" class="fw" data-n="4" x1="657.1" y1="526.7" x2="526.8" y2="476.9"/>
+        <line id="fw-5" class="fw" data-n="5" x1="496.1" y1="386.7" x2="322.7" y2="430.9"/>
+        <line id="fw-6" class="fw" data-n="6" x1="304.8" y1="428.9" x2="214.5" y2="658.8"/>
+        <line id="fw-7" class="fw" data-n="7" x1="205.9" y1="577.5" x2="137.1" y2="676"/>
+        <line id="fw-8" class="fw" data-n="8" x1="141.6" y1="601.6" x2="264.9" y2="360.8"/>
+        <line id="fw-9" class="fw" data-n="9" x1="183.6" y1="453.5" x2="237.3" y2="311.4"/>
+        <line id="fw-10" class="fw" data-n="10" x1="305" y1="428.6" x2="295.8" y2="641"/>
+        <line id="fw-11" class="fw" data-n="11" x1="320.3" y1="603.6" x2="623.1" y2="607.2"/>
+        <line id="fw-12" class="fw" data-n="12" x1="665.2" y1="526.1" x2="326.6" y2="553.2"/>
+        <line id="fw-13" class="fw" data-n="13" x1="343.5" y1="511.4" x2="561.1" y2="422.9"/>
+        <line id="fw-14" class="fw" data-n="14" x1="524.2" y1="364.9" x2="320.8" y2="323.1"/>
+        <line id="fw-15" class="fw" data-n="15" x1="301.8" y1="226.8" x2="233" y2="104.1"/>
+        <line id="fw-16" class="fw" data-n="16" x1="202.8" y1="169.1" x2="70" y2="337.2"/>
+        <line id="fw-17" class="fw" data-n="17" x1="136.5" y1="317.7" x2="137.1" y2="468.6"/>
+        <line id="fw-18" class="fw" data-n="18" x1="183.6" y1="453.5" x2="209.8" y2="249"/>
+        </g>
+        <!-- Tee boxes -->
+        <g fill="#1f4e79" stroke="#fff" stroke-width="1.2">
+        <rect id="tee-1" class="tee" data-n="1" x="350.2" y="290" width="9" height="9" rx="1.5"/>
+        <rect id="tee-2" class="tee" data-n="2" x="570.9" y="341.5" width="9" height="9" rx="1.5"/>
+        <rect id="tee-3" class="tee" data-n="3" x="753.2" y="433.5" width="9" height="9" rx="1.5"/>
+        <rect id="tee-4" class="tee" data-n="4" x="652.6" y="522.2" width="9" height="9" rx="1.5"/>
+        <rect id="tee-5" class="tee" data-n="5" x="491.6" y="382.2" width="9" height="9" rx="1.5"/>
+        <rect id="tee-6" class="tee" data-n="6" x="300.3" y="424.4" width="9" height="9" rx="1.5"/>
+        <rect id="tee-7" class="tee" data-n="7" x="201.4" y="573" width="9" height="9" rx="1.5"/>
+        <rect id="tee-8" class="tee" data-n="8" x="137.1" y="597.1" width="9" height="9" rx="1.5"/>
+        <rect id="tee-9" class="tee" data-n="9" x="179.1" y="449" width="9" height="9" rx="1.5"/>
+        <rect id="tee-10" class="tee" data-n="10" x="300.5" y="424.1" width="9" height="9" rx="1.5"/>
+        <rect id="tee-11" class="tee" data-n="11" x="315.8" y="599.1" width="9" height="9" rx="1.5"/>
+        <rect id="tee-12" class="tee" data-n="12" x="660.7" y="521.6" width="9" height="9" rx="1.5"/>
+        <rect id="tee-13" class="tee" data-n="13" x="339" y="506.9" width="9" height="9" rx="1.5"/>
+        <rect id="tee-14" class="tee" data-n="14" x="519.7" y="360.4" width="9" height="9" rx="1.5"/>
+        <rect id="tee-15" class="tee" data-n="15" x="297.3" y="222.3" width="9" height="9" rx="1.5"/>
+        <rect id="tee-16" class="tee" data-n="16" x="198.3" y="164.6" width="9" height="9" rx="1.5"/>
+        <rect id="tee-17" class="tee" data-n="17" x="132" y="313.2" width="9" height="9" rx="1.5"/>
+        <rect id="tee-18" class="tee" data-n="18" x="179.1" y="449" width="9" height="9" rx="1.5"/>
+        </g>
+        <!-- Tee labels -->
+        <text id="teelabel-1" class="tl teelabel" data-n="1" x="355" y="282" text-anchor="middle">T.1-197Y-Par4</text>
+        <text id="teelabel-2" class="tl teelabel" data-n="2" x="575" y="334" text-anchor="middle">T.2-275Y-Par4</text>
+        <text id="teelabel-3" class="tl teelabel" data-n="3" x="750" y="420" text-anchor="end">T.3-155Y-Par3</text>
+        <text id="teelabel-4" class="tl teelabel" data-n="4" x="666" y="521">T.4-170Y-Par3</text>
+        <text id="teelabel-5" class="tl teelabel" data-n="5" x="496" y="375" text-anchor="middle">T.5-217Y-Par4</text>
+        <text id="teelabel-6" class="tl teelabel" data-n="6" x="297" y="421" text-anchor="end">T.6-300Y-Par5</text>
+        <text id="teelabel-7" class="tl teelabel" data-n="7" x="214" y="572">T.7-150Y-Par3</text>
+        <text id="teelabel-8" class="tl teelabel" data-n="8" x="134" y="594" text-anchor="end">T.8-316Y-Par5</text>
+        <text id="teelabel-9" class="tl teelabel" data-n="9" x="176" y="446" text-anchor="end">T.9-175Y-Par3</text>
+        <text id="teelabel-10" class="tl teelabel" data-n="10" x="315" y="443">T.10-260Y-Par4</text>
+        <text id="teelabel-11" class="tl teelabel" data-n="11" x="320" y="594" text-anchor="middle">T.11-360Y-Par5</text>
+        <text id="teelabel-12" class="tl teelabel" data-n="12" x="674" y="511">T.12-370Y-Par5</text>
+        <text id="teelabel-13" class="tl teelabel" data-n="13" x="344" y="498" text-anchor="middle">T.13-276Y-Par4</text>
+        <text id="teelabel-14" class="tl teelabel" data-n="14" x="524" y="353" text-anchor="middle">T.14-250Y-Par4</text>
+        <text id="teelabel-15" class="tl teelabel" data-n="15" x="318" y="221">T.15-160Y-Par3</text>
+        <text id="teelabel-16" class="tl teelabel" data-n="16" x="195" y="163" text-anchor="end">T.16-260Y-Par4</text>
+        <text id="teelabel-17" class="tl teelabel" data-n="17" x="145" y="312">T.17-194Y-Par4</text>
+        <text id="teelabel-18" class="tl teelabel" data-n="18" x="192" y="460">T.18-240Y-Par4</text>
+        <!-- Greens + flags + hole labels -->
+        <g>
+        <g id="hole-1" class="hole" data-n="1"><circle class="halo" cx="514.4" cy="325" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="514.4" cy="325" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="514.4" y1="318" x2="514.4" y2="308" stroke="#333"/><path d="M514.4,308 L523.4,311 L514.4,314 Z" fill="#c62828"/><text x="514.4" y="328.2" class="gn" text-anchor="middle">1</text><text x="514" y="343" class="hl" text-anchor="middle">Hole 1</text></g>
+        <g id="hole-2" class="hole" data-n="2"><circle class="halo" cx="743.5" cy="495.8" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="743.5" cy="495.8" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="743.5" y1="488.8" x2="743.5" y2="478.8" stroke="#333"/><path d="M743.5,478.8 L752.5,481.8 L743.5,484.8 Z" fill="#c62828"/><text x="743.5" y="499" class="gn" text-anchor="middle">2</text><text x="743" y="514" class="hl" text-anchor="middle">Hole 2</text></g>
+        <g id="hole-3" class="hole" data-n="3"><circle class="halo" cx="632.6" cy="467.5" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="632.6" cy="467.5" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="632.6" y1="460.5" x2="632.6" y2="450.5" stroke="#333"/><path d="M632.6,450.5 L641.6,453.5 L632.6,456.5 Z" fill="#c62828"/><text x="632.6" y="470.7" class="gn" text-anchor="middle">3</text><text x="633" y="486" class="hl" text-anchor="middle">Hole 3</text></g>
+        <g id="hole-4" class="hole" data-n="4"><circle class="halo" cx="526.8" cy="476.9" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="526.8" cy="476.9" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="526.8" y1="469.9" x2="526.8" y2="459.9" stroke="#333"/><path d="M526.8,459.9 L535.8,462.9 L526.8,465.9 Z" fill="#c62828"/><text x="526.8" y="480.1" class="gn" text-anchor="middle">4</text><text x="527" y="495" class="hl" text-anchor="middle">Hole 4</text></g>
+        <g id="hole-5" class="hole" data-n="5"><circle class="halo" cx="322.7" cy="430.9" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="322.7" cy="430.9" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="322.7" y1="423.9" x2="322.7" y2="413.9" stroke="#333"/><path d="M322.7,413.9 L331.7,416.9 L322.7,419.9 Z" fill="#c62828"/><text x="322.7" y="434.1" class="gn" text-anchor="middle">5</text><text x="336" y="433" class="hl">Hole 5</text></g>
+        <g id="hole-6" class="hole" data-n="6"><circle class="halo" cx="214.5" cy="658.8" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="214.5" cy="658.8" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="214.5" y1="651.8" x2="214.5" y2="641.8" stroke="#333"/><path d="M214.5,641.8 L223.5,644.8 L214.5,647.8 Z" fill="#c62828"/><text x="214.5" y="662" class="gn" text-anchor="middle">6</text><text x="214" y="694" class="hl" text-anchor="middle">Hole 6</text></g>
+        <g id="hole-7" class="hole" data-n="7"><circle class="halo" cx="137.1" cy="676" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="137.1" cy="676" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="137.1" y1="669" x2="137.1" y2="659" stroke="#333"/><path d="M137.1,659 L146.1,662 L137.1,665 Z" fill="#c62828"/><text x="137.1" y="679.2" class="gn" text-anchor="middle">7</text><text x="137" y="694" class="hl" text-anchor="middle">Hole 7</text></g>
+        <g id="hole-8" class="hole" data-n="8"><circle class="halo" cx="264.9" cy="360.8" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="264.9" cy="360.8" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="264.9" y1="353.8" x2="264.9" y2="343.8" stroke="#333"/><path d="M264.9,343.8 L273.9,346.8 L264.9,349.8 Z" fill="#c62828"/><text x="264.9" y="364" class="gn" text-anchor="middle">8</text><text x="265" y="379" class="hl" text-anchor="middle">Hole 8</text></g>
+        <g id="hole-9" class="hole" data-n="9"><circle class="halo" cx="237.3" cy="311.4" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="237.3" cy="311.4" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="237.3" y1="304.4" x2="237.3" y2="294.4" stroke="#333"/><path d="M237.3,294.4 L246.3,297.4 L237.3,300.4 Z" fill="#c62828"/><text x="237.3" y="314.6" class="gn" text-anchor="middle">9</text><text x="250" y="329" class="hl">Hole 9</text></g>
+        <g id="hole-10" class="hole" data-n="10"><circle class="halo" cx="295.8" cy="641" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="295.8" cy="641" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="295.8" y1="634" x2="295.8" y2="624" stroke="#333"/><path d="M295.8,624 L304.8,627 L295.8,630 Z" fill="#c62828"/><text x="295.8" y="644.2" class="gn" text-anchor="middle">10</text><text x="296" y="659" class="hl" text-anchor="middle">Hole 10</text></g>
+        <g id="hole-11" class="hole" data-n="11"><circle class="halo" cx="623.1" cy="607.2" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="623.1" cy="607.2" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="623.1" y1="600.2" x2="623.1" y2="590.2" stroke="#333"/><path d="M623.1,590.2 L632.1,593.2 L623.1,596.2 Z" fill="#c62828"/><text x="623.1" y="610.4" class="gn" text-anchor="middle">11</text><text x="623" y="625" class="hl" text-anchor="middle">Hole 11</text></g>
+        <g id="hole-12" class="hole" data-n="12"><circle class="halo" cx="326.6" cy="553.2" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="326.6" cy="553.2" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="326.6" y1="546.2" x2="326.6" y2="536.2" stroke="#333"/><path d="M326.6,536.2 L335.6,539.2 L326.6,542.2 Z" fill="#c62828"/><text x="326.6" y="556.4" class="gn" text-anchor="middle">12</text><text x="327" y="571" class="hl" text-anchor="middle">Hole 12</text></g>
+        <g id="hole-13" class="hole" data-n="13"><circle class="halo" cx="561.1" cy="422.9" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="561.1" cy="422.9" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="561.1" y1="415.9" x2="561.1" y2="405.9" stroke="#333"/><path d="M561.1,405.9 L570.1,408.9 L561.1,411.9 Z" fill="#c62828"/><text x="561.1" y="426.1" class="gn" text-anchor="middle">13</text><text x="561" y="441" class="hl" text-anchor="middle">Hole 13</text></g>
+        <g id="hole-14" class="hole" data-n="14"><circle class="halo" cx="320.8" cy="323.1" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="320.8" cy="323.1" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="320.8" y1="316.1" x2="320.8" y2="306.1" stroke="#333"/><path d="M320.8,306.1 L329.8,309.1 L320.8,312.1 Z" fill="#c62828"/><text x="320.8" y="326.3" class="gn" text-anchor="middle">14</text><text x="321" y="341" class="hl" text-anchor="middle">Hole 14</text></g>
+        <g id="hole-15" class="hole" data-n="15"><circle class="halo" cx="233" cy="104.1" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="233" cy="104.1" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="233" y1="97.1" x2="233" y2="87.1" stroke="#333"/><path d="M233,87.1 L242,90.1 L233,93.1 Z" fill="#c62828"/><text x="233" y="107.3" class="gn" text-anchor="middle">15</text><text x="222" y="122" class="hl" text-anchor="end">Hole 15</text></g>
+        <g id="hole-16" class="hole" data-n="16"><circle class="halo" cx="70" cy="337.2" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="70" cy="337.2" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="70" y1="330.2" x2="70" y2="320.2" stroke="#333"/><path d="M70,320.2 L79,323.2 L70,326.2 Z" fill="#c62828"/><text x="70" y="340.4" class="gn" text-anchor="middle">16</text><text x="70" y="355" class="hl" text-anchor="middle">Hole 16</text></g>
+        <g id="hole-17" class="hole" data-n="17"><circle class="halo" cx="137.1" cy="468.6" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="137.1" cy="468.6" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="137.1" y1="461.6" x2="137.1" y2="451.6" stroke="#333"/><path d="M137.1,451.6 L146.1,454.6 L137.1,457.6 Z" fill="#c62828"/><text x="137.1" y="471.8" class="gn" text-anchor="middle">17</text><text x="137" y="487" class="hl" text-anchor="middle">Hole 17</text></g>
+        <g id="hole-18" class="hole" data-n="18"><circle class="halo" cx="209.8" cy="249" r="15" fill="none" stroke="#c62828" stroke-width="2.5"/><circle class="grn" cx="209.8" cy="249" r="7" fill="#3f9b4f" stroke="#245c2e" stroke-width="1.5"/><line x1="209.8" y1="242" x2="209.8" y2="232" stroke="#333"/><path d="M209.8,232 L218.8,235 L209.8,238 Z" fill="#c62828"/><text x="209.8" y="252.2" class="gn" text-anchor="middle">18</text><text x="222" y="267" class="hl">Hole 18</text></g>
+        </g>
+        <!-- North arrow & scale -->
+        <polygon points="767,100 760,132 767,125 774,132" fill="#143a1f"/><text x="767" y="96" font-size="10" font-weight="700" text-anchor="middle" fill="#143a1f">N</text>
+        <g><rect x="70" y="716" width="85" height="7" fill="#143a1f"/><rect x="155" y="716" width="85" height="7" fill="#fff" stroke="#143a1f"/><rect x="240" y="716" width="85" height="7" fill="#143a1f"/>
+        <text x="70" y="735" class="cap" text-anchor="middle">0</text><text x="155" y="735" class="cap" text-anchor="middle">100</text><text x="240" y="735" class="cap" text-anchor="middle">200</text><text x="325" y="735" class="cap" text-anchor="middle">300 m</text>
+        <text x="345" y="724" class="cap">Scale ≈ 1:8,500 on A4</text></g>
+        <!-- Scorecard -->
+        <g id="svg-scorecard">
+        <rect x="800" y="100" width="283" height="484" fill="#fff" stroke="#143a1f"/>
+        <rect x="800" y="100" width="283" height="22" fill="#143a1f"/>
+        <text x="815" y="115" class="th">Hole</text><text x="905" y="115" class="th">Yards</text><text x="1000" y="115" class="th">Par</text>
+        <line x1="895" y1="100" x2="895" y2="584" stroke="#143a1f"/><line x1="985" y1="100" x2="985" y2="584" stroke="#143a1f"/>
+        <g class="td">
+        <rect x="800" y="144" width="283" height="22" fill="#f4f8f0"/><rect x="800" y="188" width="283" height="22" fill="#f4f8f0"/><rect x="800" y="232" width="283" height="22" fill="#f4f8f0"/><rect x="800" y="276" width="283" height="22" fill="#f4f8f0"/><rect x="800" y="320" width="283" height="22" fill="#f4f8f0"/><rect x="800" y="364" width="283" height="22" fill="#f4f8f0"/><rect x="800" y="408" width="283" height="22" fill="#f4f8f0"/><rect x="800" y="452" width="283" height="22" fill="#f4f8f0"/><rect x="800" y="496" width="283" height="22" fill="#f4f8f0"/>
+        <text x="815" y="137">1</text><text x="905" y="137">197</text><text x="1000" y="137">4</text>
+        <text x="815" y="159">2</text><text x="905" y="159">275</text><text x="1000" y="159">4</text>
+        <text x="815" y="181">3</text><text x="905" y="181">155</text><text x="1000" y="181">3</text>
+        <text x="815" y="203">4</text><text x="905" y="203">170</text><text x="1000" y="203">3</text>
+        <text x="815" y="225">5</text><text x="905" y="225">217</text><text x="1000" y="225">4</text>
+        <text x="815" y="247">6</text><text x="905" y="247">300</text><text x="1000" y="247">5</text>
+        <text x="815" y="269">7</text><text x="905" y="269">150</text><text x="1000" y="269">3</text>
+        <text x="815" y="291">8</text><text x="905" y="291">316</text><text x="1000" y="291">5</text>
+        <text x="815" y="313">9</text><text x="905" y="313">175</text><text x="1000" y="313">3</text>
+        <text x="815" y="335">10</text><text x="905" y="335">260</text><text x="1000" y="335">4</text>
+        <text x="815" y="357">11</text><text x="905" y="357">360</text><text x="1000" y="357">5</text>
+        <text x="815" y="379">12</text><text x="905" y="379">370</text><text x="1000" y="379">5</text>
+        <text x="815" y="401">13</text><text x="905" y="401">276</text><text x="1000" y="401">4</text>
+        <text x="815" y="423">14</text><text x="905" y="423">250</text><text x="1000" y="423">4</text>
+        <text x="815" y="445">15</text><text x="905" y="445">160</text><text x="1000" y="445">3</text>
+        <text x="815" y="467">16</text><text x="905" y="467">260</text><text x="1000" y="467">4</text>
+        <text x="815" y="489">17</text><text x="905" y="489">194</text><text x="1000" y="489">4</text>
+        <text x="815" y="511">18</text><text x="905" y="511">240</text><text x="1000" y="511">4</text>
+        </g>
+        <rect x="800" y="562" width="283" height="22" fill="#dcead2"/>
+        <g class="tb"><text x="815" y="533">OUT</text><text x="905" y="533">1955</text><text x="1000" y="533">34</text>
+        <text x="815" y="555">IN</text><text x="905" y="555">2370</text><text x="1000" y="555">37</text>
+        <text x="815" y="577">TOTAL</text><text x="905" y="577">4325</text><text x="1000" y="577">71</text></g>
+        </g>
+        <!-- Legend -->
+        <g id="svg-legend">
+        <rect x="800" y="600" width="283" height="150" fill="#fbfdf9" stroke="#999"/>
+        <rect x="810" y="612" width="10" height="10" fill="#1f4e79"/><text x="828" y="621" class="lg">Tee box (تی‌باکس) — T.n</text>
+        <circle cx="815" cy="636" r="6" fill="#3f9b4f"/><text x="828" y="640" class="lg">Green &amp; hole (گرین و سوراخ)</text>
+        <line x1="808" y1="656" x2="832" y2="656" stroke="#cde3b4" stroke-width="9"/><text x="840" y="660" class="lg">Fairway (فیروی)</text>
+        <text x="810" y="678" class="lg">T = tee • n = hole no. • Y = yards (tee→hole)</text>
+        <text x="810" y="694" class="lg">Par = par of the hole</text>
+        <text x="810" y="712" class="lg">مبنای نقشه: نقاط GPS فایل KML</text>
+        <text x="810" y="730" class="lg">Source: Puttvision / MIS-Golf Map.kml</text>
+        </g>
+        <text x="40" y="766" class="cap">MIS Golf Club, Masjed Soleyman, Iran — 18 holes • WGS84 placemarks → local metric projection • Print: A4 landscape</text>
+        <text x="1083" y="766" class="cap" text-anchor="end">چاپ روی A4 افقی</text>
+        </svg>
+        
+      </div>
+    </div>
+    <p class="hint">نقشه را با ماوس بکشید • اسکرول = بزرگ‌نمایی • کلیک روی هول = زوم روی آن • Esc = بازگشت</p>
+  </section>
+
+  <aside class="side">
+    <div class="panel">
+      <h2>🎯 هول انتخاب‌شده</h2>
+      <div id="hole-card"></div>
+    </div>
+
+    <div class="panel">
+      <h2>📋 کارت امتیاز</h2>
+      <table id="scorecard">
+        <thead>
+          <tr><th scope="col">هول</th><th scope="col">یارد</th><th scope="col">متر</th><th scope="col">پار</th></tr>
+        </thead>
+        <tbody>
+          <tr data-n="1" tabindex="0" title="هول ۱ — برای زوم کلیک کنید"><th scope="row">۱</th><td>۱۹۷</td><td>۱۸۰</td><td>۴</td></tr>
+          <tr data-n="2" tabindex="0" title="هول ۲ — برای زوم کلیک کنید"><th scope="row">۲</th><td>۲۷۵</td><td>۲۵۱</td><td>۴</td></tr>
+          <tr data-n="3" tabindex="0" title="هول ۳ — برای زوم کلیک کنید"><th scope="row">۳</th><td>۱۵۵</td><td>۱۴۲</td><td>۳</td></tr>
+          <tr data-n="4" tabindex="0" title="هول ۴ — برای زوم کلیک کنید"><th scope="row">۴</th><td>۱۷۰</td><td>۱۵۵</td><td>۳</td></tr>
+          <tr data-n="5" tabindex="0" title="هول ۵ — برای زوم کلیک کنید"><th scope="row">۵</th><td>۲۱۷</td><td>۱۹۸</td><td>۴</td></tr>
+          <tr data-n="6" tabindex="0" title="هول ۶ — برای زوم کلیک کنید"><th scope="row">۶</th><td>۳۰۰</td><td>۲۷۴</td><td>۵</td></tr>
+          <tr data-n="7" tabindex="0" title="هول ۷ — برای زوم کلیک کنید"><th scope="row">۷</th><td>۱۵۰</td><td>۱۳۷</td><td>۳</td></tr>
+          <tr data-n="8" tabindex="0" title="هول ۸ — برای زوم کلیک کنید"><th scope="row">۸</th><td>۳۱۶</td><td>۲۸۹</td><td>۵</td></tr>
+          <tr data-n="9" tabindex="0" title="هول ۹ — برای زوم کلیک کنید"><th scope="row">۹</th><td>۱۷۵</td><td>۱۶۰</td><td>۳</td></tr>
+          <tr class="sub" data-part="OUT"><th scope="row">OUT (۱–۹)</th><td>۱٬۹۵۵</td><td>۱٬۷۸۶</td><td>۳۴</td></tr>
+          <tr data-n="10" tabindex="0" title="هول ۱۰ — برای زوم کلیک کنید"><th scope="row">۱۰</th><td>۲۶۰</td><td>۲۳۸</td><td>۴</td></tr>
+          <tr data-n="11" tabindex="0" title="هول ۱۱ — برای زوم کلیک کنید"><th scope="row">۱۱</th><td>۳۶۰</td><td>۳۲۹</td><td>۵</td></tr>
+          <tr data-n="12" tabindex="0" title="هول ۱۲ — برای زوم کلیک کنید"><th scope="row">۱۲</th><td>۳۷۰</td><td>۳۳۸</td><td>۵</td></tr>
+          <tr data-n="13" tabindex="0" title="هول ۱۳ — برای زوم کلیک کنید"><th scope="row">۱۳</th><td>۲۷۶</td><td>۲۵۲</td><td>۴</td></tr>
+          <tr data-n="14" tabindex="0" title="هول ۱۴ — برای زوم کلیک کنید"><th scope="row">۱۴</th><td>۲۵۰</td><td>۲۲۹</td><td>۴</td></tr>
+          <tr data-n="15" tabindex="0" title="هول ۱۵ — برای زوم کلیک کنید"><th scope="row">۱۵</th><td>۱۶۰</td><td>۱۴۶</td><td>۳</td></tr>
+          <tr data-n="16" tabindex="0" title="هول ۱۶ — برای زوم کلیک کنید"><th scope="row">۱۶</th><td>۲۶۰</td><td>۲۳۸</td><td>۴</td></tr>
+          <tr data-n="17" tabindex="0" title="هول ۱۷ — برای زوم کلیک کنید"><th scope="row">۱۷</th><td>۱۹۴</td><td>۱۷۷</td><td>۴</td></tr>
+          <tr data-n="18" tabindex="0" title="هول ۱۸ — برای زوم کلیک کنید"><th scope="row">۱۸</th><td>۲۴۰</td><td>۲۱۹</td><td>۴</td></tr>
+          <tr class="sub" data-part="IN"><th scope="row">IN (۱۰–۱۸)</th><td>۲٬۳۷۰</td><td>۲٬۱۶۶</td><td>۳۷</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><th scope="row">TOTAL</th><td>۴٬۳۲۵</td><td>۳٬۹۵۵</td><td>۷۱</td></tr>
+        </tfoot>
+        <caption>یارد از تی‌باکس تا گرین • متر = یارد × ۰٫۹۱۴۴</caption>
+      </table>
+    </div>
+
+    <div class="panel legend">
+      <h2>🗺️ راهنمای نقشه</h2>
+      <div><i style="background:#1f4e79"></i> تی‌باکس (Tee box) — T.n</div>
+      <div><i class="dot" style="background:#3f9b4f"></i> گرین و سوراخ (Green &amp; hole)</div>
+      <div><i style="background:#cde3b4;border-radius:999px"></i> فیروی (Fairway)</div>
+      <div><i style="background:transparent;border-top:2px dashed #c62828;border-radius:0;height:0"></i> مسیر پیمایش ۱۸ هول</div>
+      <div>T = تی‌باکس • n = شمارهٔ هول • Y = یارد • Par = پار هول</div>
+      <div>مبنای نقشه: نقاط GPS فایل KML — Source: Puttvision / MIS-Golf Map.kml</div>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  MIS Golf Club, Masjed Soleyman, Iran — 18 holes • WGS84 placemarks → local metric projection<br>
+  این صفحه تک‌فایلی و آفلاین است — برای چاپ A4 افقی، دکمهٔ «چاپ A4» را بزنید (حاشیهٔ چاپ را روی «بدون حاشیه» بگذارید).
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  var svg = document.getElementById('map-svg');
+  var stage = document.getElementById('map-stage');
+  var vp = document.getElementById('map-viewport');
+  if (!svg || !stage || !vp) return;
+
+  var W = 1123, H = 794;
+  var PX_PER_M = 0.85;            // نقشه: ۸۵ پیکسل = ۱۰۰ متر
+  var HOLES = [{"n": 1, "yards": 197, "par": 4, "m": 180, "tee": [354.7, 294.5], "green": [514.4, 325.0]}, {"n": 2, "yards": 275, "par": 4, "m": 251, "tee": [575.4, 346.0], "green": [743.5, 495.8]}, {"n": 3, "yards": 155, "par": 3, "m": 142, "tee": [757.7, 438.0], "green": [632.6, 467.5]}, {"n": 4, "yards": 170, "par": 3, "m": 155, "tee": [657.1, 526.7], "green": [526.8, 476.9]}, {"n": 5, "yards": 217, "par": 4, "m": 198, "tee": [496.1, 386.7], "green": [322.7, 430.9]}, {"n": 6, "yards": 300, "par": 5, "m": 274, "tee": [304.8, 428.9], "green": [214.5, 658.8]}, {"n": 7, "yards": 150, "par": 3, "m": 137, "tee": [205.9, 577.5], "green": [137.1, 676.0]}, {"n": 8, "yards": 316, "par": 5, "m": 289, "tee": [141.6, 601.6], "green": [264.9, 360.8]}, {"n": 9, "yards": 175, "par": 3, "m": 160, "tee": [183.6, 453.5], "green": [237.3, 311.4]}, {"n": 10, "yards": 260, "par": 4, "m": 238, "tee": [305.0, 428.6], "green": [295.8, 641.0]}, {"n": 11, "yards": 360, "par": 5, "m": 329, "tee": [320.3, 603.6], "green": [623.1, 607.2]}, {"n": 12, "yards": 370, "par": 5, "m": 338, "tee": [665.2, 526.1], "green": [326.6, 553.2]}, {"n": 13, "yards": 276, "par": 4, "m": 252, "tee": [343.5, 511.4], "green": [561.1, 422.9]}, {"n": 14, "yards": 250, "par": 4, "m": 229, "tee": [524.2, 364.9], "green": [320.8, 323.1]}, {"n": 15, "yards": 160, "par": 3, "m": 146, "tee": [301.8, 226.8], "green": [233.0, 104.1]}, {"n": 16, "yards": 260, "par": 4, "m": 238, "tee": [202.8, 169.1], "green": [70.0, 337.2]}, {"n": 17, "yards": 194, "par": 4, "m": 177, "tee": [136.5, 317.7], "green": [137.1, 468.6]}, {"n": 18, "yards": 240, "par": 4, "m": 219, "tee": [183.6, 453.5], "green": [209.8, 249.0]}];
+  var FA = {'0':'۰','1':'۱','2':'۲','3':'۳','4':'۴','5':'۵','6':'۶','7':'۷','8':'۸','9':'۹'};
+  function fa(v) {
+    return String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '٬').replace(/[0-9]/g, function (c) { return FA[c]; });
+  }
+
+  var k = 1, tx = 0, ty = 0, active = 0;
+  var zoomVal = document.getElementById('zoom-val');
+
+  function apply() {
+    stage.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + k + ')';
+    if (zoomVal) zoomVal.textContent = fa(k * 100) + '٪';
+  }
+  function clamp() {
+    var w = W * k, h = H * k, vw = vp.clientWidth, vh = vp.clientHeight;
+    var mx = Math.max(vw * 0.15, 40), my = Math.max(vh * 0.15, 40);
+    tx = (w <= vw) ? (vw - w) / 2 : Math.min(mx, Math.max(tx, vw - w - mx));
+    ty = (h <= vh) ? (vh - h) / 2 : Math.min(my, Math.max(ty, vh - h - my));
+  }
+  function setZoom(nk, cx, cy) {
+    nk = Math.min(6, Math.max(0.2, nk));
+    if (cx == null) { cx = vp.clientWidth / 2; cy = vp.clientHeight / 2; }
+    var mx = (cx - tx) / k, my = (cy - ty) / k;   // نقطهٔ زیر نشانگر روی نقشه
+    k = nk; tx = cx - k * mx; ty = cy - k * my;   // همان نقطه زیر نشانگر می‌ماند
+    clamp(); apply();
+  }
+  function fit() {
+    var vw = vp.clientWidth, vh = vp.clientHeight;
+    if (!vw || !vh) return;
+    k = Math.min(vw / W, vh / H) * 0.98;
+    tx = (vw - W * k) / 2; ty = (vh - H * k) / 2;
+    apply();
+  }
+  function centerOn(x, y, nk) {
+    k = nk;
+    tx = vp.clientWidth / 2 - k * x;
+    ty = vp.clientHeight / 2 - k * y;
+    clamp(); apply();
+  }
+
+  /* ── انتخاب هول ── */
+  function setActive(n, zoom) {
+    if (!n) { clear(); return; }
+    active = n;
+    document.body.classList.add('dimmed');
+    ['hole', 'tee', 'teelabel', 'fw'].forEach(function (p) {
+      document.querySelectorAll('#map-svg .' + p).forEach(function (el) {
+        el.classList.toggle('on', +el.getAttribute('data-n') === n);
+      });
+    });
+    document.querySelectorAll('#scorecard tbody tr[data-n]').forEach(function (tr) {
+      tr.classList.toggle('on', +tr.getAttribute('data-n') === n);
+    });
+    paintCard();
+    if (zoom) { var h = HOLES[n - 1]; centerOn(h.green[0], h.green[1], 3); }
+  }
+  function clear() {
+    active = 0;
+    document.body.classList.remove('dimmed');
+    document.querySelectorAll('#map-svg .on').forEach(function (el) { el.classList.remove('on'); });
+    document.querySelectorAll('#scorecard tbody tr.on').forEach(function (el) { el.classList.remove('on'); });
+    paintCard();
+  }
+  function paintCard() {
+    var h = active ? HOLES[active - 1] : null;
+    var el = document.getElementById('hole-card');
+    if (!el) return;
+    if (!h) {
+      el.innerHTML = '<div class="holecart"><div class="wide">روی نقشه یا جدول یک هول را انتخاب کنید '
+        + 'تا مشخصاتش اینجا بیاید.<br>کلیدهای ← → هم بین هول‌ها جابه‌جا می‌شوند و Esc انتخاب را پاک می‌کند.</div></div>';
+      return;
+    }
+    var dx = h.green[0] - h.tee[0], dy = h.green[1] - h.tee[1];
+    var mapY = Math.sqrt(dx * dx + dy * dy) / PX_PER_M / 0.9144;
+    el.innerHTML =
+      '<div class="holecart">'
+      + '<div class="box"><span>هول</span><b class="gold">' + fa(h.n) + '</b></div>'
+      + '<div class="box"><span>پار</span><b>' + fa(h.par) + '</b></div>'
+      + '<div class="box"><span>یارد (تی تا گرین)</span><b>' + fa(h.yards) + '</b></div>'
+      + '<div class="box"><span>متر</span><b>' + fa(h.m) + '</b></div>'
+      + '<div class="box wide">طول خط‌کشی‌شده روی نقشه ≈ <b>' + fa(mapY) + '</b> یارد '
+      + '(مقیاس ≈ ۱:۸٬۵۰۰ — برای مقایسه با یارد رسمی).</div>'
+      + '</div>'
+      + '<div class="navrow"><button id="h-prev">◀ هول قبلی</button><button id="h-next">هول بعدی ▶</button></div>';
+    var prev = document.getElementById('h-prev'), next = document.getElementById('h-next');
+    if (prev) prev.addEventListener('click', function () { setActive(active > 1 ? active - 1 : 18, true); });
+    if (next) next.addEventListener('click', function () { setActive(active < 18 ? active + 1 : 1, true); });
+  }
+
+  /* ── رویدادها ── */
+  vp.addEventListener('pointerdown', function (e) {
+    if (e.target.closest && e.target.closest('.hole')) return;
+    vp.classList.add('drag');
+    var sx = e.clientX, sy = e.clientY, ox = tx, oy = ty, moved = 0;
+    function mv(ev) {
+      tx = ox + (ev.clientX - sx); ty = oy + (ev.clientY - sy);
+      moved = Math.max(moved, Math.abs(ev.clientX - sx) + Math.abs(ev.clientY - sy));
+      clamp(); apply();
+    }
+    function up() {
+      vp.classList.remove('drag');
+      window.removeEventListener('pointermove', mv);
+      window.removeEventListener('pointerup', up);
+      if (moved < 5 && active) clear();
+    }
+    window.addEventListener('pointermove', mv);
+    window.addEventListener('pointerup', up);
+  });
+  vp.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    var r = vp.getBoundingClientRect();
+    setZoom(k * (e.deltaY < 0 ? 1.16 : 1 / 1.16), e.clientX - r.left, e.clientY - r.top);
+  }, { passive: false });
+
+  svg.addEventListener('click', function (e) {
+    var g = e.target.closest ? e.target.closest('.hole') : null;
+    if (g) { e.stopPropagation(); setActive(+g.getAttribute('data-n'), true); }
+  });
+
+  document.querySelectorAll('#scorecard tbody tr[data-n]').forEach(function (tr) {
+    var n = +tr.getAttribute('data-n');
+    tr.addEventListener('click', function () { setActive(n, true); });
+    tr.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActive(n, true); }
+    });
+    tr.addEventListener('mouseenter', function () {
+      var g = document.getElementById('hole-' + n);
+      if (g && !active) g.classList.add('on');
+    });
+    tr.addEventListener('mouseleave', function () {
+      var g = document.getElementById('hole-' + n);
+      if (g && !active) g.classList.remove('on');
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    if (e.key === 'ArrowLeft') { setActive(active < 18 ? active + 1 : 1, true); }
+    else if (e.key === 'ArrowRight') { setActive(active > 1 ? active - 1 : 18, true); }
+    else if (e.key === 'Escape') { clear(); fit(); }
+    else if (e.key === '+' || e.key === '=') { setZoom(k * 1.2); }
+    else if (e.key === '-') { setZoom(k / 1.2); }
+  });
+
+  function bind(id, fn) { var b = document.getElementById(id); if (b) b.addEventListener('click', fn); }
+  bind('btn-zoom-in', function () { setZoom(k * 1.25); });
+  bind('btn-zoom-out', function () { setZoom(k / 1.25); });
+  bind('btn-fit', fit);
+  bind('btn-100', function () { centerOn(W / 2, H / 2, 1); });
+  bind('btn-print', function () { window.print(); });
+  bind('btn-fs', function () {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+  });
+
+  function toggle(id, cls, invert) {
+    var c = document.getElementById(id);
+    if (!c) return;
+    var set = function () { document.body.classList.toggle(cls, invert ? !c.checked : c.checked); };
+    c.addEventListener('change', set); set();
+  }
+  toggle('tg-labels', 'no-labels', true);
+  toggle('tg-route', 'show-route', false);
+  toggle('tg-card', 'no-card', true);
+  toggle('tg-legend', 'no-legend', true);
+
+  /* ── خروجی فایل ── */
+  function svgSource() {
+    var c = svg.cloneNode(true);
+    c.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    c.querySelectorAll('.halo').forEach(function (e) { e.remove(); });
+    c.querySelectorAll('.on').forEach(function (e) { e.classList.remove('on'); });
+    c.setAttribute('width', '297mm'); c.setAttribute('height', '210mm');
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' + c.outerHTML;
+  }
+  function save(name, blob) {
+    if (!window.URL || !URL.createObjectURL) return;
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+  }
+  bind('btn-svg', function () {
+    save('MIS-Golf-Map-Masjed-Soleyman.svg', new Blob([svgSource()], { type: 'image/svg+xml;charset=utf-8' }));
+  });
+  bind('btn-png', function () {
+    var scale = 2, img = new Image();
+    var blob = new Blob([svgSource()], { type: 'image/svg+xml;charset=utf-8' });
+    if (!window.URL || !URL.createObjectURL) return;
+    img.onload = function () {
+      var cv = document.createElement('canvas');
+      cv.width = W * scale; cv.height = H * scale;
+      var cx = cv.getContext('2d');
+      cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
+      cx.drawImage(img, 0, 0, cv.width, cv.height);
+      URL.revokeObjectURL(img.src);
+      cv.toBlob(function (b) { if (b) save('MIS-Golf-Map-Masjed-Soleyman.png', b); }, 'image/png');
+    };
+    img.src = URL.createObjectURL(blob);
+  });
+
+  window.addEventListener('resize', function () { clamp(); apply(); });
+  fit(); paintCard();
+
+  window.CourseMap = {
+    HOLES: HOLES, setActive: setActive, clear: clear, fit: fit,
+    zoom: function (n) { setZoom(n); }, state: function () { return { k: k, tx: tx, ty: ty, active: active }; },
+    svgSource: svgSource
+  };
+})();
+</script>
+</body>
+</html>
