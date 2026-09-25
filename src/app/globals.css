@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@theme {
+  --color-forest-950: #050d09;
+  --color-forest-900: #0a1712;
+  --color-forest-850: #0d1e17;
+  --color-forest-800: #12271e;
+  --color-forest-700: #1b3829;
+  --color-forest-600: #27523c;
+  --color-gold-100: #f6ecd2;
+  --color-gold-200: #efdfb4;
+  --color-gold-300: #e3c98f;
+  --color-gold-400: #d4af6a;
+  --color-gold-500: #c9a24b;
+  --color-gold-600: #a98335;
+  --color-cream: #f2ecdd;
+  --color-sage: #93aa9c;
+
+  --font-vazir: var(--font-vazirmatn), "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-playfair), Georgia, serif;
+
+  --animate-marquee: marquee 34s linear infinite;
+  --animate-float: float 7s ease-in-out infinite;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-12px);
+    }
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-forest-950);
+  color: var(--color-cream);
+  overflow-x: clip;
+}
+
+::selection {
+  background: var(--color-gold-500);
+  color: var(--color-forest-950);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-forest-950);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-forest-700);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold-600);
+}
+
+.text-gold-grad {
+  background: linear-gradient(
+    115deg,
+    var(--color-gold-100) 0%,
+    var(--color-gold-400) 45%,
+    var(--color-gold-600) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-stroke-gold {
+  -webkit-text-stroke: 1.5px rgba(212, 175, 106, 0.28);
+  color: transparent;
+}
+
+input[type="range"] {
+  accent-color: var(--color-gold-500);
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
