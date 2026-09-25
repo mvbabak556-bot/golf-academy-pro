@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { db } from "@/db";
+import { bootstrapDatabase } from "@/db/bootstrap";
 import { products } from "@/db/schema";
 import { toCardData, type ProductCardData } from "@/lib/types";
 import ShopClient from "@/components/shop/ShopClient";
@@ -19,6 +20,7 @@ export default async function ShopPage({
   const { cat } = await searchParams;
   let items: ProductCardData[] = [];
   try {
+    await bootstrapDatabase();
     const rows = await db.select().from(products);
     items = rows.map(toCardData);
   } catch {

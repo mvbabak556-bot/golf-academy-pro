@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { createHash } from "crypto";
 import { db } from "./index";
 import { orders, products, reviews, users } from "./schema";
@@ -451,8 +450,12 @@ const PRODUCTS = [
   },
 ];
 
-async function main() {
-  console.log("Seeding PuttClub database...");
+/**
+ * Idempotent seed: wipes and re-inserts demo catalogue + reviews + member account.
+ * Safe to call from the CLI or from the server bootstrap hook.
+ */
+export async function seedDatabase(log = false) {
+  if (log) console.log("Seeding PuttClub database...");
 
   await db.delete(reviews);
   await db.delete(orders);
@@ -477,7 +480,7 @@ async function main() {
         comment: r.comment,
       }))
     );
-    console.log(`  ✓ ${inserted.name} (${productReviews.length} دیدگاه)`);
+    if (log) console.log(`  ✓ ${inserted.name} (${productReviews.length} دیدگاه)`);
   }
 
   await db.insert(users).values({
@@ -487,11 +490,12 @@ async function main() {
     phone: "09123456789",
   });
 
-  console.log("✓ Seed complete: 10 محصولات، دیدگاه‌ها و حساب نمونه (demo@puttclub.ir)");
-  process.exit(0);
+  if (log) {
+    console.log(
+      `✓ Seed complete: ${PRODUCTS.length} محصولات، دیدگاه‌ها و حساب نمونه (demo@puttclub.ir)`
+    );
+  }
+  return PRODUCTS.length;
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
+import { bootstrapDatabase } from "@/db/bootstrap";
 import { products } from "@/db/schema";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +9,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const cat = new URL(req.url).searchParams.get("cat");
   try {
+    await bootstrapDatabase();
     const rows = cat
       ? await db.select().from(products).where(eq(products.category, cat))
       : await db.select().from(products);
