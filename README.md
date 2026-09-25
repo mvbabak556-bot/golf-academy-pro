@@ -3,7 +3,11 @@
 داشبورد حرفه‌ای مدیریت آکادمی گلف — کاملاً فارسی، آفلاین و تک‌فایل.
 
 ## 🌐 لینک زنده (GitHub Pages)
-https://mvbabak556-bot.github.io/golf-academy-pro/
+
+- آکادمی (ورود مدیر و اعضا): https://mvbabak556-bot.github.io/golf-academy-pro/
+- فروشگاه پات‌کلاب، همین ریپو: https://mvbabak556-bot.github.io/golf-academy-pro/store/
+- فروشگاه پات‌کلاب، ریپوی جدا: https://mvbabak556-bot.github.io/puttclub/
+
 
 ## 🔑 ورود
 | نقش | نام کاربری | رمز |
