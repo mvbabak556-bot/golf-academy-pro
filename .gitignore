@@ -1,34 +1,5 @@
-# python
+node_modules/
 __pycache__/
 *.pyc
-
-# golf academy legacy
-source/GolfAcademy_PRO.html
-
-# dependencies
-node_modules/
-/node_modules
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
 .DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# env files
-.env
-.env*.local
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+source/GolfAcademy_PRO.html

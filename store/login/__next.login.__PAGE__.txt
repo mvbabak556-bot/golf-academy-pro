@@ -1,9 +1,0 @@
-1:"$Sreact.fragment"
-2:I[47257,["/golf-academy-pro/store/_next/static/chunks/03gg-7hx567jz.js","/golf-academy-pro/store/_next/static/chunks/13r5gwx62brpg.js","/golf-academy-pro/store/_next/static/chunks/0d3shmwh5_nmn.js"],"ClientPageRoot"]
-3:I[94542,["/golf-academy-pro/store/_next/static/chunks/03gg-7hx567jz.js","/golf-academy-pro/store/_next/static/chunks/13r5gwx62brpg.js","/golf-academy-pro/store/_next/static/chunks/0d3shmwh5_nmn.js","/golf-academy-pro/store/_next/static/chunks/0ubrxat.9pp21.js"],"default"]
-6:I[97367,["/golf-academy-pro/store/_next/static/chunks/03gg-7hx567jz.js","/golf-academy-pro/store/_next/static/chunks/13r5gwx62brpg.js","/golf-academy-pro/store/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
-7:"$Sreact.suspense"
-0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","script","script-0",{"src":"/golf-academy-pro/store/_next/static/chunks/0ubrxat.9pp21.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"AGNDKrO-X54ak8i3iLyBc"}
-4:{}
-5:"$0:rsc:props:children:0:props:serverProvidedParams:params"
-8:null
